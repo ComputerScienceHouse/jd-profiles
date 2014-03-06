@@ -1,0 +1,16 @@
+.button.small {
+    padding: 10px;
+
+}
+
+body {
+    min-width: 550px;
+}
+
+.top-bar-section li:not(.has-form) a:not(.button) {
+    background: #9D4799;
+}
+
+.top-bar-section li:not(.has-form) a:not(.button):hover {
+    background: #ad57a9;
+}

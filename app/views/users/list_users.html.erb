@@ -1,0 +1,26 @@
+<% @users.each_slice(4).each do |row| %>
+    <div class="row">
+        <% row.each do |user| %>
+            <% if row.length == 4 %>
+            <div class="medium-3 columns">
+            <% elsif row.length == 3 %>
+            <div class="medium-4 columns">
+            <% elsif row.length == 2 %>
+            <div class="medium-6 columns">
+            <% else %>
+            <div class="medium-12 columns">
+            <% end %>
+
+                <ul class="pricing-table" data-equalizer-watch>
+                    <%= link_to "/user/" + user[:uid][0].to_s do %>
+                        <li class="title"><%= user[:uid][0] %></li>
+                    <% end %>
+                    <li class="bullet-item"><%= user[:cn][0] %></li>
+                    <li class="bullet-item"><%= user[:mail][0] %></li>
+                </ul>
+                <br> 
+            </div>
+        <% end %>
+    </div>
+<% end %>
+

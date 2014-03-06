@@ -1,0 +1,18 @@
+<table style="width: 100%;">
+    <thead>
+        <tr>
+            <th>key</th>
+            <th>value</th>
+        </tr>
+    </thead>
+    <tbody>
+        <% @user.attribute_names.each do |attr| %>
+            <% if attr == "dn" || attr == "objectclass" %>
+            <% end %>
+            <tr>
+                <td><%= attr %></td>
+                <td><%= @user[attr][0] %></td>
+            </tr>
+        <% end %>
+    </tbody>
+</table>
