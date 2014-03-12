@@ -13,10 +13,10 @@
             <div class="medium-12 columns">
             <% end %>
                 <ul class="pricing-table" data-equalizer-watch>
-                    <%= link_to "/group/" + group[:cn][0] do %>
-                        <li class="title"><%= group[:cn][0] %></li>
+                    <%= link_to "/group/" + group["cn"][0] do %>
+                        <li class="title"><%= group["cn"][0] %></li>
                     <% end %>
-                    <li class="bullet-item"><%= group[:member].length %> members</li>
+                    <li class="bullet-item"><%= group["member"].length %> members</li>
                 </ul>
                 <br> 
             </div>

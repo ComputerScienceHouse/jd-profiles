@@ -22,20 +22,22 @@
         </tr>
     </thead>
     <tbody>
-        <% @user.each do |attr, values| %>
-            <tr>
-                <td><%= attr %></td>
-                <td>
-                    <% if attr.to_s == "birthday" || attr.to_s == "memberSince" %>
-                        <%= format_date(values[0]) %>
-                    <% else %>
-                        <% values.each do |a| %>
-                            <div><%= a %></div>
+        <%= form_tag "/update" do %>
+            <% @user.each do |attr, values| %>
+                <tr>
+                    <td><%= attr %></td>
+                    <td>
+                        <% if attr.to_s == "birthday" || attr.to_s == "memberSince" %>
+                            <%= format_date(values[0]) %>
+                        <% else %>
+                            <% values.each do |a| %>
+                                <%= text_field("fields", attr, value: a) %>
+                            <% end %>
                         <% end %>
-                    <% end %>
-                </td>
-            </tr>
+                    </td>
+                </tr>
+            <% end %>
+            <%= submit_tag 'Save' %>
         <% end %>
     </tbody>
 </table>
-<%= link_to "Edit", {controller: 'users', action: 'edit'}, {class: "button [tiny small large]" } %>

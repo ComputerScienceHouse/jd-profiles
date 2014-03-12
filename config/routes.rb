@@ -4,7 +4,10 @@ Profiles::Application.routes.draw do
     match '/groups', to: 'users#list_groups', via: 'get'
     match '/users', to: 'users#list_users', via: 'get'
     match '/years', to: 'users#list_years', via: 'get'
-    match '/user/:uid', to: 'users#user', via: 'get'
+    match '/user/:uid', to: 'users#user', via: 'get', constraints: { :uid => /[\w+\.]+/ } 
+    match '/edit', to: 'users#edit', via: 'get'
+    match '/update', to: 'users#update', via: 'post'
+    match '/profiles', to: 'users#user', via: 'get' 
     match '/group/:group', to: 'users#group', via: 'get'
     match '/year/:year', to: 'users#year', via: 'get'
 

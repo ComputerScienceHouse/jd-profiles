@@ -1,6 +1,8 @@
 require 'net-ldap'
+require 'ldap'
 
 class UsersController < ApplicationController
+    before_action :log
     @@user_treebase="ou=Users,dc=csh,dc=rit,dc=edu"
     @@group_treebase="ou=Groups,dc=csh,dc=rit,dc=edu"
 
@@ -8,98 +10,134 @@ class UsersController < ApplicationController
         @users = []
         search_str = params[:search][:search]
         filter = "(|(cn=*#{search_str}*)(description=*#{search_str}*)" + 
-                "(displayName=*#{search_str}*)(Email=*#{search_str}*)" + 
+                "(displayName=*#{search_str}*)(mail=*#{search_str}*)" + 
                 "(nickname=*#{search_str}*)(plex=*#{search_str}*)" + 
-                "(sn=*#{search_str}*)(uid=*#{search_str}*))"
-        get_conn.open do |ldap|
-            @users = ldap.search(base: @@user_treebase, filter: filter)
+                "(sn=*#{search_str}*)(uid=*#{search_str}*)(mobile=#{search_str}))"
+        attrs = ["uid", "cn", "mail", "memberSince"]
+        conn = get_conn
+        conn.search(@@user_treebase,  LDAP::LDAP_SCOPE_SUBTREE, filter, 
+                        attrs = attrs) do |entry|
+            @users << entry.to_hash   
         end
-        #@users = @users.sort_by { |entity| entity[:membersince] }.reverse
-        @users.sort! { |x, y| y[:membersince] <=> x[:membersince] } 
+        conn.unbind
+        @users.reverse!
         render 'list_users'
     end
 
     def me
-        #uid = request.headers['WEBAUTH_USER']
-        filter = Net::LDAP::Filter.eq("uid", "jd")
-        attrs = ["uid", "cn", "givenname", "sn", "gecos", "mail", "displayname", 
-                 "active", "nickname", "github", "birthday", "plex", "cn", 
-                 "roomnumber", "housingpoints", "drinkbalance"]
-        get_conn.open do |ldap|
-            @user = ldap.search(base: @@user_treebase, filter: filter, attributes: attrs)[0]
-        end
-        render 'user'
+        redirect_to "/user/#{request.headers['WEBAUTH_USER']}"
     end
 
     def list_users
         @users = []
-        attrs = ["uid", "cn", "mail"]
-        get_conn.open do |ldap|
-            @users = ldap.search(base: @@user_treebase)
+        attrs = ["uid", "cn", "mail", "memberSince"]
+        conn = get_conn
+        conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, "(uid=*)", 
+                        attrs = attrs) do |entry|
+            @users << entry.to_hash
         end
-        @users.sort! { |x, y| y[:membersince] <=> x[:membersince] } 
+        @users.reverse!
+        conn.unbind
     end
 
     def list_groups
         @groups = []
-        get_conn.open do |ldap|
-            @groups = ldap.search(base: @@group_treebase)
+        conn = get_conn
+        conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE, "(cn=*)",
+                       attrs = attrs) do |entry|
+            @groups << entry.to_hash
         end
+        @groups.sort! { |x,y| x["cn"] <=> y["cn"] }
+        conn.unbind
     end
 
     def list_years
-        @years = (1994..Time.new.year).to_a.reverse
+        @years = []
+        (1994...Time.new.year).to_a.reverse.each { |year| @years << year }
     end
 
     def user
         @user = []
-        filter = Net::LDAP::Filter.eq("uid", params[:uid])
-        attrs = ["uid", "cn", "givenname", "sn", "gecos", "mail", "displayname", 
-                 "active", "nickname", "github", "birthday", "plex", "cn", 
-                 "roomnumber", "housingpoints", "drinkbalance"]
-        get_conn.open do |ldap|
-            @user = ldap.search(base: @@user_treebase, filter: filter, attributes: attrs)[0]
+        conn = get_conn
+        conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, "(uid=#{params[:uid]})") do |entry|
+            @user = entry.to_hash.except("objectClass", "uidNumber", "homeDirectory",
+                                         "diskQuotaSoft", "diskQuotaHard", "jpegPhoto")
         end
+        conn.unbind
+    end
+
+    def edit
+        @user = []
+        conn = get_conn
+        conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
+                        "(uid=#{request.headers['WEBAUTH_USER']})") do |entry|
+             @user = entry.to_hash.except("objectClass", "uidNumber", "homeDirectory",
+                                          "diskQuotaSoft", "diskQuotaHard", "jpegPhoto")
+        end
+        conn.unbind
+    end
+
+    def update
+        updates = []
+        params[:fields].each do |key, value|
+            updates << LDAP.mod(LDAP::LDAP_MOD_REPLACE, key, [value])
+        end
+        conn = get_conn
+        conn.modify("uid=#{request.headers['WEBAUTH_USER']},#{@@user_treebase}", 
+                       updates)
+        conn.unbind 
     end
 
     def group
         @users = []
         attrs = ["uid", "cn", "mail", "membersince"]
-        filter = Net::LDAP::Filter.eq("cn", params[:group])
-        get_conn.open do |ldap|
-            @users = ldap.search(base: @@group_treebase, filter: filter)[0][:member]
-            filter = "(|"
-            @users.each { |dn| filter += "(uid=#{dn.split(",")[0].split("=")[1]})" }
-            filter += ")"
-            @users = ldap.search(base: @@user_treebase, filter: filter, attributes: attrs)
+        filter = "(cn=#{params[:group]})"
+        conn = get_conn
+        conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE, filter) do |entry|
+            @users = entry.to_hash["member"].to_a
         end
-        @users.sort! { |x, y| y[:membersince] <=> x[:membersince] } 
+        filter = "(|"
+        @users.each { |dn| filter += "(uid=#{dn.split(",")[0].split("=")[1]})" }
+        filter += ")"
+        Rails.logger.debug filter
+        @users = []
+        get_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, filter, 
+                        attrs = attrs) do |entry|
+            @users << entry.to_hash
+        end
+        @users.reverse!
+        conn.unbind 
+
+        Rails.logger.debug @users
         render 'list_users'
     end
 
     def year
+        @users = []
         year = params[:year].to_i
-        gt = Net::LDAP::Filter.ge("membersince", "#{year}0101000000-0400")
-        lt = Net::LDAP::Filter.le("membersince", "#{year + 1}0101000000-0400")
-        filter = Net::LDAP::Filter.join(gt, lt)
-        #filter = Net::LDAP::Filter.eq("uid", "jd")
-        puts filter
-        get_conn.open do |ldap|
-            @users = ldap.search(base: @@user_treebase, filter: filter)
+        Rails.logger.debug year
+        attrs = ["uid", "cn", "mail", "memberSince"]
+        filter  = "(&(memberSince>=#{year}0801010101-0400)(memberSince<=#{year + 1}0801010101-0400))"
+        conn = get_conn
+        conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, filter, 
+                        attrs = attrs) do |entry|
+            @users << entry.to_hash
         end
-        @users.sort! { |x, y| y[:membersince] <=> x[:membersince] } 
+        conn.unbind
+        @users.reverse!
         render 'list_users'
     end
 
     private
+        def log
+            Log.create(user: request.headers['WEBAUTH_USER'], 
+                       page: request.fullpath).save
+        end
+
         def get_conn
-            return Net::LDAP.new host: Global.ldap.host,
-                port: Global.ldap.port,
-                encryption: :simple_tls,
-                auth: {
-                    method: :simple,
-                    username: Global.ldap.username,
-                    password: Global.ldap.password
-                }
+            ENV['KRB5CCNAME'] = request.env['KRB5CCNAME']
+            conn = LDAP::SSLConn.new(host = Global.ldap.host, port = Global.ldap.port)
+            conn.sasl_bind('', '')
+            return conn
         end
 end

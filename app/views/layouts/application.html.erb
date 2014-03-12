@@ -28,7 +28,7 @@
 		  </ul>
 		  <!-- Right Nav Section -->
           <ul class="right">
-            <li><%= link_to "Memebers Home", "https://members.csh.rit.edu" %></li>
+            <li><%= link_to "Members Home", "https://members.csh.rit.edu" %></li>
             <li><%= link_to "Public Site", "http://csh.rit.edu" %></li>
             <li><%= link_to "Webauth Logout", "https://members.csh.rit.edu/logout" %></li>
 		  </ul>
@@ -44,7 +44,7 @@
                     <%= link_to "Years", {controller: 'users', action: 'list_years'}, {class: "button [tiny small large]" } %>
                     <%= link_to "E-Board", "/group/eboard", {class: "button [tiny small large]" } %>
                     <%= link_to "RTPs", "/group/rtp", {class: "button [tiny small large]" } %>
-                    <%= link_to "Me", "/", {class: "button [tiny small large]" } %>
+                    <%= link_to "Me", "/user/#{request.headers['WEBAUTH_USER']}", {class: "button [tiny small large]" } %>
                 </div>
                 <div style="float:right;">
                      <%= form_tag("/search", method: "post") do %>
