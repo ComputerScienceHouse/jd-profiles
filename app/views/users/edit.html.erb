@@ -3,8 +3,8 @@
         <h3><%= @user["cn"][0] %></h3>
     </div>
     <div class="small-4 columns">
-        <% if @user["active"] == ["1"] %>
-            <% if @user["onfloor"] == ["1"] %>
+        <% if @user["active"][0] == ["1"] %>
+            <% if @user["onfloor"][0] == ["1"] %>
                 <h3><strong>Active - on-floor</strong></h3>
             <% else %>
                 <h3><strong>Active - off-floor</strong></h3>
@@ -14,30 +14,54 @@
         <% end %>
     </div>
 </div>
-<table style="width: 100%;">
-    <thead>
-        <tr>
-            <th>key</th>
-            <th>value</th>
-        </tr>
-    </thead>
-    <tbody>
-        <%= form_tag "/update" do %>
+    <table style="width:100%;">
+        <thead>
+            <tr>
+                <th>key</th>
+                <th>value</th>
+            </tr>
+        </thead>
+        <tbody>
             <% @user.each do |attr, values| %>
                 <tr>
-                    <td><%= attr %></td>
-                    <td>
+                    <td class="edit_row"><%= attr %></td>
+                    <td class="edit_row">
                         <% if attr.to_s == "birthday" || attr.to_s == "memberSince" %>
-                            <%= format_date(values[0]) %>
+                            <%= form_tag "/update" do %>
+                                <div class="row">
+                                    <div class="small-10 columns">
+                                        <%= text_field("fields", "m:#{attr}",  value: format_date(values[0])) %>
+                                    </div>
+                                    <div class="small-2 columns">
+                                        <%= submit_tag "Submit", class: "button [tiny small large radius round]" %>
+                                    </div>
+                                </div>
+                            <% end %>
                         <% else %>
-                            <% values.each do |a| %>
-                                <%= text_field("fields", attr, value: a) %>
+                            <%= form_tag "/update" do %>
+                                <div class="row">
+                                    <div class="small-10 columns">
+                                <% if values.length == 1 %>
+                                    <%= text_field("fields", "m:#{attr}", value: values[0]) %>
+                                <% else %>
+                                    <% i = 1 %>
+                                    <% values[0].each do |a| %>
+                                        <%= text_field("fields", "m_#{i}:#{attr}", value: a) %>
+                                        <% i += 1 %>
+                                    <% end %>
+                                    <% if values[1] == :multiple %>
+                                        <%= text_field("fields", "m_#{i}:#{attr}") %>
+                                    <% end %>
+                                <% end %>
+                            </div>
+                            <div class="small-2 columns">
+                                <%= submit_tag "Submit", class: "button [tiny small large radius round]" %>
+                            </div>
+                        </div>
                             <% end %>
                         <% end %>
                     </td>
                 </tr>
             <% end %>
-            <%= submit_tag 'Save' %>
-        <% end %>
-    </tbody>
-</table>
+        </tbody>
+    </table>

@@ -7,6 +7,7 @@ gem 'net-ldap'
 gem 'ruby-ldap'
 gem 'i18n', '0.6.9'
 gem 'global'
+gem 'activeldap'
 group :development, :test do
     # Use sqlite3 as the database for Active Record
     gem 'sqlite3'

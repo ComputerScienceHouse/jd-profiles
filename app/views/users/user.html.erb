@@ -38,4 +38,6 @@
         <% end %>
     </tbody>
 </table>
-<%= link_to "Edit", {controller: 'users', action: 'edit'}, {class: "button [tiny small large]" } %>
+<% if @allow_edit %>
+    <%= link_to "Edit", {controller: 'users', action: 'edit'}, {class: "button [large radius round]" } %>
+<% end %>

@@ -11,8 +11,11 @@
     <%= javascript_include_tag "vendor/modernizr" %>
     <%= csrf_meta_tags %>
   </head>
-
-  <body>
+  <% if @user %>
+      <body style="min-width: 420px">
+  <% else %>
+      <body>
+    <% end %>
     <div id="menu">
       <nav class="top-bar" data-topbar data-options="is_hover: false">
         <ul class="title-area">
@@ -38,21 +41,26 @@
     <div id="main" class="row ">
         <div class="large-12 columns" id="container">
             <div class="row panel" id="main-header">
-                <div id="view-options" class="button-bar" style="float: left;">
-                    <%= link_to "Users", {controller: 'users', action: 'list_users'}, {class: "button [tiny small large]" } %>
-                    <%= link_to "Groups", {controller: 'users', action: 'list_groups'}, {class: "button [tiny small large]" } %>
-                    <%= link_to "Years", {controller: 'users', action: 'list_years'}, {class: "button [tiny small large]" } %>
-                    <%= link_to "E-Board", "/group/eboard", {class: "button [tiny small large]" } %>
-                    <%= link_to "RTPs", "/group/rtp", {class: "button [tiny small large]" } %>
-                    <%= link_to "Me", "/user/#{request.headers['WEBAUTH_USER']}", {class: "button [tiny small large]" } %>
+                <div id="view-options" class="button-bar">
+                    <%= link_to "Users", {controller: 'users', action: 'list_users'}, {class: "button [tiny small large radius round]" } %>
+                    <%= link_to "Groups", {controller: 'users', action: 'list_groups'}, {class: "button [tiny small large radius round]" } %>
+                    <%= link_to "Years", {controller: 'users', action: 'list_years'}, {class: "button [tiny small large radius round]" } %>
+                    <%= link_to "E-Board", "/group/eboard", {class: "button [tiny small large radius round]" } %>
+                    <%= link_to "RTPs", "/group/rtp", {class: "button [tiny small large radius round]" } %>
+                    <%= link_to "Me", "/user/#{request.headers['WEBAUTH_USER']}", {class: "button [tiny small large radius round]" } %>
                 </div>
-                <div style="float:right;">
+                <div id="search">
                      <%= form_tag("/search", method: "post") do %>
-                        <span role="status" aria-live="polite" class="ui-helper-hidden-accessible"></span>
                         <%= text_field("search", "search", size: "15", placeholder: "search...") %>
                     <% end %>
                 </div>
             </div>
+            <% flash.each do |key, value| %>
+                <div data-alert class="alert-box">
+                    <%= value %>
+                    <a href="#" class="close">&times;</a>
+                </div>
+            <% end %>
             <%= yield %>
         </div>
     </div>
