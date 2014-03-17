@@ -1,6 +1,6 @@
 <div class="row">
     <div class="small-8 columns">
-        <h3><%= @user["cn"][0] %></h3>
+        <h3><%= @user["cn"][0][0] %></h3>
     </div>
     <div class="small-4 columns">
         <% if @user["active"][0] == ["1"] %>
@@ -26,39 +26,32 @@
                 <tr>
                     <td class="edit_row"><%= attr %></td>
                     <td class="edit_row">
-                        <% if attr.to_s == "birthday" || attr.to_s == "memberSince" %>
-                            <%= form_tag "/update" do %>
-                                <div class="row">
-                                    <div class="small-10 columns">
-                                        <%= text_field("fields", "m:#{attr}",  value: format_date(values[0])) %>
-                                    </div>
-                                    <div class="small-2 columns">
-                                        <%= submit_tag "Submit", class: "button [tiny small large radius round]" %>
-                                    </div>
+                        <%= form_tag "/update" do %>
+                            <div class="row">
+                                <div class="small-10 columns">
+                                    <% if attr.to_s == "birthday" %>
+                                        <% if values[0] != [""] %>
+                                            <%= text_field("fields", "m:#{attr}",  value: format_date(values[0])) %>
+                                        <% else %>
+                                            <%= text_field("fields", "m:#{attr}") %>
+                                        <% end %>
+                                    <% elsif values.length == 1 %>
+                                        <%= text_field("fields", "m:#{attr}", value: values[0]) %>
+                                    <% else %>
+                                        <% i = 1 %>
+                                        <% values[0].each do |a| %>
+                                            <%= text_field("fields", "m_#{i}:#{attr}", value: a) %>
+                                            <% i += 1 %>
+                                        <% end %>
+                                        <% if values[1] == :multiple %>
+                                            <%= text_field("fields", "m_#{i}:#{attr}") %>
+                                        <% end %>
+                                    <% end %>
                                 </div>
-                            <% end %>
-                        <% else %>
-                            <%= form_tag "/update" do %>
-                                <div class="row">
-                                    <div class="small-10 columns">
-                                <% if values.length == 1 %>
-                                    <%= text_field("fields", "m:#{attr}", value: values[0]) %>
-                                <% else %>
-                                    <% i = 1 %>
-                                    <% values[0].each do |a| %>
-                                        <%= text_field("fields", "m_#{i}:#{attr}", value: a) %>
-                                        <% i += 1 %>
-                                    <% end %>
-                                    <% if values[1] == :multiple %>
-                                        <%= text_field("fields", "m_#{i}:#{attr}") %>
-                                    <% end %>
-                                <% end %>
+                                <div class="small-2 columns">
+                                    <%= submit_tag "Submit", class: "edit_page button [tiny small large radius round]" %>
+                                </div>
                             </div>
-                            <div class="small-2 columns">
-                                <%= submit_tag "Submit", class: "button [tiny small large radius round]" %>
-                            </div>
-                        </div>
-                            <% end %>
                         <% end %>
                     </td>
                 </tr>

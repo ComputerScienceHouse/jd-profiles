@@ -21,8 +21,13 @@ class UsersController < ApplicationController
                         attrs = attrs) do |entry|
             @users << entry.to_hash   
         end
-        @users.reverse!
-        render 'list_users'
+        # if only one result is returned, redirect to that user
+        if @users.length == 1
+            redirect_to "/user/#{@users[0]["uid"][0]}"
+        else
+            @users.reverse!
+            render 'list_users'
+        end
     end
 
     # Shows the current user's page
@@ -73,8 +78,6 @@ class UsersController < ApplicationController
 
     # shows the edit page for the user
     def edit
-        @active = false
-        @onfloor = false
         @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
                         "(uid=#{request.headers['WEBAUTH_USER']})") do |entry|
             @user = entry.to_hash
@@ -88,7 +91,7 @@ class UsersController < ApplicationController
             @user = @user.except("uidNumber", "homeDirectory",
                                  "diskQuotaSoft", "diskQuotaHard", 
                                  "jpegPhoto", "gidNumber", "memberSince", 
-                                 "objectClass")
+                                 "objectClass", "uid")
         end
     end
 
@@ -102,6 +105,8 @@ class UsersController < ApplicationController
             key = splits[1]
             if key == "birthday"
                 date = value.split("/")
+                date[0] = "0#{date[0]}" if date[0].length == 1
+                date[1] = "0#{date[1]}" if date[1].length == 1
                 value = "#{date[2]}#{date[0]}#{date[1]}010101-0400"
             end
             if map[key] == nil
@@ -191,15 +196,19 @@ class UsersController < ApplicationController
         # object_classes - the object classes that the user belongs to, used
         #   to get the values allowed
         def get_attrs object_classes
-            attr_set = Set.new
             schema = @ldap_conn.schema()
+            attr_set = Set.new
+            real_attrs = []
             object_classes.each do |oc|
+                Rails.logger.debug oc
                 a = schema.may(oc)
                 a.each { |attr| attr_set.add(attr) } if a != nil
             end
-            real_attrs = []
             schema["attributeTypes"].each do |s|
                 name = s.split(" ")[3][1..-2]
+                # deals with when attributes have aliases
+                n = s.split("NAME")[1].split("DESC")[0].strip
+                name = n.split("'")[1] if n[0] == "("
                 if attr_set.include? name
                     if s.split(" ")[-2] == "SINGLE-VALUE"
                         real_attrs << [name, :single]
@@ -208,6 +217,8 @@ class UsersController < ApplicationController
                     end
                 end
             end
+            real_attrs.sort! { |x,y| x[0] <=> y[0] }
+            Rails.logger.debug real_attrs
             return real_attrs
         end
 end
