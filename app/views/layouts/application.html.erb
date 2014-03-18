@@ -11,11 +11,7 @@
     <%= javascript_include_tag "vendor/modernizr" %>
     <%= csrf_meta_tags %>
   </head>
-  <% if @user %>
-      <body style="min-width: 420px">
-  <% else %>
-      <body>
-    <% end %>
+  <body>
     <div id="menu">
       <nav class="top-bar" data-topbar data-options="is_hover: false">
         <ul class="title-area">
@@ -23,7 +19,7 @@
           <li class="name">
             <h1><%= link_to (image_tag("/assets/csh.png", :border => 0, :alt => 'CSH Logo', ) + " Profiles"), root_path %></h1>
 		  </li>
-		  <li class="toggle-topbar menu-icon"><a href="#"><span>Menu</span></a></li>  
+		  <li class="toggle-topbar menu-icon"><a href="#"><span id="menu_logo">Menu</span></a></li>  
 		</ul>
         <section class="top-bar-section">
 		  <!-- Left Nav Section -->

@@ -11,13 +11,14 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140311142710) do
+ActiveRecord::Schema.define(version: 20140317150351) do
 
   create_table "logs", force: true do |t|
     t.string   "user"
     t.string   "page"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "time"
   end
 
 end

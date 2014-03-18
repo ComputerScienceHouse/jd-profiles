@@ -2,7 +2,8 @@ require 'ldap'
 require 'ldap/schema'
 
 class UsersController < ApplicationController
-    before_action :log
+    before_action :log_before
+    after_action :log_after
     before_action :bind_ldap, except: [:list_years, :me]
     after_action :unbind_ldap, except: [:list_years, :me]
     @@user_treebase="ou=Users,dc=csh,dc=rit,dc=edu"
@@ -15,7 +16,9 @@ class UsersController < ApplicationController
         filter = "(|(cn=*#{search_str}*)(description=*#{search_str}*)" + 
                 "(displayName=*#{search_str}*)(mail=*#{search_str}*)" + 
                 "(nickName=*#{search_str}*)(plex=*#{search_str}*)" + 
-                "(sn=*#{search_str}*)(uid=*#{search_str}*)(mobile=#{search_str}))"
+                "(sn=*#{search_str}*)(uid=*#{search_str}*)" + 
+                "(mobile=#{search_str})(twitterName=#{search_str})" + 
+                "(github=#{search_str}))"
         attrs = ["uid", "cn", "mail", "memberSince"]
         @ldap_conn.search(@@user_treebase,  LDAP::LDAP_SCOPE_SUBTREE, filter, 
                         attrs = attrs) do |entry|
@@ -67,8 +70,8 @@ class UsersController < ApplicationController
 
     # Displays all the information for the given user
     def user 
-        @user = []
-        @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, "(uid=#{params[:uid]})") do |entry|
+        @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
+                          "(uid=#{params[:uid]})") do |entry|
             @user = entry.to_hash.except("objectClass", "uidNumber", "homeDirectory",
                                          "diskQuotaSoft", "diskQuotaHard", "jpegPhoto",
                                          "gidNumber")
@@ -91,7 +94,8 @@ class UsersController < ApplicationController
             @user = @user.except("uidNumber", "homeDirectory",
                                  "diskQuotaSoft", "diskQuotaHard", 
                                  "jpegPhoto", "gidNumber", "memberSince", 
-                                 "objectClass", "uid")
+                                 "objectClass", "uid", "ou", "userPassword", 
+                                 "l", "o", "conditional")
         end
     end
 
@@ -171,11 +175,14 @@ class UsersController < ApplicationController
     end
 
     private
-        
-        # Logs who is the most popular users
-        def log
+        def log_before
+            @start_time = Time.now.to_f * 1000
+        end
+        # Logs the response time for each page
+        def log_after
             Log.create(user: request.headers['WEBAUTH_USER'], 
-                       page: request.fullpath).save
+                       page: request.fullpath, 
+                       time: Time.now.to_f * 1000 - @start_time).save
         end
 
         # Gets the ldap connection for the given user using the kerberos auth
@@ -200,7 +207,6 @@ class UsersController < ApplicationController
             attr_set = Set.new
             real_attrs = []
             object_classes.each do |oc|
-                Rails.logger.debug oc
                 a = schema.may(oc)
                 a.each { |attr| attr_set.add(attr) } if a != nil
             end
@@ -217,8 +223,6 @@ class UsersController < ApplicationController
                     end
                 end
             end
-            real_attrs.sort! { |x,y| x[0] <=> y[0] }
-            Rails.logger.debug real_attrs
             return real_attrs
         end
 end

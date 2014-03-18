@@ -14,23 +14,23 @@
         <% end %>
     </div>
 </div>
-<table style="width: 100%;">
+<table style="width: 100%;  table-layout:fixed;">
     <thead>
         <tr>
-            <th>key</th>
-            <th>value</th>
+            <th width="30%">key</th>
+            <th width="70%">value</th>
         </tr>
     </thead>
     <tbody>
         <% @user.each do |attr, values| %>
             <tr>
-                <td><%= attr %></td>
-                <td>
+                <td width="30%" style="word-break: break-all;"><%= attr %></td>
+                <td width="70%">
                     <% if attr.to_s == "birthday" || attr.to_s == "memberSince" %>
                         <%= format_date(values[0]) %>
                     <% else %>
                         <% values.each do |a| %>
-                            <div><%= a %></div>
+                            <div style="word-break: break-all;"><%= a %></div>
                         <% end %>
                     <% end %>
                 </td>

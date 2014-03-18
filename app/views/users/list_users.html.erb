@@ -1,27 +1,31 @@
-<% @users.each_slice(4).each do |row| %>
-    <div class="row">
-        <% row.each do |user| %>
-            <% if row.length == 4 %>
-            <div class="medium-3 columns">
-            <% elsif row.length == 3 %>
-            <div class="medium-4 columns">
-            <% elsif row.length == 2 %>
-            <div class="medium-6 columns">
-            <% else %>
-            <div class="medium-12 columns">
-            <% end %>
+<% if @users.length == 0 %>
+    <h3 style="text-align: center">No Users found</h3>
+<% else %>
+    <% @users.each_slice(4).each do |row| %>
+        <div class="row">
+            <% row.each do |user| %>
+                <% if row.length == 4 %>
+                <div class="medium-3 columns">
+                <% elsif row.length == 3 %>
+                <div class="medium-4 columns">
+                <% elsif row.length == 2 %>
+                <div class="medium-6 columns">
+                <% else %>
+                <div class="medium-12 columns">
+                <% end %>
 
-                <ul class="pricing-table" data-equalizer-watch>
-                    <%= link_to "/user/#{user["uid"][0]}"  do %>
-                        <li class="title"><%= user["uid"][0] %></li>
-                    <% end %>
-                    <li class="bullet-item"><%= user["cn"][0] %></li>
-                    <% if user["mail"] != nil  %>
-                        <li class="bullet-item"><%= user["mail"][0] %></li>
-                    <% end %>
-                </ul>
-                <br> 
-            </div>
-        <% end %>
-    </div>
+                    <ul class="pricing-table" data-equalizer-watch>
+                        <%= link_to "/user/#{user["uid"][0]}"  do %>
+                            <li class="title"><%= user["uid"][0] %></li>
+                        <% end %>
+                        <li class="bullet-item"><%= user["cn"][0] %></li>
+                        <% if user["mail"] != nil  %>
+                            <li class="bullet-item"><%= user["mail"][0] %></li>
+                        <% end %>
+                    </ul>
+                    <br> 
+                </div>
+            <% end %>
+        </div>
+    <% end %>
 <% end %>
