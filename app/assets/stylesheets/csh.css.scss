@@ -261,3 +261,54 @@ h2 {
   padding-bottom: 1.5%;
 }
 
+// ------Fixed the navbar issues---------------------------------
+
+.top-bar-section li:not(.has-form) a:not(.button) {
+    background: #9D4799;
+}
+
+.top-bar-section li:not(.has-form) a:not(.button):hover {
+    background: #ad57a9;
+}
+
+#menu_logo {
+    box-shadow: none;
+}
+
+#main-header {
+    height: auto;
+    padding-bottom: 0px;
+}
+
+// --------------------------------------------------------------
+
+#view-options {
+    float: left;
+    padding-top: 5px;
+}
+
+#search {
+    float: right;
+}
+
+.nav-button { 
+    @extend .button;
+    padding: 8px; 
+    font-size: 12px;
+    margin-bottom: 1px;
+    border-radius:5px;
+}
+
+.edit-button {
+    @extend .button;
+    margin-bottom: 0px;    
+}
+.edit-row {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+input[type="text"]{
+        margin: 5px;
+}
+
+

@@ -5,6 +5,7 @@ Profiles::Application.routes.draw do
     match '/users', to: 'users#list_users', via: 'get'
     match '/years', to: 'users#list_years', via: 'get'
     match '/user/:uid', to: 'users#user', via: 'get', constraints: { :uid => /[\w+\.]+/ } 
+    match '/image/:uid', to: 'users#image', via: 'get', constraints: { :uid => /[\w+\.]+/ } 
     match '/edit', to: 'users#edit', via: 'get'
     match '/update', to: 'users#update', via: 'post'
     match '/profiles', to: 'users#user', via: 'get' 

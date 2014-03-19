@@ -68,12 +68,25 @@ class UsersController < ApplicationController
         end
     end
 
+    def image
+        @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
+                          "(uid=#{params[:uid]})") do |entry|
+            if entry["jpegPhoto"] != nil && entry["jpegPhoto"] != [""]
+                send_data entry["jpegPhoto"][0], :filename => "#{params[:uid]}.jpg", 
+                    :type => 'image/png',:disposition => 'inline'
+            else
+                data = File.open("app/assets/images/blank_user.png").read
+                send_data(data , :filename => params[:uid], :type=>'image/png')
+            end
+        end
+    end
+
     # Displays all the information for the given user
     def user 
         @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
                           "(uid=#{params[:uid]})") do |entry|
             @user = entry.to_hash.except("objectClass", "uidNumber", "homeDirectory",
-                                         "diskQuotaSoft", "diskQuotaHard", "jpegPhoto",
+                                         "diskQuotaSoft", "diskQuotaHard", 
                                          "gidNumber")
         end
         @allow_edit = params[:uid] == request.headers['WEBAUTH_USER']
@@ -93,7 +106,7 @@ class UsersController < ApplicationController
             end
             @user = @user.except("uidNumber", "homeDirectory",
                                  "diskQuotaSoft", "diskQuotaHard", 
-                                 "jpegPhoto", "gidNumber", "memberSince", 
+                                 "gidNumber", "memberSince", 
                                  "objectClass", "uid", "ou", "userPassword", 
                                  "l", "o", "conditional")
         end
@@ -103,24 +116,28 @@ class UsersController < ApplicationController
     def update
         updates = []
         map = {}
-        params[:fields].each do |key, value|
-            splits = key.split(":")
-            type = splits[0]
-            key = splits[1]
-            if key == "birthday"
-                date = value.split("/")
-                date[0] = "0#{date[0]}" if date[0].length == 1
-                date[1] = "0#{date[1]}" if date[1].length == 1
-                value = "#{date[2]}#{date[0]}#{date[1]}010101-0400"
-            end
-            if map[key] == nil
-                if value == ""
-                    map[key] = []
-                else
-                    map[key] = [value]
+        if params[:photo] != nil
+            uploaded_io = params[:photo]
+        else
+            params[:fields].each do |key, value|
+                splits = key.split(":")
+                type = splits[0]
+                key = splits[1]
+                if key == "birthday"
+                    date = value.split("/")
+                    date[0] = "0#{date[0]}" if date[0].length == 1
+                    date[1] = "0#{date[1]}" if date[1].length == 1
+                    value = "#{date[2]}#{date[0]}#{date[1]}010101-0400"
                 end
-            elsif value != ""
-                map[key] << value
+                if map[key] == nil
+                    if value == ""
+                        map[key] = []
+                    else
+                        map[key] = [value]
+                    end
+                elsif value != ""
+                    map[key] << value
+                end
             end
         end
         map.each do |key, value|
@@ -142,7 +159,7 @@ class UsersController < ApplicationController
     # Gets all the users for the give group
     def group
         @users = []
-        attrs = ["uid", "cn", "mail", "membersince"]
+        attrs = ["uid", "cn", "mail", "memberSince"]
         filter = "(cn=#{params[:group]})"
         @ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE, filter) do |entry|
             @users = entry.to_hash["member"].to_a

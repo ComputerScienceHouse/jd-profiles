@@ -17,4 +17,8 @@ module UsersHelper
             request.user_agent =~ /Mobile|webOS/
         end
     end
+
+    def format_attr attr
+        return attr.gsub(/([a-z\d])([A-Z])/,'\1 \2').downcase
+    end
 end

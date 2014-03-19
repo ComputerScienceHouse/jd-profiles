@@ -17,17 +17,17 @@
     <table style="width:100%;">
         <thead>
             <tr>
-                <th width="30%">key</th>
-                <th width="70%">value</th>
+                <th>key</th>
+                <th>value</th>
             </tr>
         </thead>
         <tbody>
             <% @user.each do |attr, values| %>
                 <tr>
-                    <td width="30%" class="edit_row" style="word-break: break-all;"><%= attr %></td>
-                    <td width="70%" class="edit_row">
-                        <%= form_tag "/update" do %>
-                            <div class="row">
+                    <td class="edit-row"><%= format_attr attr %></td>
+                    <td class="edit-row">
+                        <%= form_tag "/update", multipart: true do %>
+                            <div class="row" style="margin:5px">
                                 <% if !mobile_device? %>
                                     <div class="small-10 columns">
                                 <% end %>
@@ -37,6 +37,17 @@
                                         <% else %>
                                             <%= text_field("fields", "m:#{attr}") %>
                                         <% end %>
+                                    <% elsif attr.to_s == "jpegPhoto" %>
+                                        <div class="row">
+                                            <div class="medium-6 columns">
+                                                <%= ('<img width="60px" src="data:image/jpg;base64,%s">' % 
+                                                    Base64.encode64(values[0][0])).html_safe %>
+                                            </div>
+                                            <div class="medium-6 columns">
+                                                <%= label_tag("photo", "Photo") %>
+                                                <%= file_field_tag("photo") %>
+                                            </div>
+                                        </div>
                                     <% elsif values.length == 1 %>
                                         <%= text_field("fields", "m:#{attr}", value: values[0]) %>
                                     <% else %>
@@ -52,10 +63,10 @@
                                 <% if !mobile_device? %>
                                     </div>
                                     <div class="small-2 columns">
-                                        <%= submit_tag "Submit", class: "edit_page button [tiny small large radius round]" %>
+                                        <%= submit_tag "Submit", class: "edit-button [tiny small large radius round]" %>
                                     </div>
                                 <% else %>
-                                    <%= submit_tag "Submit", class: "edit_page button [tiny small large radius round]" %>
+                                    <%= submit_tag "Submit", class: "edit-button [tiny small large radius round]" %>
                                 <% end %>
                             </div>
                         <% end %>

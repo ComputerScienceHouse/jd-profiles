@@ -39,17 +39,17 @@
             <div class="row panel" id="main-header">
                 <div id="view-options" class="button-bar">
                     <%= link_to "Users", {controller: 'users', action: 'list_users'}, 
-                        {class: "nav_button button [tiny small large radius round]" } %>
+                        {class: "nav-button" } %>
                     <%= link_to "Groups", {controller: 'users', action: 'list_groups'}, 
-                        {class: "nav_button button [tiny small large radius round]" } %>
+                        {class: "nav-button" } %>
                     <%= link_to "Years", {controller: 'users', action: 'list_years'}, 
-                        {class: "nav_button button [tiny small large radius round]" } %>
+                        {class: "nav-button" } %>
                     <%= link_to "E-Board", "/group/eboard", 
-                        {class: "nav_button button [tiny small large radius round]" } %>
+                        {class: "nav-button" } %>
                     <%= link_to "RTPs", "/group/rtp", 
-                        {class: "nav_button button [tiny small large radius round]" } %>
+                        {class: "nav-button" } %>
                     <%= link_to "Me", "/user/#{request.headers['WEBAUTH_USER']}", 
-                        {class: "nav_button button [tiny small large radius round]" } %>
+                    {class: "nav-button" } %>
                 </div>
                 <div id="search">
                      <%= form_tag("/search", method: "post") do %>

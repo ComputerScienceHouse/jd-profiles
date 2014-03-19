@@ -17,17 +17,19 @@
 <table style="width: 100%;  table-layout:fixed;">
     <thead>
         <tr>
-            <th width="30%">key</th>
-            <th width="70%">value</th>
+            <th>key</th>
+            <th>value</th>
         </tr>
     </thead>
     <tbody>
         <% @user.each do |attr, values| %>
             <tr>
-                <td width="30%" style="word-break: break-all;"><%= attr %></td>
-                <td width="70%">
+                <td style="word-break: break-all;"><%= format_attr attr %></td>
+                <td>
                     <% if attr.to_s == "birthday" || attr.to_s == "memberSince" %>
                         <%= format_date(values[0]) %>
+                    <% elsif attr.to_s == "jpegPhoto" %>
+                        <%= ('<img src="data:image/jpg;base64,%s">' % Base64.encode64(values[0])).html_safe %>
                     <% else %>
                         <% values.each do |a| %>
                             <div style="word-break: break-all;"><%= a %></div>
