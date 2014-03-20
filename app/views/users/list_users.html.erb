@@ -2,9 +2,9 @@
     <h3 style="text-align: center">No Users found</h3>
 <% else %>
     <% @users.each_slice(4).each do |row| %>
-        <div class="row">
+        <div class="custom-row">
             <% row.each do |user| %>
-                <div class="medium-3 columns">
+                <div class="custom-column">
                     <ul class="pricing-table" data-equalizer-watch style="margin: 0px">
                         <%= link_to "/user/#{user["uid"][0]}"  do %>
                             <li class="title" style="overflow:hidden; white-space: nowrap; padding: 10px;">
@@ -13,17 +13,17 @@
                                     <%= image_tag "/image/#{user["uid"][0]}", width: "60px", height: "60px"  %>
                                 </div>
                                 <div class="medium-7 columns">
-                                <p style="text-align:center; margin-top: 25%;"><%= user["uid"][0] %><p>
+                                <p style="text-align:center; margin-top: 25%; word-wrap:break-word;"><%= user["uid"][0] %><p>
                             </div>
                         </div>
                             </li>
                         <% end %>
-                        <li class="bullet-item" style="padding: 10px"><%= user["cn"][0] %></li>
+                        <li class="bullet-item" style="word-wrap:break-word; padding: 10px"><%= user["cn"][0] %></li>
                     </ul>
                     <br> 
                 </div>
                 <% for i in row.length..4 %>
-                    <div class="medium-3 columns"></div>
+                    <div class="custom-column"></div>
                 <% end %>
             <% end %>
         </div>

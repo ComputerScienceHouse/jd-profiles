@@ -311,4 +311,22 @@ input[type="text"]{
         margin: 5px;
 }
 
+@media(min-width: 100px) {
+.custom-row {
+    @include grid-row();
+    .custom-column {
+        @include grid-column(3);
+        width: 50%;
+    }
+}
+}
 
+@media(min-width: 500px) {
+.custom-row {
+    @include grid-row();
+    .custom-column {
+        @include grid-column(3);
+        width: 25%;
+    }
+}
+}

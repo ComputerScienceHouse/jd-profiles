@@ -11,6 +11,7 @@ Profiles::Application.routes.draw do
     match '/profiles', to: 'users#user', via: 'get' 
     match '/group/:group', to: 'users#group', via: 'get'
     match '/year/:year', to: 'users#year', via: 'get'
+    match '/autocomplete', to: 'users#autocomplete', via: 'get'
 
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".

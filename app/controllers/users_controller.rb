@@ -2,6 +2,12 @@ require 'ldap'
 require 'ldap/schema'
 
 class UsersController < ApplicationController
+    caches_page :list_users, :expires_in => 5.hour
+    caches_page :list_years, :expires_in => 5.hour
+    caches_page :list_groups, :expires_in => 5.hour
+    caches_page :group, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.request_url }
+    caches_page :year, :expires_in => 5.hour
+    caches_action :image, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
     before_action :log_before
     after_action :log_after
     before_action :bind_ldap, except: [:list_years, :me]
@@ -19,7 +25,7 @@ class UsersController < ApplicationController
                 "(sn=*#{search_str}*)(uid=*#{search_str}*)" + 
                 "(mobile=#{search_str})(twitterName=#{search_str})" + 
                 "(github=#{search_str}))"
-        attrs = ["uid", "cn", "mail", "memberSince"]
+        attrs = ["uid", "cn", "memberSince"]
         @ldap_conn.search(@@user_treebase,  LDAP::LDAP_SCOPE_SUBTREE, filter, 
                         attrs = attrs) do |entry|
             @users << entry.to_hash   
@@ -41,7 +47,7 @@ class UsersController < ApplicationController
     # List all the users by newest members first
     def list_users
         @users = []
-        attrs = ["uid", "cn", "mail", "memberSince"]
+        attrs = ["uid", "cn", "memberSince"]
         @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, "(uid=*)", 
                         attrs = attrs) do |entry|
             @users << entry.to_hash
@@ -52,8 +58,7 @@ class UsersController < ApplicationController
     # Lists all the groups sorted alphabetically
     def list_groups
         @groups = []
-        @ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE, "(cn=*)",
-                       attrs = attrs) do |entry|
+        @ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE, "(cn=*)") do |entry|
             @groups << entry.to_hash
         end
         @groups.sort! { |x,y| x["cn"] <=> y["cn"] }
@@ -69,6 +74,8 @@ class UsersController < ApplicationController
     end
 
     def image
+        Rails.logger.debug "image called#{params[:uid]}"
+        Rails.logger.debug "-------------------------------"
         @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
                           "(uid=#{params[:uid]})") do |entry|
             if entry["jpegPhoto"] != nil && entry["jpegPhoto"] != [""]
@@ -76,7 +83,7 @@ class UsersController < ApplicationController
                     :type => 'image/png',:disposition => 'inline'
             else
                 data = File.open("app/assets/images/blank_user.png").read
-                send_data(data , :filename => params[:uid], :type=>'image/png')
+                send_data(data , :filename => "#{params[:uid]}.png", :type=>'image/png')
             end
         end
     end
@@ -158,8 +165,10 @@ class UsersController < ApplicationController
 
     # Gets all the users for the give group
     def group
+        Rails.logger.debug "PAGE: " + params[:group]
+        Rails.logger.debug "----------------------------"
         @users = []
-        attrs = ["uid", "cn", "mail", "memberSince"]
+        attrs = ["uid", "cn", "memberSince"]
         filter = "(cn=#{params[:group]})"
         @ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE, filter) do |entry|
             @users = entry.to_hash["member"].to_a
@@ -179,9 +188,11 @@ class UsersController < ApplicationController
 
     # Gets all the user for each school year. Aug - May
     def year
+        Rails.logger.debug "YEAR: " + params[:year]
+        Rails.logger.debug "---------------------------"
         @users = []
         year = params[:year].to_i
-        attrs = ["uid", "cn", "mail", "memberSince"]
+        attrs = ["uid", "cn", "memberSince"]
         filter  = "(&(memberSince>=#{year}0801010101-0400)(memberSince<=#{year + 1}0801010101-0400))"
         @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, filter, 
                         attrs = attrs) do |entry|
@@ -205,6 +216,7 @@ class UsersController < ApplicationController
         # Gets the ldap connection for the given user using the kerberos auth
         # provided by webauth
         def bind_ldap
+            Rails.logger.debug "=========================bind to ldap"
             ENV['KRB5CCNAME'] = request.env['KRB5CCNAME']
             @ldap_conn = LDAP::SSLConn.new(host = Global.ldap.host, port = Global.ldap.port)
             @ldap_conn.sasl_bind('', '')
