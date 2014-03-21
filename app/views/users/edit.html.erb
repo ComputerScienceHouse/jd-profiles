@@ -17,7 +17,7 @@
     <table style="width:100%;">
         <thead>
             <tr>
-                <th>key</th>
+                <th>attribute</th>
                 <th>value</th>
             </tr>
         </thead>
@@ -31,35 +31,35 @@
                                 <% if !mobile_device? %>
                                     <div class="small-10 columns">
                                 <% end %>
-                                    <% if attr.to_s == "birthday" %>
-                                        <% if values[0] != [""] %>
-                                            <%= text_field("fields", "m:#{attr}",  value: format_date(values[0])) %>
-                                        <% else %>
-                                            <%= text_field("fields", "m:#{attr}") %>
-                                        <% end %>
-                                    <% elsif attr.to_s == "jpegPhoto" %>
-                                        <div class="row">
-                                            <div class="medium-6 columns">
-                                                <%= ('<img width="60px" src="data:image/jpg;base64,%s">' % 
-                                                    Base64.encode64(values[0][0])).html_safe %>
-                                            </div>
-                                            <div class="medium-6 columns">
-                                                <%= label_tag("photo", "Photo") %>
-                                                <%= file_field_tag("photo") %>
-                                            </div>
-                                        </div>
-                                    <% elsif values.length == 1 %>
-                                        <%= text_field("fields", "m:#{attr}", value: values[0]) %>
+                                <% if attr.to_s == "birthday" %>
+                                    <% if values[0] != [""] %>
+                                        <%= text_field("fields", "m:#{attr}",  value: format_date(values[0])) %>
                                     <% else %>
-                                        <% i = 1 %>
-                                        <% values[0].each do |a| %>
-                                            <%= text_field("fields", "m_#{i}:#{attr}", value: a) %>
-                                            <% i += 1 %>
-                                        <% end %>
-                                        <% if values[1] == :multiple && values[0] != [""] %>
-                                            <%= text_field("fields", "m_#{i}:#{attr}") %>
-                                        <% end %>
+                                        <%= text_field("fields", "m:#{attr}") %>
                                     <% end %>
+                                <% elsif attr.to_s == "jpegPhoto" %>
+                                    <div class="row">
+                                        <div class="medium-6 columns">
+                                            <%= ('<img width="60px" src="data:image/jpg;base64,%s">' % 
+                                                Base64.encode64(values[0][0])).html_safe %>
+                                        </div>
+                                        <div class="medium-6 columns">
+                                            <%= label_tag("photo", "Photo") %>
+                                            <%= file_field_tag("photo") %>
+                                        </div>
+                                    </div>
+                                <% elsif values.length == 1 %>
+                                    <%= text_field("fields", "m:#{attr}", value: values[0]) %>
+                                <% else %>
+                                    <% i = 1 %>
+                                    <% values[0].each do |a| %>
+                                        <%= text_field("fields", "m_#{i}:#{attr}", value: a) %>
+                                        <% i += 1 %>
+                                    <% end %>
+                                    <% if values[1] == :multiple && values[0] != [""] %>
+                                        <%= text_field("fields", "m_#{i}:#{attr}") %>
+                                    <% end %>
+                                <% end %>
                                 <% if !mobile_device? %>
                                     </div>
                                     <div class="small-2 columns">

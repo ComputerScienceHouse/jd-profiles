@@ -1,17 +1,7 @@
 <% @groups[1..-1].each_slice(6).each do |row| %>
-    <div class="row">
+    <div class="group-row">
         <% row.each do |group| %>
-            <% if row.length == 6 || row.length == 5 %>
-            <div class="medium-2 columns">
-            <% elsif row.length == 4 %>
-            <div class="medium-3 columns">
-            <% elsif row.length == 3 %>
-            <div class="medium-4 columns">
-            <% elsif row.length == 2 %>
-            <div class="medium-6 columns">
-            <% else %>
-            <div class="medium-12 columns">
-            <% end %>
+            <div class="group-column">
                 <ul class="pricing-table" data-equalizer-watch>
                     <%= link_to "/group/" + group["cn"][0] do %>
                         <li class="title"><%= group["cn"][0] %></li>
@@ -20,6 +10,9 @@
                 </ul>
                 <br> 
             </div>
+            <% for i in row.length..6 %>
+                <div class="group-column"></div>
+            <% end %>
         <% end %>
     </div>
 <% end %>

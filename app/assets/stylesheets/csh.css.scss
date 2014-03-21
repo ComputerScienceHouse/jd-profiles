@@ -304,29 +304,54 @@ h2 {
     margin-bottom: 0px;    
 }
 .edit-row {
-    padding-top: 5px;
-    padding-bottom: 5px;
+    padding-top: 0px;
+    padding-bottom: 0px;
 }
 input[type="text"]{
         margin: 5px;
 }
 
 @media(min-width: 100px) {
-.custom-row {
-    @include grid-row();
-    .custom-column {
-        @include grid-column(3);
-        width: 50%;
+    .custom-row {
+        @include grid-row();
+        .custom-column {
+            @include grid-column(3);
+            width: 50%;
+        }
     }
-}
+    .group-row {
+        @include grid-row();
+        .group-column {
+            @include grid-column(3);
+            width: 50%;
+        }
+    }
 }
 
-@media(min-width: 500px) {
-.custom-row {
-    @include grid-row();
-    .custom-column {
-        @include grid-column(3);
-        width: 25%;
+@media(min-width: 600px) {
+    .custom-row {
+        @include grid-row();
+        .custom-column {
+            @include grid-column(3);
+            width: 25%;
+        }
+    }
+    .group-row {
+        @include grid-row();
+        .group-column {
+            @include grid-column(3);
+            width: 33%;
+        }
     }
 }
+
+@media(min-width: 800px) {
+    .group-row {
+        @include grid-row();
+        .group-column {
+            @include grid-column(2);
+            width: 16.6%;
+        }
+    }
+   
 }
