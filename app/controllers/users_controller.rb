@@ -28,12 +28,15 @@ class UsersController < ApplicationController
             @users << entry.to_hash   
         end
         unbind_ldap
-        # if only one result is returned, redirect to that user
-        if @users.length == 1
-            redirect_to "/user/#{@users[0]["uid"][0]}"
-        else
-            @users.reverse!
-            render 'list_users'
+        single_user = false
+               # if only one result is returned, redirect to that user
+        if !single_user
+            if @users.length == 1
+                redirect_to "/user/#{@users[0]["uid"][0]}"
+            else
+                @users.reverse!
+                render 'list_users'
+            end
         end
     end
 
@@ -92,6 +95,22 @@ class UsersController < ApplicationController
             end
         end
         unbind_ldap
+    end
+    
+    def autocomplete
+        @users = []
+        bind_ldap
+        attrs = ["uid", "cn"]
+        @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE,
+                         "(|(uid=*#{params[:term]}*)(cn=*#{params[:term]}*))",
+                         attrs = attrs) do |entry|
+            @users << entry.to_hash["uid"][0]
+        end
+        if @users.length > 10
+            render :json => @users[1..10]
+        else
+            render :json => @users
+        end
     end
 
     # Displays all the information for the given user

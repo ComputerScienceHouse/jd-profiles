@@ -7,6 +7,7 @@ Profiles::Application.routes.draw do
     match '/user/:uid', to: 'users#user', via: 'get', constraints: { :uid => /[\w+\.]+/ } 
     match '/image/:uid', to: 'users#image', via: 'get', constraints: { :uid => /[\w+\.]+/ } 
     match '/edit', to: 'users#edit', via: 'get'
+    match '/autocomplete', to: 'users#autocomplete', via: 'get'
     match '/update', to: 'users#update', via: 'post'
     match '/profiles', to: 'users#user', via: 'get' 
     match '/group/:group', to: 'users#group', via: 'get'

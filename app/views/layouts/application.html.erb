@@ -67,6 +67,25 @@
         </div>
     </div>
     <%= javascript_include_tag "application" %>
+    <script>
+        $(function() {
+            var cache = {};
+            $( "#search_search").autocomplete({
+                minLength: 2,
+                source: function( request, response ) {
+                    var term = request.term;
+                    if ( term in cache ) {
+                        response( cache[ term ] );
+                        return;
+                    }
+                    $.getJSON( "/autocomplete", request, function( data, status, xhr ) {
+                        cache[ term ] = data;
+                        response( data );
+                    });
+                }
+            });
+        });
+    </script>
     <br />
     <h5 style="text-align:center">Made by J.D. - <%= link_to("Profiles", "https://github.com/JDrit/profiles") %></h5>
     <br />
