@@ -311,6 +311,24 @@ input[type="text"]{
         margin: 5px;
 }
 
+.year-row {
+    @include grid-row();
+    .year-column {
+        @include grid-column(2);
+        width: 50%;
+    }
+}    
+
+@media(min-width: 630px) {
+    .year-row {
+        @include grid-row();
+        .year-column {
+            @include grid-column(2);
+            width: 16.6%;
+        }
+    }    
+}
+
 @media(min-width: 100px) {
     .custom-row {
         @include grid-row();

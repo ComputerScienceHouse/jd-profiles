@@ -1,7 +1,7 @@
 <% @years.each_slice(6).each do |row| %>
-    <div class="row">
+    <div class="year-row">
         <% row.each do |year| %>
-            <div class="medium-2 columns">
+            <div class="year-column">
                 <ul class="pricing-table" data-equalizer-watch>
                     <%= link_to "/year/#{year}" do %>
                         <li class="title"><%= "#{year} - #{year + 1}" %></li>
@@ -10,7 +10,7 @@
                 <br> 
             </div>
             <% for i in row.length..6 %>
-                <div class="medium-2 columns"></div>
+                <div class="year-column"></div>
             <% end %>
         <% end %>
     </div>
