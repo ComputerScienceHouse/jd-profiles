@@ -11,13 +11,4 @@ gem 'coffee-rails', '~> 4.0.0'
 gem 'jquery-rails'
 gem 'turbolinks'
 gem 'actionpack-action_caching'
-
-group :development, :test do
-    gem 'sqlite3'
-end
-
-group :production do
-    gem 'pg'
-end
-
-
+gem 'sqlite3'

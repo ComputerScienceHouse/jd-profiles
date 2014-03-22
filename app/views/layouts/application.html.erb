@@ -9,25 +9,6 @@
 
     <%= stylesheet_link_tag    "application" %>
     <%= javascript_include_tag "vendor/modernizr" %>
-    <script>
-        $(function() {
-            var cache = {};
-            $( "#birds" ).autocomplete({
-                minLength: 2,
-                source: function( request, response ) {
-                    var term = request.term;
-                    if ( term in cache ) {
-                        response( cache[ term ] );
-                        return;
-                    }
-                    $.getJSON( "search.php", request, function( data, status, xhr ) {
-                        cache[ term ] = data;
-                        response( data );
-                    });
-                }
-            });
-        });
-    </script>
     <%= csrf_meta_tags %>
   </head>
   <body>
@@ -36,7 +17,7 @@
         <ul class="title-area">
 		  <!-- Title Area -->
           <li class="name">
-            <h1><%= link_to (image_tag("/assets/csh.png", :border => 0, :alt => 'CSH Logo', ) + " Profiles"), root_path %></h1>
+          <h1><%= link_to (image_tag("/assets/csh.png", :border => 0, :alt => 'CSH Logo', ) + " Profiles - #{@title}"), root_path %></h1>
 		  </li>
 		  <li class="toggle-topbar menu-icon"><a href="#"><span id="menu_logo">Menu</span></a></li>  
 		</ul>

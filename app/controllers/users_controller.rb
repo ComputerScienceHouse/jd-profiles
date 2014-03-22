@@ -2,18 +2,17 @@ require 'ldap'
 require 'ldap/schema'
 
 class UsersController < ApplicationController
-    caches_action :list_users, :expires_in => 5.hour
-    caches_action :list_years, :expires_in => 5.hour
-    caches_action :list_groups, :expires_in => 5.hour
-    caches_action :group, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
-    caches_action :year, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
-    #caches_action :image, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
+    caches_action :list_users, :expires_in => 1.hour
+    caches_action :list_years, :expires_in => 1.hour
+    caches_action :list_groups, :expires_in => 1.hour
+    caches_action :group, :expires_in => 1.hour, :cache_path => Proc.new { |c| c.params }
+    caches_action :year, :expires_in => 1.hour, :cache_path => Proc.new { |c| c.params }
+    caches_action :image, :expires_in => 1.hour, :cache_path => Proc.new { |c| c.params }
     @@user_treebase="ou=Users,dc=csh,dc=rit,dc=edu"
     @@group_treebase="ou=Groups,dc=csh,dc=rit,dc=edu"
 
     # Searches LDAP for users
     def search
-        expire_action :action => :image, :uid => :jd
         @users = []
         search_str = params[:search][:search]
         filter = "(|(cn=*#{search_str}*)(description=*#{search_str}*)" + 
@@ -54,6 +53,7 @@ class UsersController < ApplicationController
         end
         unbind_ldap
         @users.reverse!
+        @title = "users"
     end
     
     # Lists all the groups sorted alphabetically
@@ -63,6 +63,7 @@ class UsersController < ApplicationController
         @ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE, "(cn=*)") do |entry|
             @groups << entry.to_hash
         end
+        @title = "groups"
         unbind_ldap
         @groups.sort! { |x,y| x["cn"] <=> y["cn"] }
     end
@@ -74,10 +75,11 @@ class UsersController < ApplicationController
         else
             @years = (1994...Time.new.year).to_a.reverse
         end
+        @title = "years"
     end
 
     def image
-        response.headers["Expires"] = 1.year.from_now.httpdate
+        response.headers["Expires"] = 10.minute.from_now.httpdate
         bind_ldap
         @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
                           "(uid=#{params[:uid]})") do |entry|
@@ -100,6 +102,7 @@ class UsersController < ApplicationController
             @user = entry.to_hash.except("objectClass", "uidNumber", "homeDirectory",
                                          "diskQuotaSoft", "diskQuotaHard", 
                                          "gidNumber")
+            @title = entry.to_hash["uid"][0]
         end
         unbind_ldap
         @allow_edit = params[:uid] == request.headers['WEBAUTH_USER']
@@ -118,6 +121,7 @@ class UsersController < ApplicationController
                     @user[attr[0]] = [@user[attr[0]], attr[1]]
                 end
             end
+            @title = @user["uid"][0][0]
             @user = @user.except("uidNumber", "homeDirectory",
                                  "diskQuotaSoft", "diskQuotaHard", 
                                  "gidNumber", "memberSince", 
@@ -185,6 +189,7 @@ class UsersController < ApplicationController
         bind_ldap
         @ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE, filter) do |entry|
             @users = entry.to_hash["member"].to_a
+            @title = entry.to_hash["cn"][0]
         end
         filter = "(|"
         @users.each { |dn| filter += "(uid=#{dn.split(",")[0].split("=")[1]})" }
@@ -215,6 +220,7 @@ class UsersController < ApplicationController
         end
         unbind_ldap
         @users.reverse!
+        @title = "#{params[:year]} - #{params[:year].to_i + 1}"
         render 'list_users'
     end
 
