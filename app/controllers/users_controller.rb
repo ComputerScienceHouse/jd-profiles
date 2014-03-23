@@ -28,15 +28,12 @@ class UsersController < ApplicationController
             @users << entry.to_hash   
         end
         unbind_ldap
-        single_user = false
-               # if only one result is returned, redirect to that user
-        if !single_user
-            if @users.length == 1
-                redirect_to "/user/#{@users[0]["uid"][0]}"
-            else
-                @users.reverse!
-                render 'list_users'
-            end
+        # if only one result is returned, redirect to that user
+        if @users.length == 1
+            redirect_to "/user/#{@users[0]["uid"][0]}"
+        else
+            @users.reverse!
+            render 'list_users'
         end
     end
 
@@ -123,8 +120,14 @@ class UsersController < ApplicationController
                                          "gidNumber")
             @title = entry.to_hash["uid"][0]
         end
+        @groups = []
+        @ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE,
+                        "(member=#{@user["dn"][0]})") do |entry|
+            @groups << entry.to_hash["cn"][0]
+        end
         unbind_ldap
         @allow_edit = params[:uid] == request.headers['WEBAUTH_USER']
+        Rails.logger.debug @groups
     end
 
     # shows the edit page for the user
