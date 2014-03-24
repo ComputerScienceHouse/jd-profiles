@@ -1,5 +1,6 @@
 require 'ldap'
 require 'ldap/schema'
+require 'will_paginate/array'
 
 class UsersController < ApplicationController
     caches_action :list_users, :expires_in => 1.hour
@@ -23,8 +24,7 @@ class UsersController < ApplicationController
                 "(github=#{search_str}))"
         attrs = ["uid", "cn", "memberSince"]
         bind_ldap
-        @ldap_conn.search(@@user_treebase,  LDAP::LDAP_SCOPE_SUBTREE, filter, 
-                        attrs = attrs) do |entry|
+        @ldap_conn.search(@@user_treebase,  LDAP::LDAP_SCOPE_SUBTREE, filter, attrs = attrs) do |entry|
             @users << entry.to_hash   
         end
         unbind_ldap
@@ -45,15 +45,17 @@ class UsersController < ApplicationController
     # List all the users by newest members first
     def list_users
         @users = []
+        params[:page] = "a" if params[:page] == nil
         attrs = ["uid", "cn", "memberSince"]
         bind_ldap
-        @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, "(uid=*)", 
-                        attrs = attrs) do |entry|
+        @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, "(uid=#{params[:page]}*)", attrs = attrs) do |entry|
             @users << entry.to_hash
         end
         unbind_ldap
         @users.reverse!
         @title = "users"
+        @current = params[:page]
+        @url = "users"
     end
     
     # Lists all the groups sorted alphabetically
@@ -203,8 +205,7 @@ class UsersController < ApplicationController
 
     # Gets all the users for the give group
     def group
-        Rails.logger.debug "PAGE: " + params[:group]
-        Rails.logger.debug "----------------------------"
+        params[:page] = "a" if params[:page] == nil
         @users = []
         attrs = ["uid", "cn", "memberSince"]
         filter = "(cn=#{params[:group]})"
@@ -213,17 +214,22 @@ class UsersController < ApplicationController
             @users = entry.to_hash["member"].to_a
             @title = entry.to_hash["cn"][0]
         end
+        @users = [] if @users == [""]
+        
         filter = "(|"
-        @users.each { |dn| filter += "(uid=#{dn.split(",")[0].split("=")[1]})" }
+        if @users.length > 100
+            @current = params[:page]
+            @url = "groups"
+            @users.each { |dn| filter += "(uid=#{dn.split(",")[0].split("=")[1]})" if dn.split(",")[0].split("=")[1][0] == params[:page] }
+        else
+            @users.each { |dn| filter += "(uid=#{dn.split(",")[0].split("=")[1]})" }
+        end
         filter += ")"
         @users = []
-        @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, filter, 
-                        attrs = attrs) do |entry|
+        @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, filter, attrs = attrs) do |entry|
             @users << entry.to_hash
         end
         unbind_ldap
-        @users.reverse!
-
         render 'list_users'
     end
 

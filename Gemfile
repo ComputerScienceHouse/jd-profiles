@@ -12,6 +12,7 @@ gem 'jquery-rails'
 gem 'turbolinks'
 gem 'actionpack-action_caching'
 gem 'jquery-ui-rails'
+gem 'will_paginate-foundation'
 
 group :development, :test do
     gem 'sqlite3'

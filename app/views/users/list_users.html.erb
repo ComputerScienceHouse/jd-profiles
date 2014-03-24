@@ -1,3 +1,6 @@
+<div style="text-align:center;">
+    <%= render :partial => "pagination", :locals => { current: @current, url: @url } %>
+</div>
 <% if @users.length == 0 %>
     <h3 style="text-align: center">No Users found</h3>
 <% else %>
