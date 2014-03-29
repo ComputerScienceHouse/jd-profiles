@@ -280,6 +280,19 @@ h2 {
     padding-bottom: 0px;
 }
 
+ul.pagination li.current a {
+    background: #9D4799;    
+}
+
+ul.pagination li.current a:hover {
+    background: #9D4799;    
+}
+
+.alert-box {
+    background-color: #9D4799;
+    border-color: #9D4799;
+}
+
 // --------------------------------------------------------------
 
 #view-options {

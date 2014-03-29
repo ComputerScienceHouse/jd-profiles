@@ -29,13 +29,13 @@
                         <%= form_tag "/update", multipart: true do %>
                             <div class="row" style="margin:5px">
                                 <% if !mobile_device? %>
-                                    <div class="small-10 columns">
+                                    <div id="field_<%= attr %>_column" class="small-10 columns">
                                 <% end %>
                                 <% if attr.to_s == "birthday" %>
                                     <% if values[0] != [""] %>
-                                        <%= text_field("fields", "m:#{attr}",  value: format_date(values[0])) %>
+                                        <%= text_field("field", "#{attr}",  value: format_date(values[0])) %>
                                     <% else %>
-                                        <%= text_field("fields", "m:#{attr}") %>
+                                        <%= text_field("field", "#{attr}") %>
                                     <% end %>
                                 <% elsif attr.to_s == "jpegPhoto" %>
                                     <div class="row">
@@ -48,16 +48,16 @@
                                             <%= file_field_tag("photo") %>
                                         </div>
                                     </div>
-                                <% elsif values.length == 1 %>
-                                    <%= text_field("fields", "m:#{attr}", value: values[0]) %>
+                                <% elsif values.length == 1 || values[1] == :single %>
+                                    <%= text_field("field", "#{attr}", value: values[0][0]) %>
                                 <% else %>
                                     <% i = 1 %>
                                     <% values[0].each do |a| %>
-                                        <%= text_field("fields", "m_#{i}:#{attr}", value: a) %>
+                                        <%= text_field("field", "#{i}_#{attr}", value: a) %>
                                         <% i += 1 %>
                                     <% end %>
                                     <% if values[1] == :multiple && values[0] != [""] %>
-                                        <%= text_field("fields", "m_#{i}:#{attr}") %>
+                                        <%= text_field("field", "#{i}_#{attr}") %>
                                     <% end %>
                                 <% end %>
                                 <% if !mobile_device? %>
@@ -75,3 +75,71 @@
             <% end %>
         </tbody>
     </table>
+    <script>
+        function sleep(millis, callback) {
+            setTimeout(function() { callback(); } , millis);
+        }
+        $('form').submit(function() {  
+            var valuesToSubmit = $(this).serialize();
+            $.ajax({
+                type: "POST",
+                url: $(this).attr('action'), //sumbits it to the given url of the form
+                data: valuesToSubmit,
+                dataType: "JSON" // you want a difference between normal and ajax-calls, and json is standard
+            }).success(function(json){
+                console.log(json["attribute"]);
+                console.log("#field_" + Object.keys(json["attribute"])[0]);
+                var tmpVal = $("#field_" + Object.keys(json["attribute"])[0]).val();
+
+                var keys = Object.keys(json["attribute"]);
+                var attr = keys[0].split("_")[1];
+                console.log(json["attribute"]);
+                console.log("keys: " + keys);
+                console.log(attr);
+
+                if (json["status"] != "error") {
+                    if (json["attribute"][keys[keys.length - 2]] == "") {
+                        console.log("first");
+                        $("#field_" + keys.length + "_" + attr).remove();
+                    } else if (json["attribute"][keys[keys.length - 1]] != "") {
+                        console.log("second");
+                        $("#field_" + attr  + "_column").append(
+                            '<input id="field_' + (keys.length + 1) + 
+                            '_' + attr + '" name="field[' + (keys.length + 1) + 
+                            '_' + attr + ']" type="text" value="" />');
+                    } else {
+                        console.log("third");    
+                        $("#field_" + attr  + "_column").empty();
+                        var count = 1;
+                        for (var i = 0 ; i < keys.length - 1 ; i++) {
+                            if (json["attribute"][keys[i]] != "") {
+                                $("#field_" + attr  + "_column").append(
+                                    '<input id="field_' + count + 
+                                    '_' + attr + '" name="field[' + count + 
+                                    '_' + attr + ']" type="text" value="' + json["attribute"][keys[i]] + '" />');
+                                count += 1;
+                            }
+                        }
+                        $("#field_" + attr  + "_column").append(
+                            '<input id="field_' + count + 
+                            '_' + attr + '" name="field[' + count + 
+                            '_' + attr + ']" type="text" value="" />');
+                    }
+                }
+
+                $("#field_" + Object.keys(json["attribute"])[0]).val(json["message"]);
+                if (json["status"] == "error")
+                    $("#field_" + Object.keys(json["attribute"])[0]).css("background", "red");
+                else
+                    $("#field_" + Object.keys(json["attribute"])[0]).css("background", "#1BD83A");
+
+                function showMessage() {
+                    $("#field_" + Object.keys(json["attribute"])[0]).val(tmpVal);
+                    $("#field_" + Object.keys(json["attribute"])[0]).css("background", "white");
+                };
+                sleep(1000, showMessage);
+            });
+            return false; // prevents normal behaviour
+        });
+    </script>
+

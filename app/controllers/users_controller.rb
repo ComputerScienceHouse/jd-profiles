@@ -3,12 +3,13 @@ require 'ldap/schema'
 require 'will_paginate/array'
 
 class UsersController < ApplicationController
-    caches_action :list_users, :expires_in => 1.hour
+    caches_action :list_users, :expires_in => 1.hour, :cache_path => Proc.new { |c| c.params }
     caches_action :list_years, :expires_in => 1.hour
     caches_action :list_groups, :expires_in => 1.hour
     caches_action :group, :expires_in => 1.hour, :cache_path => Proc.new { |c| c.params }
     caches_action :year, :expires_in => 1.hour, :cache_path => Proc.new { |c| c.params }
     caches_action :image, :expires_in => 1.hour, :cache_path => Proc.new { |c| c.params }
+    caches_action :user, :expires_in => 1.hour, :cache_path => Proc.new { |c| c.params }
     @@user_treebase="ou=Users,dc=csh,dc=rit,dc=edu"
     @@group_treebase="ou=Groups,dc=csh,dc=rit,dc=edu"
 
@@ -52,7 +53,7 @@ class UsersController < ApplicationController
             @users << entry.to_hash
         end
         unbind_ldap
-        @users.reverse!
+        @users.sort! { |x,y| x["uid"] <=> y["uid"] }
         @title = "users"
         @current = params[:page]
         @url = "users"
@@ -163,11 +164,12 @@ class UsersController < ApplicationController
             updates << LDAP.mod(LDAP::LDAP_MOD_REPLACE | LDAP::LDAP_MOD_BVALUES, 
                                 "jpegPhoto", [params[:photo].read])
             expire_action :action => :image, :uid => request.headers['WEBAUTH_USER']
+            expire_action :action => :user, :uid => request.headers['WEBAUTH_USER']
         else
-            params[:fields].each do |key, value|
-                splits = key.split(":")
+            params[:field].each do |key, value|
+                splits = key.split("_")
                 type = splits[0]
-                key = splits[1]
+                key = splits[splits.length - 1]
                 if key == "birthday"
                     date = value.split("/")
                     date[0] = "0#{date[0]}" if date[0].length == 1
@@ -195,12 +197,14 @@ class UsersController < ApplicationController
         bind_ldap
         begin
             @ldap_conn.modify("uid=#{request.headers['WEBAUTH_USER']},#{@@user_treebase}", updates)
-            flash[:succes] = "Updated your attributes :)"
+            #flash[:succes] = "Updated your attributes :)"
+            render :json => {status: "ok", message: "Updated your attributes", attribute: params[:field]}
         rescue
-            flash[:error] = "Could not update attributes :("
+            #flash[:error] = "Could not update attributes :("
+            render :json => {status: "error", message: "could not update attribute", attribute: params[:field]}
         end
         unbind_ldap
-        redirect_to "/user/#{request.headers['WEBAUTH_USER']}"
+        #redirect_to "/user/#{request.headers['WEBAUTH_USER']}"
     end
 
     # Gets all the users for the give group
@@ -219,7 +223,7 @@ class UsersController < ApplicationController
         filter = "(|"
         if @users.length > 100
             @current = params[:page]
-            @url = "groups"
+            @url = "group/#{params[:group]}"
             @users.each { |dn| filter += "(uid=#{dn.split(",")[0].split("=")[1]})" if dn.split(",")[0].split("=")[1][0] == params[:page] }
         else
             @users.each { |dn| filter += "(uid=#{dn.split(",")[0].split("=")[1]})" }
@@ -229,6 +233,7 @@ class UsersController < ApplicationController
         @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, filter, attrs = attrs) do |entry|
             @users << entry.to_hash
         end
+        @users.sort! { |x,y| x["uid"] <=> y["uid"] }
         unbind_ldap
         render 'list_users'
     end
@@ -292,6 +297,10 @@ class UsersController < ApplicationController
                     end
                 end
             end
+            real_attrs << ["dn", :single]
+            real_attrs << ["ritDn", :single]
+            real_attrs << ["sn", :single]
+            Rails.logger.debug real_attrs
             return real_attrs
         end
 end
