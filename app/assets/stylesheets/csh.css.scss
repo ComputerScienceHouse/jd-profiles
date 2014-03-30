@@ -293,6 +293,12 @@ ul.pagination li.current a:hover {
     border-color: #9D4799;
 }
 
+.top-bar-section ul li > a {
+    font-weight: bold;
+}
+.top-bar .name h1 a {
+    font-weight: bold;    
+}
 // --------------------------------------------------------------
 
 #view-options {

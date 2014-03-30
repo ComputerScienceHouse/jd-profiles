@@ -26,7 +26,8 @@
                 <tr>
                     <td class="edit-row"><%= format_attr attr %></td>
                     <td class="edit-row">
-                        <%= form_tag "/update", multipart: true do %>
+                        <% cl = (attr.to_s == "jpegPhoto") ? "" : "edit-form" %>
+                        <%= form_tag "/update", multipart: true, class: cl do %>
                             <div class="row" style="margin:5px">
                                 <% if !mobile_device? %>
                                     <div id="field_<%= attr %>_column" class="small-10 columns">
@@ -66,7 +67,7 @@
                                         <%= submit_tag "Submit", class: "edit-button [tiny small large radius round]" %>
                                     </div>
                                 <% else %>
-                                    <%= submit_tag "Submit", class: "edit-button [tiny small large radius round]" %>
+                                        <%= submit_tag "Submit", class: "edit-button [tiny small large radius round]" %>
                                 <% end %>
                             </div>
                         <% end %>
@@ -79,7 +80,7 @@
         function sleep(millis, callback) {
             setTimeout(function() { callback(); } , millis);
         }
-        $('form').submit(function() {  
+        $('.edit-form').submit(function() {  
             var valuesToSubmit = $(this).serialize();
             $.ajax({
                 type: "POST",

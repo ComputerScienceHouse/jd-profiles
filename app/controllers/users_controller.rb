@@ -3,13 +3,15 @@ require 'ldap/schema'
 require 'will_paginate/array'
 
 class UsersController < ApplicationController
-    caches_action :list_users, :expires_in => 1.hour, :cache_path => Proc.new { |c| c.params }
-    caches_action :list_years, :expires_in => 1.hour
-    caches_action :list_groups, :expires_in => 1.hour
-    caches_action :group, :expires_in => 1.hour, :cache_path => Proc.new { |c| c.params }
-    caches_action :year, :expires_in => 1.hour, :cache_path => Proc.new { |c| c.params }
-    caches_action :image, :expires_in => 1.hour, :cache_path => Proc.new { |c| c.params }
-    caches_action :user, :expires_in => 1.hour, :cache_path => Proc.new { |c| c.params }
+    caches_action :list_users, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
+    caches_action :list_years, :expires_in => 5.hour
+    caches_action :list_groups, :expires_in => 5.hour
+    caches_action :group, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
+    caches_action :year, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
+    caches_action :image, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
+    caches_action :user, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
+    caches_action :search, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
+    caches_action :autocomplete, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
     @@user_treebase="ou=Users,dc=csh,dc=rit,dc=edu"
     @@group_treebase="ou=Groups,dc=csh,dc=rit,dc=edu"
 
@@ -130,7 +132,6 @@ class UsersController < ApplicationController
         end
         unbind_ldap
         @allow_edit = params[:uid] == request.headers['WEBAUTH_USER']
-        Rails.logger.debug @groups
     end
 
     # shows the edit page for the user
@@ -165,6 +166,7 @@ class UsersController < ApplicationController
                                 "jpegPhoto", [params[:photo].read])
             expire_action :action => :image, :uid => request.headers['WEBAUTH_USER']
             expire_action :action => :user, :uid => request.headers['WEBAUTH_USER']
+            expire_action :action => :search
         else
             params[:field].each do |key, value|
                 splits = key.split("_")
@@ -198,13 +200,23 @@ class UsersController < ApplicationController
         begin
             @ldap_conn.modify("uid=#{request.headers['WEBAUTH_USER']},#{@@user_treebase}", updates)
             #flash[:succes] = "Updated your attributes :)"
-            render :json => {status: "ok", message: "Updated your attributes", attribute: params[:field]}
+            result = {status: "ok", message: "Updated your attributes", attribute: params[:field]}
         rescue
             #flash[:error] = "Could not update attributes :("
-            render :json => {status: "error", message: "could not update attribute", attribute: params[:field]}
+            result = {status: "error", message: "could not update attribute", attribute: params[:field]}
         end
         unbind_ldap
-        #redirect_to "/user/#{request.headers['WEBAUTH_USER']}"
+        respond_to do |format|
+            format.html do 
+                if result[:status] == "ok"
+                    flash[:succes] = "Updated your attributes :)"
+                else
+                    flash[:error] = "Could not update attributes :("
+                end
+                redirect_to "/user/#{request.headers['WEBAUTH_USER']}" 
+            end
+            format.json { render :json => result }
+        end
     end
 
     # Gets all the users for the give group
@@ -240,8 +252,6 @@ class UsersController < ApplicationController
 
     # Gets all the user for each school year. Aug - May
     def year
-        Rails.logger.debug "YEAR: " + params[:year]
-        Rails.logger.debug "---------------------------"
         @users = []
         year = params[:year].to_i
         attrs = ["uid", "cn", "memberSince"]
@@ -270,6 +280,7 @@ class UsersController < ApplicationController
         # Unbinds the ldap connection
         def unbind_ldap
             @ldap_conn.unbind()
+            Rails.logger.info "=========================unbind to ldap"
         end
 
         # Gets the attributes that the given user can have along with info
@@ -298,9 +309,9 @@ class UsersController < ApplicationController
                 end
             end
             real_attrs << ["dn", :single]
+            real_attrs << ["drinkBalance", :single]
             real_attrs << ["ritDn", :single]
             real_attrs << ["sn", :single]
-            Rails.logger.debug real_attrs
             return real_attrs
         end
 end
