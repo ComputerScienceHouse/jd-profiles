@@ -3,6 +3,7 @@ require 'ldap/schema'
 require 'will_paginate/array'
 
 class UsersController < ApplicationController
+    include CacheableCSRFTokenRails
     caches_action :list_users, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
     caches_action :list_years, :expires_in => 5.hour
     caches_action :list_groups, :expires_in => 5.hour
@@ -11,7 +12,6 @@ class UsersController < ApplicationController
     caches_action :image, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
     caches_action :user, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
     caches_action :search, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
-    caches_action :autocomplete, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
     @@user_treebase="ou=Users,dc=csh,dc=rit,dc=edu"
     @@group_treebase="ou=Groups,dc=csh,dc=rit,dc=edu"
 
@@ -83,17 +83,18 @@ class UsersController < ApplicationController
         @title = "years"
     end
 
+    # Gives the jpeg photo for the give user
     def image
+        # tells the browser to cache the image locally for 10 minutes
         response.headers["Expires"] = 10.minute.from_now.httpdate
         bind_ldap
         @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
                           "(uid=#{params[:uid]})") do |entry|
             if entry["jpegPhoto"] != nil && entry["jpegPhoto"] != [""]
                 send_data entry["jpegPhoto"][0], :filename => "#{params[:uid]}", 
-                    :type => 'image/png',:disposition => 'inline'
+                    :type => 'image/jpeg', :disposition => 'inline'
             else
-                data = File.open("app/assets/images/blank_user.png").read
-                send_data(data , :filename => "#{params[:uid]}.png", :type=>'image/png')
+                send_file File.open("app/assets/images/blank_user.png")
             end
         end
         unbind_ldap
@@ -161,12 +162,15 @@ class UsersController < ApplicationController
     def update
         updates = []
         map = {}
+        expire_action :action => :image, :uid => request.headers['WEBAUTH_USER']
+        expire_action :action => :user, :uid => request.headers['WEBAUTH_USER']
+        expire_action :action => :search
+        
         if params[:photo] != nil
+            image = MiniMagick::Image.read(params[:photo])
+            image.resize("300x300") if image[:width] > 300 || image[:height] > 300
             updates << LDAP.mod(LDAP::LDAP_MOD_REPLACE | LDAP::LDAP_MOD_BVALUES, 
-                                "jpegPhoto", [params[:photo].read])
-            expire_action :action => :image, :uid => request.headers['WEBAUTH_USER']
-            expire_action :action => :user, :uid => request.headers['WEBAUTH_USER']
-            expire_action :action => :search
+                                "jpegPhoto", [image.to_blob])
         else
             params[:field].each do |key, value|
                 splits = key.split("_")
@@ -199,10 +203,8 @@ class UsersController < ApplicationController
         bind_ldap
         begin
             @ldap_conn.modify("uid=#{request.headers['WEBAUTH_USER']},#{@@user_treebase}", updates)
-            #flash[:succes] = "Updated your attributes :)"
             result = {status: "ok", message: "Updated your attributes", attribute: params[:field]}
         rescue
-            #flash[:error] = "Could not update attributes :("
             result = {status: "error", message: "could not update attribute", attribute: params[:field]}
         end
         unbind_ldap
@@ -271,16 +273,16 @@ class UsersController < ApplicationController
         # Gets the ldap connection for the given user using the kerberos auth
         # provided by webauth
         def bind_ldap
-            Rails.logger.info "=========================bind to ldap"
             ENV['KRB5CCNAME'] = request.env['KRB5CCNAME']
-            @ldap_conn = LDAP::SSLConn.new(host = Global.ldap.host, port = Global.ldap.port)
+            @ldap_conn = LDAP::SSLConn.new(
+                host = Global.ldap.host, 
+                port = Global.ldap.port)
             @ldap_conn.sasl_bind('', '')
         end
 
         # Unbinds the ldap connection
         def unbind_ldap
             @ldap_conn.unbind()
-            Rails.logger.info "=========================unbind to ldap"
         end
 
         # Gets the attributes that the given user can have along with info
@@ -292,6 +294,9 @@ class UsersController < ApplicationController
             attr_set = Set.new
             real_attrs = []
             object_classes.each do |oc|
+                a = schema.must(oc)
+                a.each { |attr| attr_set.add(attr) } if a != nil
+
                 a = schema.may(oc)
                 a.each { |attr| attr_set.add(attr) } if a != nil
             end
@@ -309,9 +314,6 @@ class UsersController < ApplicationController
                 end
             end
             real_attrs << ["dn", :single]
-            real_attrs << ["drinkBalance", :single]
-            real_attrs << ["ritDn", :single]
-            real_attrs << ["sn", :single]
             return real_attrs
         end
 end

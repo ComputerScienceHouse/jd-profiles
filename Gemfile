@@ -13,7 +13,6 @@ gem 'turbolinks'
 gem 'actionpack-action_caching'
 gem 'jquery-ui-rails'
 gem 'will_paginate-foundation'
-gem 'request-log-analyzer'
 gem 'sqlite3'
-
+gem 'mini_magick'
 
