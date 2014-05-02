@@ -83,18 +83,17 @@ class UsersController < ApplicationController
         @title = "years"
     end
 
-    # Gives the jpeg photo for the give user
     def image
-        # tells the browser to cache the image locally for 10 minutes
         response.headers["Expires"] = 10.minute.from_now.httpdate
         bind_ldap
         @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
                           "(uid=#{params[:uid]})") do |entry|
             if entry["jpegPhoto"] != nil && entry["jpegPhoto"] != [""]
                 send_data entry["jpegPhoto"][0], :filename => "#{params[:uid]}", 
-                    :type => 'image/jpeg', :disposition => 'inline'
+                    :type => 'image/png',:disposition => 'inline'
             else
-                send_file File.open("app/assets/images/blank_user.png")
+                data = File.open("app/assets/images/blank_user.png").read
+                send_data(data , :filename => "#{params[:uid]}.png", :type=>'image/png')
             end
         end
         unbind_ldap
@@ -121,12 +120,14 @@ class UsersController < ApplicationController
         bind_ldap
         @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
                           "(uid=#{params[:uid]})") do |entry|
-            @user = entry.to_hash.except("objectClass", "uidNumber", "homeDirectory",
+            @user = format_fields entry.to_hash.except("objectClass", "uidNumber", "homeDirectory",
                                          "diskQuotaSoft", "diskQuotaHard", 
                                          "gidNumber")
             @title = entry.to_hash["uid"][0]
+
         end
         @groups = []
+        Rails.logger.info @user["dn"]
         @ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE,
                         "(member=#{@user["dn"][0]})") do |entry|
             @groups << entry.to_hash["cn"][0]
@@ -140,7 +141,7 @@ class UsersController < ApplicationController
         bind_ldap
         @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
                         "(uid=#{request.headers['WEBAUTH_USER']})") do |entry|
-            @user = entry.to_hash
+            @user = format_fields entry.to_hash
             get_attrs(@user["objectClass"]).each do |attr|
                 if @user[attr[0]] == nil
                     @user[attr[0]] = [[""], attr[1]]
@@ -270,6 +271,27 @@ class UsersController < ApplicationController
     end
 
     private
+        
+        def format_fields map
+            Rails.logger.info map
+            new_map = Hash.new
+            new_map["uid"] = map["uid"] if map.key? "uid"
+            new_map["cn"] = map["cn"] if map.key? "cn"
+            new_map["mail"] = map["mail"] if map.key? "mail"
+            new_map["mobile"] = map["mobile"] if map.key? "mobile"
+            new_map["drinkBalance"] = map["drinkBalance"] if map.key? "drinkBlance"
+            new_map["birthday"] = map["birthday"] if map.key? "birthday"
+            new_map["housingPoints"] = map["housingPoints"] if map.key? "housingPoints"
+            new_map["sn"] = map["sn"] if map.key? "sn"
+            new_map["homepageURL"] = map["homepageURL"] if map.key? "homepageURL"
+            new_map["blogURL"] = map["blogURL"] if map.key? "blogURL"
+            map.each do |key, value| 
+                new_map[key] = value if !new_map.key? key
+            end
+
+            return new_map
+        end
+    
         # Gets the ldap connection for the given user using the kerberos auth
         # provided by webauth
         def bind_ldap
