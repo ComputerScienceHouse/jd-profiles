@@ -10,7 +10,6 @@ class UsersController < ApplicationController
     caches_action :group, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
     caches_action :year, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
     caches_action :image, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
-    caches_action :user, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
     caches_action :search, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
     @@user_treebase="ou=Users,dc=csh,dc=rit,dc=edu"
     @@group_treebase="ou=Groups,dc=csh,dc=rit,dc=edu"
@@ -117,46 +116,55 @@ class UsersController < ApplicationController
 
     # Displays all the information for the given user
     def user 
-        bind_ldap
-        @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
-                          "(uid=#{params[:uid]})") do |entry|
-            @user = format_fields entry.to_hash.except("objectClass", "uidNumber", "homeDirectory",
-                                         "diskQuotaSoft", "diskQuotaHard", 
-                                         "gidNumber")
-            @title = entry.to_hash["uid"][0]
-
-        end
-        @groups = []
-        Rails.logger.info @user["dn"]
-        @ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE,
-                        "(member=#{@user["dn"][0]})") do |entry|
-            @groups << entry.to_hash["cn"][0]
-        end
-        unbind_ldap
-        @allow_edit = params[:uid] == request.headers['WEBAUTH_USER']
-    end
-
-    # shows the edit page for the user
-    def edit
-        bind_ldap
-        @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
-                        "(uid=#{request.headers['WEBAUTH_USER']})") do |entry|
-            @user = format_fields entry.to_hash
-            get_attrs(@user["objectClass"]).each do |attr|
-                if @user[attr[0]] == nil
-                    @user[attr[0]] = [[""], attr[1]]
-                else
-                    @user[attr[0]] = [@user[attr[0]], attr[1]]
-                end
+        if ENV['WEBAUTH_USER'] != params[:uid]
+            bind_ldap
+            @ldap_conn.search(@@user_treebase, 
+                              LDAP::LDAP_SCOPE_SUBTREE, 
+                              "(uid=#{params[:uid]})") do |entry|
+                @user = format_fields entry.to_hash.except(
+                    "objectClass", "uidNumber", "homeDirectory",
+                    "diskQuotaSoft", "diskQuotaHard", "gidNumber")
+                @title = entry.to_hash["uid"][0]
             end
-            @title = @user["uid"][0][0]
-            @user = @user.except("uidNumber", "homeDirectory",
+            @groups = []
+            @ldap_conn.search(@@group_treebase, 
+                              LDAP::LDAP_SCOPE_SUBTREE,
+                            "(member=#{@user["dn"][0]})") do |entry|
+                @groups << entry.to_hash["cn"][0]
+            end
+            unbind_ldap
+        else
+            bind_ldap
+            @ldap_conn.search(@@user_treebase, 
+            LDAP::LDAP_SCOPE_SUBTREE, 
+            "(uid=#{request.headers['WEBAUTH_USER']})") do |entry|
+            
+                @user = format_fields entry.to_hash
+                get_attrs(@user["objectClass"]).each do |attr|
+                    if @user[attr[0]] == nil
+                        @user[attr[0]] = [[""], attr[1]]
+                    else
+                        @user[attr[0]] = [@user[attr[0]], attr[1]]
+                    end
+                end
+                @title = @user["uid"][0][0]
+                @user = @user.except("uidNumber", "homeDirectory",
                                  "diskQuotaSoft", "diskQuotaHard", 
                                  "gidNumber", "memberSince", 
-                                 "objectClass", "uid", "ou", "userPassword", 
-                                 "l", "o", "conditional")
+                                 "objectClass", "uid", "ou",
+                                 "userPassword", "l", "o", 
+                                 "conditional")
+            end
+            @groups = []
+            Rails.logger.info @user["dn"]
+            @ldap_conn.search(@@group_treebase, 
+                              LDAP::LDAP_SCOPE_SUBTREE,
+                            "(member=#{@user["dn"][0][0]})") do |entry|
+                @groups << entry.to_hash["cn"][0]
+            end
+            unbind_ldap
+            render 'edit'
         end
-        unbind_ldap
     end
 
     # Updates the given user's attributes
@@ -202,11 +210,26 @@ class UsersController < ApplicationController
             end
         end
         bind_ldap
+        @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
+                        "(uid=#{request.headers['WEBAUTH_USER']})") do |entry|
+            @user = format_fields entry.to_hash
+
+            get_attrs(@user["objectClass"]).each do |attr|
+                if @user[attr[0]] == nil
+                    @user[attr[0]] = [[""], attr[1]]
+                else
+                    @user[attr[0]] = [@user[attr[0]], attr[1]]
+                end
+            end
+        end
+
         begin
             @ldap_conn.modify("uid=#{request.headers['WEBAUTH_USER']},#{@@user_treebase}", updates)
-            result = {status: "ok", message: "Updated your attributes", attribute: params[:field]}
+            result = {status: "ok", message: "Updated your attributes", 
+                attribute: params[:field], single: params[:photo] != nil || @user[map.keys[0]][1] == :single }
         rescue
-            result = {status: "error", message: "could not update attribute", attribute: params[:field]}
+            result = {status: "error", message: "could not update attribute", 
+                attribute: params[:field], single: params[:photo] != nil || @user[map.keys[0]][1] == :single }
         end
         unbind_ldap
         respond_to do |format|
@@ -273,7 +296,6 @@ class UsersController < ApplicationController
     private
         
         def format_fields map
-            Rails.logger.info map
             new_map = Hash.new
             new_map["uid"] = map["uid"] if map.key? "uid"
             new_map["cn"] = map["cn"] if map.key? "cn"

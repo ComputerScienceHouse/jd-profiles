@@ -3,18 +3,20 @@
         <h3><%= @user["cn"][0] %></h3>
     </div>
     <div class="small-4 columns">
+        <h3 style="float:right;">
         <% if @user["active"] == ["1"] %>
             <% if @user["onfloor"] == ["1"] %>
-                <h3><strong>Active - on-floor</strong></h3>
+                <strong>Active - on-floor</strong>
             <% else %>
-                <h3><strong>Active - off-floor</strong></h3>
+                <strong>Active - off-floor</strong>
             <% end %>
         <% else %>
-            <h3><strong>Alumni</strong></h3>
+            <strong>Alumni</strong>
         <% end %>
+        </h3>
     </div>
 </div>
-<table style="width: 100%;  table-layout:fixed;">
+<table style="width: 100%; table-layout:fixed; border: none;">
     <thead>
         <tr>
             <th>Attributes</th>
@@ -48,6 +50,4 @@
         </tr>
     </tbody>
 </table>
-<% if @allow_edit %>
-    <%= link_to "Edit", {controller: 'users', action: 'edit'}, {class: "button [large radius round]" } %>
-<% end %>
+

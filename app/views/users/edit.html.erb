@@ -1,20 +1,25 @@
+<script>
+    var cache = {};
+</script>
 <div class="row">
     <div class="small-8 columns">
         <h3><%= @user["cn"][0][0] %></h3>
     </div>
     <div class="small-4 columns">
+        <h3 style="float: right;">
         <% if @user["active"][0] == ["1"] %>
             <% if @user["onfloor"][0] == ["1"] %>
-                <h3><strong>Active - on-floor</strong></h3>
+                <strong>Active - on-floor</strong>
             <% else %>
-                <h3><strong>Active - off-floor</strong></h3>
+                <strong>Active - off-floor</strong>
             <% end %>
         <% else %>
-            <h3><strong>Alumni</strong></h3>
+            <strong>Alumni</strong>
         <% end %>
+        </h3>
     </div>
 </div>
-    <table style="width:100%;">
+    <table style="width:100%; table-layout:fixed; border: none;">
         <thead>
             <tr>
                 <th>attribute</th>
@@ -23,60 +28,98 @@
         </thead>
         <tbody>
             <% @user.each do |attr, values| %>
+                <script>
+                    
+                    cache['<%= attr %>'] = [
+                        [
+                        <% if attr == 'birthday' %>
+                            '<%= format_date(values[0]) %>'
+                        <% elsif attr != 'jpegPhoto' %>
+                            <% values[0].each do |a| %>
+                                '<%= a %>',
+                            <% end %>
+                        <% end %>
+                        ], '<%= values[1] %>'
+                    ];
+                </script>
                 <tr>
                     <td class="edit-row"><%= format_attr attr %></td>
                     <td class="edit-row">
                         <% cl = (attr.to_s == "jpegPhoto") ? "" : "edit-form" %>
-                        <%= form_tag "/update", multipart: true, class: cl do %>
-                            <div class="row" style="margin:5px">
+                        <%= form_tag "/update", method: :post, multipart: true, class: cl do %>
+                            <% if attr.to_s == "jpegPhoto" %>
+                                <div class="row" id="attr-<%= attr %>" style="margin:5px;">
+                            <% else %>
+                                <div class="row attr-field" id="attr-<%= attr %>" style="margin:5px;">
+                            <% end %>
                                 <% if !mobile_device? %>
                                     <div id="field_<%= attr %>_column" class="small-10 columns">
                                 <% end %>
                                 <% if attr.to_s == "birthday" %>
                                     <% if values[0] != [""] %>
-                                        <%= text_field("field", "#{attr}",  value: format_date(values[0])) %>
+                                        <div class="attr-div" id="attr-<%= attr %>"><%= format_date(values[0]) %></div>
                                     <% else %>
-                                        <%= text_field("field", "#{attr}") %>
+                                        <div class="attr-div" id="attr-<%= attr %>"><%= format_date(values[0]) %></div>
                                     <% end %>
                                 <% elsif attr.to_s == "jpegPhoto" %>
-                                    <div class="row">
-                                        <div class="medium-6 columns">
-                                            <%= ('<img width="60px" src="data:image/jpg;base64,%s">' % 
-                                                Base64.encode64(values[0][0])).html_safe %>
-                                        </div>
-                                        <div class="medium-6 columns">
-                                            <%= label_tag("photo", "Photo") %>
-                                            <%= file_field_tag("photo") %>
-                                        </div>
-                                    </div>
+                                    <%= ('<img src="data:image/jpg;base64,%s">' % 
+                                        Base64.encode64(values[0][0])).html_safe %>
+                                    <%= label_tag("photo", "Photo") %>
+                                    <%= file_field_tag("photo") %>
+                                    <%= submit_tag "Submit", class: "edit-button [tiny small large radius round]" %>
                                 <% elsif values.length == 1 || values[1] == :single %>
-                                    <%= text_field("field", "#{attr}", value: values[0][0]) %>
+                                    <div class="attr-div" id="attr-<%= attr %>"><%= values[0][0] %></div>
                                 <% else %>
                                     <% i = 1 %>
                                     <% values[0].each do |a| %>
-                                        <%= text_field("field", "#{i}_#{attr}", value: a) %>
-                                        <% i += 1 %>
+                                        <div class="attr-div" id="attr-<%= attr %>"><%= a %></div>
                                     <% end %>
-                                    <% if values[1] == :multiple && values[0] != [""] %>
-                                        <%= text_field("field", "#{i}_#{attr}") %>
-                                    <% end %>
-                                <% end %>
-                                <% if !mobile_device? %>
-                                    </div>
-                                    <div class="small-2 columns">
-                                        <%= submit_tag "Submit", class: "edit-button [tiny small large radius round]" %>
-                                    </div>
-                                <% else %>
-                                        <%= submit_tag "Submit", class: "edit-button [tiny small large radius round]" %>
                                 <% end %>
                             </div>
                         <% end %>
+                        </div>
                     </td>
                 </tr>
             <% end %>
+            <tr>
+                <td>Groups</td>
+                <td>
+                    <% @groups.each do |group| %>
+                        <%= link_to group, "/group/#{group}" %>&nbsp;
+                    <% end %>
+                </td>
+            </tr>
         </tbody>
     </table>
     <script>
+        /* deals with changing divs to inputs */
+        var active = "";
+        var active_id = "";
+        $(".attr-field").click(function(e) {
+            if ($(this).attr('id') != active_id) {
+                $("input[id^=field_]").each(function() {
+                    $(this).replaceWith('<div class="attr-div" id="attr-' + 
+                        $(this).attr('id').split('_')[2]  + '">' + $(this).val() + '</div>');
+                })
+                active = $(this).attr('id').split("-")[1];
+                active_id = $(this).attr('id');
+                $(this).empty();
+                $(this).append('<input type="submit" style="visibility: hidden;" />');
+                for (var i = 0 ; i < cache[active][0].length ; i++) {
+                    $(this).append('<input id="field_' + (i + 1) + '_' + active + 
+                    '" name="field[' + (i + 1) + '_' + active + ']" type="text" value="' +
+                    cache[active][0][i] + '">');
+                }
+                if (cache[active][1] == "multiple") {
+                    $(this).append('<input id="field_' + (cache[active][0].length + 1) + 
+                    '_' + active + '" name="field[' + (cache[active][0].length + 1) +  
+                    '_' + active + ']" type="text">');
+
+                }
+            }
+        });
+
+        /* deals with submitting input data */
         function sleep(millis, callback) {
             setTimeout(function() { callback(); } , millis);
         }
@@ -88,55 +131,52 @@
                 data: valuesToSubmit,
                 dataType: "JSON" // you want a difference between normal and ajax-calls, and json is standard
             }).success(function(json){
-                console.log(json["attribute"]);
-                console.log("#field_" + Object.keys(json["attribute"])[0]);
                 var tmpVal = $("#field_" + Object.keys(json["attribute"])[0]).val();
 
                 var keys = Object.keys(json["attribute"]);
                 var attr = keys[0].split("_")[1];
-                console.log(json["attribute"]);
-                console.log("keys: " + keys);
-                console.log(attr);
 
                 if (json["status"] != "error") {
-                    if (json["attribute"][keys[keys.length - 2]] == "") {
-                        console.log("first");
-                        $("#field_" + keys.length + "_" + attr).remove();
-                    } else if (json["attribute"][keys[keys.length - 1]] != "") {
-                        console.log("second");
-                        $("#field_" + attr  + "_column").append(
-                            '<input id="field_' + (keys.length + 1) + 
-                            '_' + attr + '" name="field[' + (keys.length + 1) + 
-                            '_' + attr + ']" type="text" value="" />');
+                    $("#attr-" + attr).empty();
+                    $("#attr-" + attr).prepend('<input type="submit" style="visibility: hidden;" />');
+                    if (json["single"] == true) {
+                        $("#attr-" + attr).append(
+                            '<input id="field_' + count + 
+                            '_' + attr + '" name="field[' + count + 
+                            '_' + attr + ']" type="text" value="' + json["attribute"][keys[0]] + '" />');
+                            cache[attr] = [[json['attribute'][keys[0]]], "single"];        
                     } else {
-                        console.log("third");    
-                        $("#field_" + attr  + "_column").empty();
+                        var attr_values = [];
+                        for (key in json['attribute']) {
+                            if (json['attribute'][key] != "")
+                                attr_values.push(json['attribute'][key]);
+                        }
+                        cache[attr] = [attr_values, "multiple"];
                         var count = 1;
-                        for (var i = 0 ; i < keys.length - 1 ; i++) {
+                        for (var i = 0 ; i < keys.length ; i++) {
                             if (json["attribute"][keys[i]] != "") {
-                                $("#field_" + attr  + "_column").append(
+                                $("#attr-" + attr).append(
                                     '<input id="field_' + count + 
                                     '_' + attr + '" name="field[' + count + 
                                     '_' + attr + ']" type="text" value="' + json["attribute"][keys[i]] + '" />');
+
                                 count += 1;
                             }
                         }
-                        $("#field_" + attr  + "_column").append(
+                        $("#attr-" + attr).append(
                             '<input id="field_' + count + 
                             '_' + attr + '" name="field[' + count + 
                             '_' + attr + ']" type="text" value="" />');
                     }
                 }
-
-                $("#field_" + Object.keys(json["attribute"])[0]).val(json["message"]);
+                $("#attr-" + attr).prepend('<div id="message">' + json['message'] + '</div>');
                 if (json["status"] == "error")
-                    $("#field_" + Object.keys(json["attribute"])[0]).css("background", "red");
+                    $("#message").css("background", "red");
                 else
-                    $("#field_" + Object.keys(json["attribute"])[0]).css("background", "#1BD83A");
+                    $("#message").css("background", "#1BD83A");
 
                 function showMessage() {
-                    $("#field_" + Object.keys(json["attribute"])[0]).val(tmpVal);
-                    $("#field_" + Object.keys(json["attribute"])[0]).css("background", "white");
+                    $("#message").remove();
                 };
                 sleep(1000, showMessage);
             });
