@@ -1,28 +1,49 @@
 <script>
     var cache = {};
 </script>
+<%= render partial: "userHeading", locals: {status: "onfloor", cn: @user["cn"][0][0], uid: @uid } %>
+
 <div class="row">
-    <div class="small-8 columns">
-        <h3><%= @user["cn"][0][0] %></h3>
+    <div class="small-6 columns">
+        <div class="info_panel">
+            <h4>Personal Info:</h4>
+            <p><h5>cn:</h5> <%= @user["cn"][0][0] %></p>
+            <p><h5>sn: </h5> <%= @user["sn"][0][0] %></p>
+            <p><h5>birthday: </h5> <%= @user["birthday"][0][0] %></p>
+        </div>
     </div>
-    <div class="small-4 columns">
-        <h3 style="float: right;">
-        <% if @user["active"][0] == ["1"] %>
-            <% if @user["onfloor"][0] == ["1"] %>
-                <strong>Active - on-floor</strong>
-            <% else %>
-                <strong>Active - off-floor</strong>
-            <% end %>
-        <% else %>
-            <strong>Alumni</strong>
-        <% end %>
-        </h3>
+     <div class="small-6 columns">
+        <div class="info_panel">
+            <h4>Contact Info:</h4>
+            <p>phone number: <%= @user["mobile"][0][0] %></p>
+            <p>email: <%= @user["mail"][0][0] %></p>
+            <p>homepage: <%= @user["homepageURL"][0][0] %></p>
+        </div>
     </div>
 </div>
+<div class="row">
+    <div class="small-6 columns">
+        <div class="info_panel">
+            <h4>CSH Info:</h4>
+            <p>drink balance: <%= @user["drinkBalance"][0][0] %></p>
+            <p>housing points: <%= @user["housingPoints"][0][0] %></p>
+            <p>drink admin: <%= @user["drinkAdmin"][0][0] %></p>
+            <p>iButton: <%= @user["ibutton"][0][0] %></p>
+        </div>
+    </div>
+    <div class="small-6 columns">
+        <div class="info_panel">
+            <h4>RIT Info:</h4>
+            <p>rit dn: <%= @user["ritDn"][0][0] %></p>
+        </div>
+    </div>
+</div>
+
+
     <table style="width:100%; table-layout:fixed; border: none;">
         <thead>
             <tr>
-                <th>attribute</th>
+                <th width="300">attribute</th>
                 <th>value</th>
             </tr>
         </thead>
@@ -50,11 +71,8 @@
                             <% if attr.to_s == "jpegPhoto" %>
                                 <div class="row" id="attr-<%= attr %>" style="margin:5px;">
                             <% else %>
-                                <div class="row attr-field" id="attr-<%= attr %>" style="margin:5px;">
+                                <div class="row attr-field" id="attr-<%= attr %>" style="margin:0px;">
                             <% end %>
-                                <% if !mobile_device? %>
-                                    <div id="field_<%= attr %>_column" class="small-10 columns">
-                                <% end %>
                                 <% if attr.to_s == "birthday" %>
                                     <% if values[0] != [""] %>
                                         <div class="attr-div" id="attr-<%= attr %>"><%= format_date(values[0]) %></div>
@@ -62,8 +80,7 @@
                                         <div class="attr-div" id="attr-<%= attr %>"><%= format_date(values[0]) %></div>
                                     <% end %>
                                 <% elsif attr.to_s == "jpegPhoto" %>
-                                    <%= ('<img src="data:image/jpg;base64,%s">' % 
-                                        Base64.encode64(values[0][0])).html_safe %>
+                                    <img src="/image/<%= @uid %>">
                                     <%= label_tag("photo", "Photo") %>
                                     <%= file_field_tag("photo") %>
                                     <%= submit_tag "Submit", class: "edit-button [tiny small large radius round]" %>
@@ -95,12 +112,31 @@
         /* deals with changing divs to inputs */
         var active = "";
         var active_id = "";
+        var is_active = false;
+
+        // Detects if the user presses outside of the text box and closes 
+        // all input boxes
+        $("body").click(function(e) {
+            console.log("testing....");
+            if (!is_active) {
+                console.log("good test");
+                active_id = "";
+                $("input[id^=field_]").each(function() {
+                    $(this).replaceWith('<div class="attr-div" id="attr-' + 
+                        $(this).attr('id').split('_')[2]  + '">' + $(this).val() + '</div>');
+                });
+
+            }
+            is_active = false;
+        });
         $(".attr-field").click(function(e) {
+            console.log("tesafsdfdsa");
+            is_active = true;
             if ($(this).attr('id') != active_id) {
                 $("input[id^=field_]").each(function() {
                     $(this).replaceWith('<div class="attr-div" id="attr-' + 
                         $(this).attr('id').split('_')[2]  + '">' + $(this).val() + '</div>');
-                })
+                });
                 active = $(this).attr('id').split("-")[1];
                 active_id = $(this).attr('id');
                 $(this).empty();

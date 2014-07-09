@@ -116,7 +116,8 @@ class UsersController < ApplicationController
 
     # Displays all the information for the given user
     def user 
-        if ENV['WEBAUTH_USER'] != params[:uid]
+        @uid = params[:uid] #ENV['WEBAUTH_USER'] 
+        if true || ENV['WEBAUTH_USER'] != params[:uid]
             bind_ldap
             @ldap_conn.search(@@user_treebase, 
                               LDAP::LDAP_SCOPE_SUBTREE, 
@@ -132,12 +133,19 @@ class UsersController < ApplicationController
                             "(member=#{@user["dn"][0]})") do |entry|
                 @groups << entry.to_hash["cn"][0]
             end
+            if @user["onfloor"] == ["1"]
+                @status = "onfloor"
+            elsif @user["onfloor"] == ["0"]
+                @status = "offfloor"
+            else
+                @status = "alumni"
+            end
             unbind_ldap
         else
             bind_ldap
             @ldap_conn.search(@@user_treebase, 
-            LDAP::LDAP_SCOPE_SUBTREE, 
-            "(uid=#{request.headers['WEBAUTH_USER']})") do |entry|
+                LDAP::LDAP_SCOPE_SUBTREE, 
+                "(uid=#{request.headers['WEBAUTH_USER']})") do |entry|
             
                 @user = format_fields entry.to_hash
                 get_attrs(@user["objectClass"]).each do |attr|
@@ -156,7 +164,6 @@ class UsersController < ApplicationController
                                  "conditional")
             end
             @groups = []
-            Rails.logger.info @user["dn"]
             @ldap_conn.search(@@group_treebase, 
                               LDAP::LDAP_SCOPE_SUBTREE,
                             "(member=#{@user["dn"][0][0]})") do |entry|
@@ -337,12 +344,26 @@ class UsersController < ApplicationController
             schema = @ldap_conn.schema()
             attr_set = Set.new
             real_attrs = []
-            object_classes.each do |oc|
-                a = schema.must(oc)
-                a.each { |attr| attr_set.add(attr) } if a != nil
 
-                a = schema.may(oc)
-                a.each { |attr| attr_set.add(attr) } if a != nil
+            object_classes.each do |oc|
+                if oc == "person"
+                    schema.may(oc).each { |attr| attr_set.add attr }
+                elsif oc == "posixAccount"
+                    schema.must(oc).each { |attr| attr_set.add attr }
+                    schema.may(oc).each { |attr| attr_set.add attr }
+                elsif oc == "drinkUser"
+                    schema.must(oc).each { |attr| attr_set.add attr }
+                elsif oc == "ibuttonUser"
+                    schema.may(oc).each { |attr| attr_set.add attr }
+                elsif oc == "profiledMember"
+                    schema.may(oc).each { |attr| attr_set.add attr }
+                elsif oc == "houseMember"
+                    schema.may(oc).each { |attr| attr_set.add attr }
+                elsif oc == "ritStudent"
+                    schema.must(oc).each { |attr| attr_set.add attr }
+                    schema.may(oc).each { |attr| attr_set.add attr }
+                end
+
             end
             schema["attributeTypes"].each do |s|
                 name = s.split(" ")[3][1..-2]
@@ -357,7 +378,6 @@ class UsersController < ApplicationController
                     end
                 end
             end
-            real_attrs << ["dn", :single]
             return real_attrs
         end
 end

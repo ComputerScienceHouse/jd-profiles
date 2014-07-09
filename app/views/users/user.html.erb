@@ -1,53 +1,70 @@
-<div class="row">
-    <div class="small-8 columns">
-        <h3><%= @user["cn"][0] %></h3>
-    </div>
-    <div class="small-4 columns">
-        <h3 style="float:right;">
-        <% if @user["active"] == ["1"] %>
-            <% if @user["onfloor"] == ["1"] %>
-                <strong>Active - on-floor</strong>
-            <% else %>
-                <strong>Active - off-floor</strong>
-            <% end %>
-        <% else %>
-            <strong>Alumni</strong>
+<%= render partial: "userHeading", locals: {status: @status, cn: @user["cn"][0], uid: @user["uid"][0] } %>
+<div class="panel_container">
+    <% if !@user["cn"].nil? || !@user["birthday"].nil? %>
+        <div class="info_panel">
+            <h4>Personal Info:</h4>
+            <%= render partial: "attr", locals: {key: "common name", attr: @user["cn"] } %>
+            <%= render partial: "attr_date", locals: {key: "birthday", attr: @user["birthday"] } %>
+        </div>
+    <% end %>
+    <% if !@user["mobile"].nil? || !@user["mail"].nil? || !@user["homepageURL"].nil? %>
+        <div class="info_panel">
+            <h4>Contact Info:</h4>
+            <%= render partial: "attr", locals: {key: "phone number", attr: @user["mobile"] } %>
+            <%= render partial: "attr", locals: {key: "email", attr: @user["mail"] } %>
+            <%= render partial: "attr", locals: {key: "homepage url", attr: @user["homepageURL"] } %>
+        </div>
+    <% end %>
+    <% if !@user["roomNumber"].nil? || !@user["housingPoints"].nil? || !@user["drinkBalance"].nil? || 
+        !@user["drinkAdmin"].nil? || !@user["ibutton"].nil? || !@user["memberSince"].nil? ||
+        !@user["loginShell"].nil? %>
+        <div class="info_panel">
+            <h4>CSH Info:</h4>
+            <%= render partial: "attr", locals: {key: "room number", attr: @user["roomNumber"] } %>
+            <%= render partial: "attr", locals: {key: "housing points", attr: @user["housingPoints"] } %>
+            <%= render partial: "attr", locals: {key: "drink balance", attr: @user["drinkBalance"] } %>
+            <%= render partial: "attr", locals: {key: "drink admin", attr: @user["drinkAdmin"] } %>
+            <%= render partial: "attr", locals: {key: "ibutton", attr: @user["ibutton"] } %>
+            <%= render partial: "attr_date", locals: {key: "member since", attr: @user["memberSince"] } %>
+            <%= render partial: "attr", locals: {key: "login shell", attr: @user["loginShell"] } %>
+        </div>
+    <% end %>
+    <% if !@user["ritDn"].nil? || !@user["major"].nil? || !@user["ritYear"].nil? %>
+        <div class="info_panel">
+            <h4>RIT Info:</h4>
+            <%= render partial: "attr", locals: {key: "rit dn", attr: @user["ritDn"] } %>
+            <%= render partial: "attr", locals: {key: "major", attr: @user["major"] } %>
+            <%= render partial: "attr", locals: {key: "rit  year", attr: @user["ritYear"] } %>
+        </div>
+    <% end %>
+    <% if !@user["github"].nil? || !@user["plex"].nil? || 
+        !@user["googleScreenName"].nil? || !@user["eulerCode"].nil? %>
+        <div class="info_panel">
+            <h4>Online Info:</h4>
+            <%= render partial: "attr", locals: {key: "github", attr: @user["github"] } %>
+            <%= render partial: "attr", locals: {key: "google", attr: @user["googleScreenName"] } %>
+            <%= render partial: "attr", locals: {key: "plex", attr: @user["plex"] } %>
+            <%= render partial: "attr", locals: {key: "euler", attr: @user["eulerCode"] } %>
+        </div>
+    <% end %>
+    <div class="info_panel">
+        <h4>Groups</h4>
+        <% @groups.each do |group| %>
+            <%= link_to group, "/group/#{group}" %>&nbsp;
         <% end %>
-        </h3>
     </div>
 </div>
-<table style="width: 100%; table-layout:fixed; border: none;">
-    <thead>
-        <tr>
-            <th>Attributes</th>
-            <th>Values</th>
-        </tr>
-    </thead>
-    <tbody>
-        <% @user.each do |attr, values| %>
-            <tr>
-                <td style="word-break: break-all;"><%= format_attr attr %></td>
-                <td>
-                    <% if attr.to_s == "birthday" || attr.to_s == "memberSince" %>
-                        <%= format_date(values[0]) %>
-                    <% elsif attr.to_s == "jpegPhoto" %>
-                        <%= ('<img src="data:image/jpg;base64,%s">' % Base64.encode64(values[0])).html_safe %>
-                    <% else %>
-                        <% values.each do |a| %>
-                            <div style="word-break: break-all;"><%= a %></div>
-                        <% end %>
-                    <% end %>
-                </td>
-            </tr>
-        <% end %>
-        <tr>
-            <td>Groups</td>
-            <td>
-                <% @groups.each do |group| %>
-                    <%= link_to group, "/group/#{group}" %>&nbsp;
-                <% end %>
-            </td>
-        </tr>
-    </tbody>
-</table>
-
+<br>
+<div class="info_panel">
+    <h4>Other Attributes:</h4>
+    <div class="panel_container">
+    <% @user.except("cn", "birthday", "mobile", "mail", "homepageURL", 
+                    "housingPoints", "drinkBalance", "drinkAdmin", "ibutton", 
+                    "memberSince", "loginShell", "ritDn", "major", "ritYear", 
+                    "github", "plex", "eulerCode", "jpegPhoto", "roomNumber", "googleScreenName").each do |attr, values| %>
+        <div class="other_attr">                
+            <%= render partial: "attr", locals: {key: attr, attr: values } %>
+        </div>
+    <% end %>
+    </div>
+</div>

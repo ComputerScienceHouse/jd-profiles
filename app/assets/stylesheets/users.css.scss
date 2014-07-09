@@ -1,3 +1,66 @@
 // Place all the styles related to the Users controller here.
 // They will automatically be included in application.css.
 // You can use Sass (SCSS) here: http://sass-lang.com/
+@import "foundation/components/thumbs";
+@import "foundation/components/panels";
+@import "foundation/components/grid";
+
+.thumbnail {
+    @include thumb;
+    width: 75px;
+    height: 75px;
+    border-radius: 150px;
+}
+
+#image_bar {
+    float:right;
+}
+
+.info_panel {
+    p {
+        margin-bottom: 2px;    
+    }
+    h5 {
+        display:inline;    
+    }
+    @include panel();
+    -webkit-column-break-inside:avoid;
+    -moz-column-break-inside:avoid;
+    -o-column-break-inside:avoid;
+    -ms-column-break-inside:avoid;
+    column-break-inside:avoid;
+    word-wrap:break-word;
+}
+
+.other_attr {
+    -webkit-column-break-inside:avoid;
+    -moz-column-break-inside:avoid;
+    -o-column-break-inside:avoid;
+    -ms-column-break-inside:avoid;
+    column-break-inside:avoid;
+    word-wrap:break-word;
+}
+
+.panel_container {
+    -moz-columns: 1; 
+    -webkit-columns: 1; 
+    columns: 1; 
+    width:100%;   
+
+}
+@media(min-width: 600px) {
+    .panel_container {
+        -moz-columns: 2; 
+        -webkit-columns: 2; 
+        columns: 2; 
+        width:100%;   
+    }    
+}
+@media(min-width: 900px) {
+    .panel_container {
+        -moz-columns: 3; 
+        -webkit-columns: 3; 
+        columns: 3; 
+        width:100%;   
+    }    
+}

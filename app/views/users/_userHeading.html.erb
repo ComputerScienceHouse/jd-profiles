@@ -1,0 +1,14 @@
+<div id="image_bar">
+    <h3>
+    <% if status == "onfloor" %>
+        Active - on-floor
+    <% elsif status == "off-floor" %>
+        Active - off-floor
+    <% else %>
+        Alumni
+    <% end %>
+    <img class="thumbnail" src="/image/<%= uid %>">
+</div>
+<h3 style="margin-left:10px; margin-top:30px;"><%= cn %></h3>
+<br>
+
