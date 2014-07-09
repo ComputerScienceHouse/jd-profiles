@@ -1,0 +1,12 @@
+<% if !attr.nil? %>
+    <% if attr[0].size == 1 %>
+        <p><h5><%= format_attr key %>:</h5> <%= attr[0][0] %>
+    <% else %>
+        <p><h5><%= format_attr key %>:</h5></p>
+        <ul>
+        <% attr[0].each do |elem| %>
+            <li><%= elem %></li>
+        <% end %>
+        </ul>
+    <% end %>
+<% end %>

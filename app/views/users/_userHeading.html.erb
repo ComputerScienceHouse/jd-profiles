@@ -1,8 +1,8 @@
 <div id="image_bar">
     <h3>
-    <% if status == "onfloor" %>
+    <% if @user["onfloor"] == ["1"] || @user["onfloor"] == [["1"], :single] %>
         Active - on-floor
-    <% elsif status == "off-floor" %>
+    <% elsif @user["onfloor"] == ["0"] || @user["onfloor"] == [["0"], :single] %>
         Active - off-floor
     <% else %>
         Alumni

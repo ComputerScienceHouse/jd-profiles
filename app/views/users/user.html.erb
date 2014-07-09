@@ -1,4 +1,4 @@
-<%= render partial: "userHeading", locals: {status: @status, cn: @user["cn"][0], uid: @user["uid"][0] } %>
+<%= render partial: "userHeading", locals: {cn: @user["cn"][0], uid: @user["uid"][0] } %>
 <div class="panel_container">
     <% if !@user["cn"].nil? || !@user["birthday"].nil? %>
         <div class="info_panel">
@@ -7,12 +7,11 @@
             <%= render partial: "attr_date", locals: {key: "birthday", attr: @user["birthday"] } %>
         </div>
     <% end %>
-    <% if !@user["mobile"].nil? || !@user["mail"].nil? || !@user["homepageURL"].nil? %>
+    <% if !@user["mobile"].nil? || !@user["mail"].nil? %>
         <div class="info_panel">
             <h4>Contact Info:</h4>
             <%= render partial: "attr", locals: {key: "phone number", attr: @user["mobile"] } %>
             <%= render partial: "attr", locals: {key: "email", attr: @user["mail"] } %>
-            <%= render partial: "attr", locals: {key: "homepage url", attr: @user["homepageURL"] } %>
         </div>
     <% end %>
     <% if !@user["roomNumber"].nil? || !@user["housingPoints"].nil? || !@user["drinkBalance"].nil? || 
@@ -29,30 +28,39 @@
             <%= render partial: "attr", locals: {key: "login shell", attr: @user["loginShell"] } %>
         </div>
     <% end %>
-    <% if !@user["ritDn"].nil? || !@user["major"].nil? || !@user["ritYear"].nil? %>
+    <% if !@user["ritDn"].nil? || !@user["major"].nil? || !@user["ritYear"].nil? || !@user["ritAlumni"] %>
         <div class="info_panel">
             <h4>RIT Info:</h4>
             <%= render partial: "attr", locals: {key: "rit dn", attr: @user["ritDn"] } %>
             <%= render partial: "attr", locals: {key: "major", attr: @user["major"] } %>
-            <%= render partial: "attr", locals: {key: "rit  year", attr: @user["ritYear"] } %>
-        </div>
-    <% end %>
-    <% if !@user["github"].nil? || !@user["plex"].nil? || 
-        !@user["googleScreenName"].nil? || !@user["eulerCode"].nil? %>
-        <div class="info_panel">
-            <h4>Online Info:</h4>
-            <%= render partial: "attr", locals: {key: "github", attr: @user["github"] } %>
-            <%= render partial: "attr", locals: {key: "google", attr: @user["googleScreenName"] } %>
-            <%= render partial: "attr", locals: {key: "plex", attr: @user["plex"] } %>
-            <%= render partial: "attr", locals: {key: "euler", attr: @user["eulerCode"] } %>
+            <%= render partial: "attr", locals: {key: "rit year", attr: @user["ritYear"] } %>
+            <%= render partial: "attr", locals: {key: "rit alumni", attr: @user["ritAlumni"] } %>
         </div>
     <% end %>
     <div class="info_panel">
-        <h4>Groups</h4>
+        <h4>Groups:</h4>
         <% @groups.each do |group| %>
             <%= link_to group, "/group/#{group}" %>&nbsp;
         <% end %>
     </div>
+    <% if !@user["github"].nil? || !@user["plex"].nil? || !@user["googleScreenName"].nil? || 
+        !@user["eulerCode"].nil? || !@user["aolScreenName"].nil? || !@user["msnScreenName"].nil? || 
+        !@user["yahooScreenName"].nil? || !@user["twitterName"].nil? || !@user["homepageURL"].nil? || 
+        !@user["blogURL"].nil? %>
+        <div class="info_panel">
+            <h4>Online Info:</h4>
+            <%= render partial: "attr", locals: {key: "homepage url", attr: @user["homepageURL"] } %>
+            <%= render partial: "attr", locals: {key: "blog url", attr: @user["blogURL"] } %>
+            <%= render partial: "attr", locals: {key: "github", attr: @user["github"] } %>
+            <%= render partial: "attr", locals: {key: "google", attr: @user["googleScreenName"] } %>
+            <%= render partial: "attr", locals: {key: "plex", attr: @user["plex"] } %>
+            <%= render partial: "attr", locals: {key: "euler", attr: @user["eulerCode"] } %>
+            <%= render partial: "attr", locals: {key: "twitter", attr: @user["twitterName"] } %>
+            <%= render partial: "attr", locals: {key: "yahoo", attr: @user["yahooScreenName"] } %>
+            <%= render partial: "attr", locals: {key: "msn", attr: @user["msnScreenName"] } %>
+            <%= render partial: "attr", locals: {key: "aol", attr: @user["aolScreenName"] } %>
+        </div>
+    <% end %>
 </div>
 <br>
 <div class="info_panel">
@@ -61,7 +69,9 @@
     <% @user.except("cn", "birthday", "mobile", "mail", "homepageURL", 
                     "housingPoints", "drinkBalance", "drinkAdmin", "ibutton", 
                     "memberSince", "loginShell", "ritDn", "major", "ritYear", 
-                    "github", "plex", "eulerCode", "jpegPhoto", "roomNumber", "googleScreenName").each do |attr, values| %>
+                    "github", "plex", "eulerCode", "jpegPhoto", "roomNumber", 
+                    "googleScreenName", "twitterName", "yahooScreenName", "dn",
+                    "msnScreenName", "aolScreenName", "ritAlumni", "blogURL").each do |attr, values| %>
         <div class="other_attr">                
             <%= render partial: "attr", locals: {key: attr, attr: values } %>
         </div>

@@ -1,113 +1,85 @@
-<script>
-    var cache = {};
-</script>
-<%= render partial: "userHeading", locals: {status: "onfloor", cn: @user["cn"][0][0], uid: @uid } %>
-
-<div class="row">
-    <div class="small-6 columns">
+<%= render partial: "userHeading", locals: {cn: @user["cn"][0][0], uid: @uid } %>
+<div class="panel_container">
+    <% if !@user["cn"].nil? || !@user["birthday"].nil? %>
         <div class="info_panel">
             <h4>Personal Info:</h4>
-            <p><h5>cn:</h5> <%= @user["cn"][0][0] %></p>
-            <p><h5>sn: </h5> <%= @user["sn"][0][0] %></p>
-            <p><h5>birthday: </h5> <%= @user["birthday"][0][0] %></p>
+            <%= render partial: "attr_edit", locals: {key: "common name", attr: @user["cn"] } %>
+            <%= render partial: "attr_date_edit", locals: {key: "birthday", attr: @user["birthday"] } %>
         </div>
-    </div>
-     <div class="small-6 columns">
+    <% end %>
+    <% if !@user["mobile"].nil? || !@user["mail"].nil? %>
         <div class="info_panel">
             <h4>Contact Info:</h4>
-            <p>phone number: <%= @user["mobile"][0][0] %></p>
-            <p>email: <%= @user["mail"][0][0] %></p>
-            <p>homepage: <%= @user["homepageURL"][0][0] %></p>
+            <%= render partial: "attr_edit", locals: {key: "phone number", attr: @user["mobile"] } %>
+            <%= render partial: "attr_edit", locals: {key: "email", attr: @user["mail"] } %>
         </div>
-    </div>
-</div>
-<div class="row">
-    <div class="small-6 columns">
+    <% end %>
+    <% if !@user["roomNumber"].nil? || !@user["housingPoints"].nil? || !@user["drinkBalance"].nil? || 
+        !@user["drinkAdmin"].nil? || !@user["ibutton"].nil? || !@user["memberSince"].nil? ||
+        !@user["loginShell"].nil? %>
         <div class="info_panel">
             <h4>CSH Info:</h4>
-            <p>drink balance: <%= @user["drinkBalance"][0][0] %></p>
-            <p>housing points: <%= @user["housingPoints"][0][0] %></p>
-            <p>drink admin: <%= @user["drinkAdmin"][0][0] %></p>
-            <p>iButton: <%= @user["ibutton"][0][0] %></p>
+            <%= render partial: "attr_edit", locals: {key: "room number", attr: @user["roomNumber"] } %>
+            <%= render partial: "attr_edit", locals: {key: "housing points", attr: @user["housingPoints"] } %>
+            <%= render partial: "attr_edit", locals: {key: "drink balance", attr: @user["drinkBalance"] } %>
+            <%= render partial: "attr_edit", locals: {key: "drink admin", attr: @user["drinkAdmin"] } %>
+            <%= render partial: "attr_edit", locals: {key: "ibutton", attr: @user["ibutton"] } %>
+            <%= render partial: "attr_date_edit", locals: {key: "member since", attr: @user["memberSince"] } %>
+            <%= render partial: "attr_edit", locals: {key: "login shell", attr: @user["loginShell"] } %>
         </div>
-    </div>
-    <div class="small-6 columns">
+    <% end %>
+    <% if !@user["ritDn"].nil? || !@user["major"].nil? || !@user["ritYear"].nil? || !@user["ritAlumni"] %>
         <div class="info_panel">
             <h4>RIT Info:</h4>
-            <p>rit dn: <%= @user["ritDn"][0][0] %></p>
+            <%= render partial: "attr_edit", locals: {key: "rit dn", attr: @user["ritDn"] } %>
+            <%= render partial: "attr_edit", locals: {key: "major", attr: @user["major"] } %>
+            <%= render partial: "attr_edit", locals: {key: "rit year", attr: @user["ritYear"] } %>
+            <%= render partial: "attr_edit", locals: {key: "rit alumni", attr: @user["ritAlumni"] } %>
         </div>
+    <% end %>
+    <div class="info_panel">
+        <h4>Groups:</h4>
+        <% @groups.each do |group| %>
+            <%= link_to group, "/group/#{group}" %>&nbsp;
+        <% end %>
+    </div>
+    <% if !@user["github"].nil? || !@user["plex"].nil? || !@user["googleScreenName"].nil? || 
+        !@user["eulerCode"].nil? || !@user["aolScreenName"].nil? || !@user["msnScreenName"].nil? || 
+        !@user["yahooScreenName"].nil? || !@user["twitterName"].nil? || !@user["homepageURL"].nil? || 
+        !@user["blogURL"].nil? %>
+        <div class="info_panel">
+            <h4>Online Info:</h4>
+            <%= render partial: "attr_edit", locals: {key: "homepage url", attr: @user["homepageURL"] } %>
+            <%= render partial: "attr_edit", locals: {key: "blog url", attr: @user["blogURL"] } %>
+            <%= render partial: "attr_edit", locals: {key: "github", attr: @user["github"] } %>
+            <%= render partial: "attr_edit", locals: {key: "google", attr: @user["googleScreenName"] } %>
+            <%= render partial: "attr_edit", locals: {key: "plex", attr: @user["plex"] } %>
+            <%= render partial: "attr_edit", locals: {key: "euler", attr: @user["eulerCode"] } %>
+            <%= render partial: "attr_edit", locals: {key: "twitter", attr: @user["twitterName"] } %>
+            <%= render partial: "attr_edit", locals: {key: "yahoo", attr: @user["yahooScreenName"] } %>
+            <%= render partial: "attr_edit", locals: {key: "msn", attr: @user["msnScreenName"] } %>
+            <%= render partial: "attr_edit", locals: {key: "aol", attr: @user["aolScreenName"] } %>
+        </div>
+    <% end %>
+</div>
+<br>
+<div class="info_panel">
+    <h4>Other Attributes:</h4>
+    <div class="panel_container">
+    <% @user.except("cn", "birthday", "mobile", "mail", "homepageURL", 
+                    "housingPoints", "drinkBalance", "drinkAdmin", "ibutton", 
+                    "memberSince", "loginShell", "ritDn", "major", "ritYear", 
+                    "github", "plex", "eulerCode", "jpegPhoto", "roomNumber", 
+                    "googleScreenName", "twitterName", "yahooScreenName", "dn",
+                    "msnScreenName", "aolScreenName", "ritAlumni", "blogURL").each do |attr, values| %>
+        <div class="other_attr">                
+            <%= render partial: "attr_edit", locals: {key: attr, attr: values } %>
+        </div>
+    <% end %>
     </div>
 </div>
 
 
-    <table style="width:100%; table-layout:fixed; border: none;">
-        <thead>
-            <tr>
-                <th width="300">attribute</th>
-                <th>value</th>
-            </tr>
-        </thead>
-        <tbody>
-            <% @user.each do |attr, values| %>
-                <script>
-                    
-                    cache['<%= attr %>'] = [
-                        [
-                        <% if attr == 'birthday' %>
-                            '<%= format_date(values[0]) %>'
-                        <% elsif attr != 'jpegPhoto' %>
-                            <% values[0].each do |a| %>
-                                '<%= a %>',
-                            <% end %>
-                        <% end %>
-                        ], '<%= values[1] %>'
-                    ];
-                </script>
-                <tr>
-                    <td class="edit-row"><%= format_attr attr %></td>
-                    <td class="edit-row">
-                        <% cl = (attr.to_s == "jpegPhoto") ? "" : "edit-form" %>
-                        <%= form_tag "/update", method: :post, multipart: true, class: cl do %>
-                            <% if attr.to_s == "jpegPhoto" %>
-                                <div class="row" id="attr-<%= attr %>" style="margin:5px;">
-                            <% else %>
-                                <div class="row attr-field" id="attr-<%= attr %>" style="margin:0px;">
-                            <% end %>
-                                <% if attr.to_s == "birthday" %>
-                                    <% if values[0] != [""] %>
-                                        <div class="attr-div" id="attr-<%= attr %>"><%= format_date(values[0]) %></div>
-                                    <% else %>
-                                        <div class="attr-div" id="attr-<%= attr %>"><%= format_date(values[0]) %></div>
-                                    <% end %>
-                                <% elsif attr.to_s == "jpegPhoto" %>
-                                    <img src="/image/<%= @uid %>">
-                                    <%= label_tag("photo", "Photo") %>
-                                    <%= file_field_tag("photo") %>
-                                    <%= submit_tag "Submit", class: "edit-button [tiny small large radius round]" %>
-                                <% elsif values.length == 1 || values[1] == :single %>
-                                    <div class="attr-div" id="attr-<%= attr %>"><%= values[0][0] %></div>
-                                <% else %>
-                                    <% i = 1 %>
-                                    <% values[0].each do |a| %>
-                                        <div class="attr-div" id="attr-<%= attr %>"><%= a %></div>
-                                    <% end %>
-                                <% end %>
-                            </div>
-                        <% end %>
-                        </div>
-                    </td>
-                </tr>
-            <% end %>
-            <tr>
-                <td>Groups</td>
-                <td>
-                    <% @groups.each do |group| %>
-                        <%= link_to group, "/group/#{group}" %>&nbsp;
-                    <% end %>
-                </td>
-            </tr>
-        </tbody>
-    </table>
     <script>
         /* deals with changing divs to inputs */
         var active = "";

@@ -117,7 +117,7 @@ class UsersController < ApplicationController
     # Displays all the information for the given user
     def user 
         @uid = params[:uid] #ENV['WEBAUTH_USER'] 
-        if true || ENV['WEBAUTH_USER'] != params[:uid]
+        if ENV['WEBAUTH_USER'] != params[:uid]
             bind_ldap
             @ldap_conn.search(@@user_treebase, 
                               LDAP::LDAP_SCOPE_SUBTREE, 
@@ -125,20 +125,12 @@ class UsersController < ApplicationController
                 @user = format_fields entry.to_hash.except(
                     "objectClass", "uidNumber", "homeDirectory",
                     "diskQuotaSoft", "diskQuotaHard", "gidNumber")
-                @title = entry.to_hash["uid"][0]
             end
             @groups = []
             @ldap_conn.search(@@group_treebase, 
                               LDAP::LDAP_SCOPE_SUBTREE,
                             "(member=#{@user["dn"][0]})") do |entry|
                 @groups << entry.to_hash["cn"][0]
-            end
-            if @user["onfloor"] == ["1"]
-                @status = "onfloor"
-            elsif @user["onfloor"] == ["0"]
-                @status = "offfloor"
-            else
-                @status = "alumni"
             end
             unbind_ldap
         else
@@ -155,7 +147,6 @@ class UsersController < ApplicationController
                         @user[attr[0]] = [@user[attr[0]], attr[1]]
                     end
                 end
-                @title = @user["uid"][0][0]
                 @user = @user.except("uidNumber", "homeDirectory",
                                  "diskQuotaSoft", "diskQuotaHard", 
                                  "gidNumber", "memberSince", 
@@ -164,9 +155,8 @@ class UsersController < ApplicationController
                                  "conditional")
             end
             @groups = []
-            @ldap_conn.search(@@group_treebase, 
-                              LDAP::LDAP_SCOPE_SUBTREE,
-                            "(member=#{@user["dn"][0][0]})") do |entry|
+            @ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE,
+                              "(member=#{@user["dn"][0]})") do |entry|
                 @groups << entry.to_hash["cn"][0]
             end
             unbind_ldap
@@ -347,7 +337,7 @@ class UsersController < ApplicationController
 
             object_classes.each do |oc|
                 if oc == "person"
-                    schema.may(oc).each { |attr| attr_set.add attr }
+                    schema.must(oc).each { |attr| attr_set.add attr }
                 elsif oc == "posixAccount"
                     schema.must(oc).each { |attr| attr_set.add attr }
                     schema.may(oc).each { |attr| attr_set.add attr }
@@ -362,15 +352,28 @@ class UsersController < ApplicationController
                 elsif oc == "ritStudent"
                     schema.must(oc).each { |attr| attr_set.add attr }
                     schema.may(oc).each { |attr| attr_set.add attr }
+                elsif oc == "inetOrgPerson"
+                    schema.may(oc).each { |attr| attr_set.add attr }
                 end
-
+                Rails.logger.info oc.to_s + " : " + schema.must(oc).to_s
+                Rails.logger.info oc.to_s + " : " + schema.may(oc).to_s
             end
+            attr_set.each {|a| Rails.logger.info a}
             schema["attributeTypes"].each do |s|
                 name = s.split(" ")[3][1..-2]
                 # deals with when attributes have aliases
+                
                 n = s.split("NAME")[1].split("DESC")[0].strip
                 name = n.split("'")[1] if n[0] == "("
-                if attr_set.include? name
+                
+                if s.include? "sn"
+                    Rails.logger.info n
+                    Rails.logger.info name
+                    Rails.logger.info s
+                    Rails.logger.info attr_set.include? "sn"
+                end
+
+                if attr_set.include? name.strip
                     if s.split(" ")[-2] == "SINGLE-VALUE"
                         real_attrs << [name, :single]
                     else
@@ -378,6 +381,7 @@ class UsersController < ApplicationController
                     end
                 end
             end
+            Rails.logger.info real_attrs.sort_by { |a| a[0] }
             return real_attrs
         end
 end
