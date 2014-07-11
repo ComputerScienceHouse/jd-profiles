@@ -8,8 +8,6 @@
     <title>CSH Profiles</title>
 
     <%= stylesheet_link_tag    "application" %>
-    <%= javascript_include_tag "vendor/modernizr" %>
-    <%= javascript_include_tag "application" %>
     <%= csrf_meta_tags %>
   </head>
   <body>
@@ -67,6 +65,9 @@
             <%= yield %>
         </div>
     </div>
+    <%= javascript_include_tag "vendor/modernizr" %>
+    <%= javascript_include_tag "application" %>
+
     <script>
         $(function() {
             var cache = {};

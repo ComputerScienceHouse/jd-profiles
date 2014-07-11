@@ -1,12 +1,16 @@
-<% if !attr.nil? %>
-    <% if attr[0].size == 1 %>
-        <p><h5><%= format_attr key %>:</h5> <%= attr[0][0] %>
-    <% else %>
-        <p><h5><%= format_attr key %>:</h5></p>
-        <ul>
-        <% attr[0].each do |elem| %>
-            <li><%= elem %></li>
+<% if !value.nil? %>
+    <%= form_tag "/update", method: :post, remote: true, id: "attr_#{attr}_form" do %>
+        <% if value[0].size == 1 %>
+            <h5><%= format_attr key %>:</h5>
+            <div style="display:inline-block" id="attr_<%= attr %>" class="attr"><%= value[0][0] %></div>
+        <% else %>
+            <h5><%= format_attr key %>:</h5>
+            <% count = 0 %>
+            <% value[0].each do |elem| %>
+                <div id="attr_<%= count %>_<%= attr %>" class="attr"><%= elem %></div>
+                <% count += 1 %>
+            <% end %>
         <% end %>
-        </ul>
+        <%= submit_tag "", style: "display:none" %>
     <% end %>
 <% end %>

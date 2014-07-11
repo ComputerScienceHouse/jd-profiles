@@ -171,7 +171,8 @@ class UsersController < ApplicationController
         expire_action :action => :image, :uid => request.headers['WEBAUTH_USER']
         expire_action :action => :user, :uid => request.headers['WEBAUTH_USER']
         expire_action :action => :search
-        
+       
+=begin
         if params[:photo] != nil
             image = MiniMagick::Image.read(params[:photo])
             image.resize("300x300") if image[:width] > 300 || image[:height] > 300
@@ -229,17 +230,9 @@ class UsersController < ApplicationController
                 attribute: params[:field], single: params[:photo] != nil || @user[map.keys[0]][1] == :single }
         end
         unbind_ldap
-        respond_to do |format|
-            format.html do 
-                if result[:status] == "ok"
-                    flash[:succes] = "Updated your attributes :)"
-                else
-                    flash[:error] = "Could not update attributes :("
-                end
-                redirect_to "/user/#{request.headers['WEBAUTH_USER']}" 
-            end
-            format.json { render :json => result }
-        end
+=end
+    result = {"attr_cn_input" => ["Joseph Batchik"], "single" => false, "success" => true}.to_s.gsub(/=>/, ":")
+    render text: "var status = '#{result}';"
     end
 
     # Gets all the users for the give group

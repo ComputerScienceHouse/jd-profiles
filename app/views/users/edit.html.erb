@@ -3,15 +3,15 @@
     <% if !@user["cn"].nil? || !@user["birthday"].nil? %>
         <div class="info_panel">
             <h4>Personal Info:</h4>
-            <%= render partial: "attr_edit", locals: {key: "common name", attr: @user["cn"] } %>
-            <%= render partial: "attr_date_edit", locals: {key: "birthday", attr: @user["birthday"] } %>
+            <%= render partial: "attr_edit", locals: {attr: "cn", key: "common name", value: @user["cn"] } %>
+            <%= render partial: "attr_date_edit", locals: {attr: "birthday", key: "birthday", value: @user["birthday"] } %>
         </div>
     <% end %>
     <% if !@user["mobile"].nil? || !@user["mail"].nil? %>
         <div class="info_panel">
             <h4>Contact Info:</h4>
-            <%= render partial: "attr_edit", locals: {key: "phone number", attr: @user["mobile"] } %>
-            <%= render partial: "attr_edit", locals: {key: "email", attr: @user["mail"] } %>
+            <%= render partial: "attr_edit", locals: {attr: "mobile", key: "phone number", value: @user["mobile"] } %>
+            <%= render partial: "attr_edit", locals: {attr: "mail", key: "email", value: @user["mail"] } %>
         </div>
     <% end %>
     <% if !@user["roomNumber"].nil? || !@user["housingPoints"].nil? || !@user["drinkBalance"].nil? || 
@@ -19,22 +19,22 @@
         !@user["loginShell"].nil? %>
         <div class="info_panel">
             <h4>CSH Info:</h4>
-            <%= render partial: "attr_edit", locals: {key: "room number", attr: @user["roomNumber"] } %>
-            <%= render partial: "attr_edit", locals: {key: "housing points", attr: @user["housingPoints"] } %>
-            <%= render partial: "attr_edit", locals: {key: "drink balance", attr: @user["drinkBalance"] } %>
-            <%= render partial: "attr_edit", locals: {key: "drink admin", attr: @user["drinkAdmin"] } %>
-            <%= render partial: "attr_edit", locals: {key: "ibutton", attr: @user["ibutton"] } %>
-            <%= render partial: "attr_date_edit", locals: {key: "member since", attr: @user["memberSince"] } %>
-            <%= render partial: "attr_edit", locals: {key: "login shell", attr: @user["loginShell"] } %>
+            <%= render partial: "attr_edit", locals: {attr: "roomNumber", key: "room number", value: @user["roomNumber"] } %>
+            <%= render partial: "attr_edit", locals: {attr: "housingPoints", key: "housing points", value: @user["housingPoints"] } %>
+            <%= render partial: "attr_edit", locals: {attr: "drinkBalance", key: "drink balance", value: @user["drinkBalance"] } %>
+            <%= render partial: "attr_edit", locals: {attr: "drinkAdmin", key: "drink admin", value: @user["drinkAdmin"] } %>
+            <%= render partial: "attr_edit", locals: {attr: "ibutton", key: "ibutton", value: @user["ibutton"] } %>
+            <%= render partial: "attr_date_edit", locals: {attr: "memberSince", key: "member since", value: @user["memberSince"] } %>
+            <%= render partial: "attr_edit", locals: {attr: "loginShell", key: "login shell", value: @user["loginShell"] } %>
         </div>
     <% end %>
     <% if !@user["ritDn"].nil? || !@user["major"].nil? || !@user["ritYear"].nil? || !@user["ritAlumni"] %>
         <div class="info_panel">
             <h4>RIT Info:</h4>
-            <%= render partial: "attr_edit", locals: {key: "rit dn", attr: @user["ritDn"] } %>
-            <%= render partial: "attr_edit", locals: {key: "major", attr: @user["major"] } %>
-            <%= render partial: "attr_edit", locals: {key: "rit year", attr: @user["ritYear"] } %>
-            <%= render partial: "attr_edit", locals: {key: "rit alumni", attr: @user["ritAlumni"] } %>
+            <%= render partial: "attr_edit", locals: {attr: "ritDn", key: "rit dn", value: @user["ritDn"] } %>
+            <%= render partial: "attr_edit", locals: {attr: "major", key: "major", value: @user["major"] } %>
+            <%= render partial: "attr_edit", locals: {attr: "ritYear", key: "rit year", value: @user["ritYear"] } %>
+            <%= render partial: "attr_edit", locals: {attr: "ritAlumni", key: "rit alumni", value: @user["ritAlumni"] } %>
         </div>
     <% end %>
     <div class="info_panel">
@@ -49,16 +49,16 @@
         !@user["blogURL"].nil? %>
         <div class="info_panel">
             <h4>Online Info:</h4>
-            <%= render partial: "attr_edit", locals: {key: "homepage url", attr: @user["homepageURL"] } %>
-            <%= render partial: "attr_edit", locals: {key: "blog url", attr: @user["blogURL"] } %>
-            <%= render partial: "attr_edit", locals: {key: "github", attr: @user["github"] } %>
-            <%= render partial: "attr_edit", locals: {key: "google", attr: @user["googleScreenName"] } %>
-            <%= render partial: "attr_edit", locals: {key: "plex", attr: @user["plex"] } %>
-            <%= render partial: "attr_edit", locals: {key: "euler", attr: @user["eulerCode"] } %>
-            <%= render partial: "attr_edit", locals: {key: "twitter", attr: @user["twitterName"] } %>
-            <%= render partial: "attr_edit", locals: {key: "yahoo", attr: @user["yahooScreenName"] } %>
-            <%= render partial: "attr_edit", locals: {key: "msn", attr: @user["msnScreenName"] } %>
-            <%= render partial: "attr_edit", locals: {key: "aol", attr: @user["aolScreenName"] } %>
+            <%= render partial: "attr_edit", locals: {attr: "homepageURL", key: "homepage url", value: @user["homepageURL"] } %>
+            <%= render partial: "attr_edit", locals: {attr: "blogURL", key: "blog url", value: @user["blogURL"] } %>
+            <%= render partial: "attr_edit", locals: {attr: "github", key: "github", value: @user["github"] } %>
+            <%= render partial: "attr_edit", locals: {attr: "googleScreenName", key: "google", value: @user["googleScreenName"] } %>
+            <%= render partial: "attr_edit", locals: {attr: "plex", key: "plex", value: @user["plex"] } %>
+            <%= render partial: "attr_edit", locals: {attr: "eulerCode", key: "euler", value: @user["eulerCode"] } %>
+            <%= render partial: "attr_edit", locals: {attr: "twitterName", key: "twitter", value: @user["twitterName"] } %>
+            <%= render partial: "attr_edit", locals: {attr: "yahooScreenName", key: "yahoo", value: @user["yahooScreenName"] } %>
+            <%= render partial: "attr_edit", locals: {attr: "msnScreenName", key: "msn", value: @user["msnScreenName"] } %>
+            <%= render partial: "attr_edit", locals: {attr: "aolScreenName", key: "aol", value: @user["aolScreenName"] } %>
         </div>
     <% end %>
 </div>
@@ -73,122 +73,10 @@
                     "googleScreenName", "twitterName", "yahooScreenName", "dn",
                     "msnScreenName", "aolScreenName", "ritAlumni", "blogURL").each do |attr, values| %>
         <div class="other_attr">                
-            <%= render partial: "attr_edit", locals: {key: attr, attr: values } %>
+            <%= render partial: "attr_edit", locals: {attr: attr, key: attr, value: values } %>
         </div>
     <% end %>
     </div>
 </div>
-
-
-    <script>
-        /* deals with changing divs to inputs */
-        var active = "";
-        var active_id = "";
-        var is_active = false;
-
-        // Detects if the user presses outside of the text box and closes 
-        // all input boxes
-        $("body").click(function(e) {
-            console.log("testing....");
-            if (!is_active) {
-                console.log("good test");
-                active_id = "";
-                $("input[id^=field_]").each(function() {
-                    $(this).replaceWith('<div class="attr-div" id="attr-' + 
-                        $(this).attr('id').split('_')[2]  + '">' + $(this).val() + '</div>');
-                });
-
-            }
-            is_active = false;
-        });
-        $(".attr-field").click(function(e) {
-            console.log("tesafsdfdsa");
-            is_active = true;
-            if ($(this).attr('id') != active_id) {
-                $("input[id^=field_]").each(function() {
-                    $(this).replaceWith('<div class="attr-div" id="attr-' + 
-                        $(this).attr('id').split('_')[2]  + '">' + $(this).val() + '</div>');
-                });
-                active = $(this).attr('id').split("-")[1];
-                active_id = $(this).attr('id');
-                $(this).empty();
-                $(this).append('<input type="submit" style="visibility: hidden;" />');
-                for (var i = 0 ; i < cache[active][0].length ; i++) {
-                    $(this).append('<input id="field_' + (i + 1) + '_' + active + 
-                    '" name="field[' + (i + 1) + '_' + active + ']" type="text" value="' +
-                    cache[active][0][i] + '">');
-                }
-                if (cache[active][1] == "multiple") {
-                    $(this).append('<input id="field_' + (cache[active][0].length + 1) + 
-                    '_' + active + '" name="field[' + (cache[active][0].length + 1) +  
-                    '_' + active + ']" type="text">');
-
-                }
-            }
-        });
-
-        /* deals with submitting input data */
-        function sleep(millis, callback) {
-            setTimeout(function() { callback(); } , millis);
-        }
-        $('.edit-form').submit(function() {  
-            var valuesToSubmit = $(this).serialize();
-            $.ajax({
-                type: "POST",
-                url: $(this).attr('action'), //sumbits it to the given url of the form
-                data: valuesToSubmit,
-                dataType: "JSON" // you want a difference between normal and ajax-calls, and json is standard
-            }).success(function(json){
-                var tmpVal = $("#field_" + Object.keys(json["attribute"])[0]).val();
-
-                var keys = Object.keys(json["attribute"]);
-                var attr = keys[0].split("_")[1];
-
-                if (json["status"] != "error") {
-                    $("#attr-" + attr).empty();
-                    $("#attr-" + attr).prepend('<input type="submit" style="visibility: hidden;" />');
-                    if (json["single"] == true) {
-                        $("#attr-" + attr).append(
-                            '<input id="field_' + count + 
-                            '_' + attr + '" name="field[' + count + 
-                            '_' + attr + ']" type="text" value="' + json["attribute"][keys[0]] + '" />');
-                            cache[attr] = [[json['attribute'][keys[0]]], "single"];        
-                    } else {
-                        var attr_values = [];
-                        for (key in json['attribute']) {
-                            if (json['attribute'][key] != "")
-                                attr_values.push(json['attribute'][key]);
-                        }
-                        cache[attr] = [attr_values, "multiple"];
-                        var count = 1;
-                        for (var i = 0 ; i < keys.length ; i++) {
-                            if (json["attribute"][keys[i]] != "") {
-                                $("#attr-" + attr).append(
-                                    '<input id="field_' + count + 
-                                    '_' + attr + '" name="field[' + count + 
-                                    '_' + attr + ']" type="text" value="' + json["attribute"][keys[i]] + '" />');
-
-                                count += 1;
-                            }
-                        }
-                        $("#attr-" + attr).append(
-                            '<input id="field_' + count + 
-                            '_' + attr + '" name="field[' + count + 
-                            '_' + attr + ']" type="text" value="" />');
-                    }
-                }
-                $("#attr-" + attr).prepend('<div id="message">' + json['message'] + '</div>');
-                if (json["status"] == "error")
-                    $("#message").css("background", "red");
-                else
-                    $("#message").css("background", "#1BD83A");
-
-                function showMessage() {
-                    $("#message").remove();
-                };
-                sleep(1000, showMessage);
-            });
-            return false; // prevents normal behaviour
-        });
-    </script>
+<%= button_tag "edit", id: "edit" %>
 

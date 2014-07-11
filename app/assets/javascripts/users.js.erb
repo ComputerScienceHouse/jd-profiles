@@ -1,0 +1,26 @@
+var cache = {};
+$("#edit").click(function(e) {
+    if ($(this).text() == "edit") {
+        $(this).text("done");
+        $(".attr").each(function(index) {
+            var id = $(this).attr('id');
+            var val = $(this).text();
+            cache[id] = val;
+            $('#' + id).empty();
+            $('#' + id).css('display', 'inline');
+            $('#' + id).append('<input id="' + id + '_input" name="' + id + '_input" type="text" value="' + val  + '">');
+            $('#' + id + '_form').bind('ajax:success', function(evt, data, xhr) {
+                console.log($.parseJSON(status));
+            });
+        });
+    } else {
+        $(this).text("edit");
+        $(".attr").each(function(index) {
+            var id = $(this).attr('id');
+            $('#' + id).css('display', 'inline-block');
+            $('#' + id).empty();
+            $('#' + id).append(cache[id]);
+        });
+
+    }
+});
