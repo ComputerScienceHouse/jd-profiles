@@ -1,28 +1,25 @@
 <% if !value.nil? %>
-    <%= form_tag "/update", method: :post, remote: true, id: "attr_#{attr}_form" do %>
+    <%= form_tag "/update", method: :post, remote: true, class: 'attr_form', id: "attr_form_#{attr}" do %>
         <% if value[1] == :single %>
             <h5><%= format_attr key %>:</h5>
-            <% if value[0] != nil %>
-                <div id="attr_<%= attr %>" class="attr"><%= value[0][0] %></div>
-            <% else %>
-                <div id="attr_<%= attr %>" class="attr"></div>
-            <% end %>
+            <div id="attr_<%= attr %>" class="attr"><%= value[0][0] if value[0] != nil %></div>
             <div id="attr_<%= attr %>_input_div" class="attr_input_div"></div>
         <% else %>
             <h5><%= format_attr key %>:</h5>
             <% count = 0 %>
             <% if value[0] != nil %>
+                <% if value[0].length != 1 %>
+                    <br>
+                <% end %>
                 <% value[0].each do |elem| %>
-                    <div id="attr_<%= count %>_<%= attr %>" class="attr"><%= elem %></div>
-                    <div id="attr_<%= count %>_<%= attr %>_input_div" class="attr_input_div"></div>
+                    <div id="attr_<%= attr %>_<%= count %>" class="attr"><%= elem %></div>
+                    <div id="attr_<%= attr %>_<%= count %>_input_div" class="attr_input_div"></div>
                     <% count += 1 %>
                 <% end %>
-                <div id="attr_<%= count %>_<%= attr %>_input_div" class="attr_input_div"></div>
+                <div id="attr_<%= attr %>_<%= count %>_input_div" class="attr_input_div"></div>
             <% else %>
-                <div id="attr_<%= count %>_<%= attr %>_input_div" class="attr_input_div"></div>
+                <div id="attr_<%= attr %>_<%= count %>_input_div" class="attr_input_div"></div>
             <% end %>
-
         <% end %>
-        <%= submit_tag "", style: "display:none" %>
     <% end %>
 <% end %>

@@ -1,28 +1,32 @@
-jQuery.fn.redraw = function() {
-    return this.hide(0, function() {
-                    $(this).show();
-                        });
-};
+$('.attr_form').bind('ajax:success', function(evt, data, xhr) {
+    console.log($.parseJSON(status));
+});
 
 $("#edit").click(function(e) {
     if ($(this).text() == "edit") {
         $(this).text("done");
         $('.attr').hide(); // hides all the current info
         $('.attr_input_div').each(function(index) {
-            var id = $(this).attr('id');
+            var id = $(this).attr('id');        // ex: attr_cn_0_input_div
             var val = $('#' + id.slice(0, -10)).text();
-            $('#' + id).append('<input id="' + id + '_input" name="' + id + '_input" type="text" value="' + val  + '">');
-            $('#' + id + '_form').bind('ajax:success', function(evt, data, xhr) {
-                console.log($.parseJSON(status));
+            var attr = id.split('_')[1];        // ex: cn
+            var input_id = id.slice(0, -4);     // ex: attr_cn_0_input
+            var input_name = id.slice(5, -10);  // ex: cn_0
+            $('#' + id).append('<input id="' + input_id + '" name="' + input_name + '" type="text" value="' + val  + '">');
+            $('#' + input_id).keypress(function(event) {
+                if (event.which == 13) {
+                    event.preventDefault();
+                    $('#attr_form_' + attr).submit();
+                }
             });
         });
     } else {
         $(this).text("edit");
         $('.attr').show();
         $('.attr_input_div').empty();
+
+        // This forces a reflow to deal with the columns
         $('body').hide();
-        setTimeout(function() {
-            $('body').show();
-        }, 0);
+        setTimeout(function() { $('body').show(); }, 0);
     }
 });
