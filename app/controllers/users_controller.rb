@@ -117,7 +117,7 @@ class UsersController < ApplicationController
     # Displays all the information for the given user
     def user 
         @uid = params[:uid] #ENV['WEBAUTH_USER'] 
-        if false && ENV['WEBAUTH_USER'] != params[:uid]
+        if ENV['WEBAUTH_USER'] != params[:uid]
             bind_ldap
             @ldap_conn.search(@@user_treebase, 
                               LDAP::LDAP_SCOPE_SUBTREE, 
@@ -127,6 +127,7 @@ class UsersController < ApplicationController
                     "diskQuotaSoft", "diskQuotaHard", "gidNumber")
             end
             @groups = []
+            @title = @user["uid"][0]
             @ldap_conn.search(@@group_treebase, 
                               LDAP::LDAP_SCOPE_SUBTREE,
                             "(member=#{@user["dn"][0]})") do |entry|
@@ -147,12 +148,12 @@ class UsersController < ApplicationController
                         @user[attr[0]] = [@user[attr[0]], attr[1]]
                     end
                 end
+                @title = @user["uid"][0][0]
                 @user = @user.except("uidNumber", "homeDirectory",
                                  "diskQuotaSoft", "diskQuotaHard", 
-                                 "gidNumber", "memberSince", 
-                                 "objectClass", "uid", "ou",
+                                 "gidNumber", "objectClass", "uid", "ou",
                                  "userPassword", "l", "o", 
-                                 "conditional")
+                                 "conditional", "gecos")
             end
             @groups = []
             @ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE,
@@ -166,73 +167,37 @@ class UsersController < ApplicationController
 
     # Updates the given user's attributes
     def update
-        updates = []
-        map = {}
         expire_action :action => :image, :uid => request.headers['WEBAUTH_USER']
         expire_action :action => :user, :uid => request.headers['WEBAUTH_USER']
         expire_action :action => :search
-       
-=begin
-        if params[:photo] != nil
-            image = MiniMagick::Image.read(params[:photo])
-            image.resize("300x300") if image[:width] > 300 || image[:height] > 300
-            updates << LDAP.mod(LDAP::LDAP_MOD_REPLACE | LDAP::LDAP_MOD_BVALUES, 
-                                "jpegPhoto", [image.to_blob])
-        else
-            params[:field].each do |key, value|
-                splits = key.split("_")
-                type = splits[0]
-                key = splits[splits.length - 1]
-                if key == "birthday"
-                    date = value.split("/")
-                    date[0] = "0#{date[0]}" if date[0].length == 1
-                    date[1] = "0#{date[1]}" if date[1].length == 1
-                    value = "#{date[2]}#{date[0]}#{date[1]}010101-0400"
-                end
-                if map[key] == nil
-                    if value == ""
-                        map[key] = []
-                    else
-                        map[key] = [value]
-                    end
-                elsif value != ""
-                    map[key] << value
-                end
-            end
+
+        attr_key = nil
+        attr_value = []
+        params.except("controller", "action", "utf8").each do |key, value|
+            attr_key = key.split("_")[0]
+            attr_value << value if value != ""
         end
-        map.each do |key, value|
-            if value == []
-                updates << LDAP.mod(LDAP::LDAP_MOD_DELETE, key, [])
-            else
-                updates << LDAP.mod(LDAP::LDAP_MOD_REPLACE, key, value)
-            end
-        end
+        update = [LDAP.mod(LDAP::LDAP_MOD_REPLACE, attr_key, attr_value)]
+        result = {"key" => attr_key}
+
         bind_ldap
-        @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
-                        "(uid=#{request.headers['WEBAUTH_USER']})") do |entry|
-            @user = format_fields entry.to_hash
-
-            get_attrs(@user["objectClass"]).each do |attr|
-                if @user[attr[0]] == nil
-                    @user[attr[0]] = [[""], attr[1]]
-                else
-                    @user[attr[0]] = [@user[attr[0]], attr[1]]
-                end
-            end
-        end
-
         begin
-            @ldap_conn.modify("uid=#{request.headers['WEBAUTH_USER']},#{@@user_treebase}", updates)
-            result = {status: "ok", message: "Updated your attributes", 
-                attribute: params[:field], single: params[:photo] != nil || @user[map.keys[0]][1] == :single }
-        rescue
-            result = {status: "error", message: "could not update attribute", 
-                attribute: params[:field], single: params[:photo] != nil || @user[map.keys[0]][1] == :single }
+            result["single"] = is_single attr_key
+            #raise LDAP::Error.new "help"
+            @ldap_conn.modify("uid=#{request.headers['WEBAUTH_USER']},#{@@user_treebase}", update)
+            result["success"] = true
+            result["value"] = attr_value
+        rescue LDAP::Error => e
+            Rails.logger.error "Error modifying ldap for #{request.headers['WEBAUTH_USER']}, #{e}"
+            @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
+                              "(uid=#{request.headers['WEBAUTH_USER']})", [attr_key]) do |entry|
+                user = format_fields entry.to_hash
+                result["value"] = user[attr_key] != nil ? user[attr_key] : ""
+            end
+            result["success"] = false
         end
         unbind_ldap
-=end
-    result = {"attr_cn_input" => ["Joseph Batchik"], "single" => false, "success" => true}.to_s.gsub(/=>/, ":")
-    render text: "var status = '#{result}';"
+        render text: "var status = '#{result.to_s.gsub(/=>/, ":")}';"
     end
 
     # Gets all the users for the give group
@@ -319,6 +284,18 @@ class UsersController < ApplicationController
             @ldap_conn.unbind()
         end
 
+        def is_single attr
+            schema = @ldap_conn.schema()
+            schema["attributeTypes"].each do |s|
+                name = s.split(" ")[3][1..-2]
+                # deals with when attributes have aliases
+                n = s.split("NAME")[1].split("DESC")[0].strip
+                name = n.split("'")[1] if n[0] == "("
+                return s.split(" ")[-2] == "SINGLE-VALUE" if name == attr
+            end
+            return false
+        end
+
         # Gets the attributes that the given user can have along with info
         # on if there can be multiple of the value
         # object_classes - the object classes that the user belongs to, used
@@ -348,24 +325,13 @@ class UsersController < ApplicationController
                 elsif oc == "inetOrgPerson"
                     schema.may(oc).each { |attr| attr_set.add attr }
                 end
-                Rails.logger.info oc.to_s + " : " + schema.must(oc).to_s
-                Rails.logger.info oc.to_s + " : " + schema.may(oc).to_s
             end
-            attr_set.each {|a| Rails.logger.info a}
             schema["attributeTypes"].each do |s|
                 name = s.split(" ")[3][1..-2]
                 # deals with when attributes have aliases
-                
                 n = s.split("NAME")[1].split("DESC")[0].strip
                 name = n.split("'")[1] if n[0] == "("
                 
-                if s.include? "sn"
-                    Rails.logger.info n
-                    Rails.logger.info name
-                    Rails.logger.info s
-                    Rails.logger.info attr_set.include? "sn"
-                end
-
                 if attr_set.include? name.strip
                     if s.split(" ")[-2] == "SINGLE-VALUE"
                         real_attrs << [name, :single]
@@ -374,7 +340,6 @@ class UsersController < ApplicationController
                     end
                 end
             end
-            Rails.logger.info real_attrs.sort_by { |a| a[0] }
             return real_attrs
         end
 end

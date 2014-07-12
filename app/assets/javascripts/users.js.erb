@@ -1,5 +1,86 @@
+/*
+ * Creates the input field for the given attribute parameters
+ * id: the id of the div to add the input field to
+ * val: the default value to give it
+ */
+function create_input(id, val) {
+    var attr_id = id.slice(15, id.length);  // ex: cn_0
+    var attr = attr_id.split('_')[0];       // ex: cn
+    var input_id = "attr_input_" + attr_id; // ex: attr_input_cn_0
+
+    $('#' + id).append('<input id="' + input_id + '" name="' + attr_id + '" type="text" value="' + val  + '">');
+    $('#' + input_id).keypress(function(event) {
+        if (event.which == 13) {
+            event.preventDefault();
+            $('#attr_form_' + attr).submit();
+        }
+    });
+}
+
 $('.attr_form').bind('ajax:success', function(evt, data, xhr) {
-    console.log($.parseJSON(status));
+    console.log(status);
+    var response = $.parseJSON(status);
+    var attr_id = response.key;
+    //TODO(batchik): Show error message on failure
+    if (response.single == true) {
+        if (!response.success) { // reset the value if the attr could not be modified
+            $('#attr_input_' + attr_id).val(response.value[0]);
+            
+            $('#attr_input_' + attr_id).css('border-color', 'red');
+            $('#attr_input_' + attr_id).css('border-width', '5px');
+            setTimeout(function() { 
+                $('#attr_input_' + attr_id).css('border-color', 'inherit'); 
+                $('#attr_input_' + attr_id).css('border-width', 'inherit'); 
+            }, 1000);
+
+        } else { // resets the read-only mode's value for the attr
+            $('#attr_' + attr_id).text(response.value[0]);
+
+            $('#attr_input_' + attr_id).css('border-color', 'rgb(35, 230, 35)');
+            $('#attr_input_' + attr_id).css('border-width', '5px');
+            setTimeout(function() { 
+                $('#attr_input_' + attr_id).css('border-color', 'inherit'); 
+                $('#attr_input_' + attr_id).css('border-width', 'inherit'); 
+            }, 1000);
+
+        }
+    } else {
+        if (!response.success) {
+            $("input[id^='attr_input_" + attr_id + "']").remove();
+            $("div[id^='attr_input_div_" + attr_id + "']").each(function(index) {
+                var id = $(this).attr('id'); // ex: attr_input_div_cn_0
+                var val = (index < response.value.length) ? response.value[index] : "";    
+                create_input(id,  val);    
+            });
+            $("input[id^='attr_input_" + attr_id + "']").css('border-color', 'red');
+            $("input[id^='attr_input_" + attr_id + "']").css('border-width', '5px');
+            setTimeout(function() { 
+                $("input[id^='attr_input_" + attr_id + "']").css('border-color', 'inherit'); 
+                $("input[id^='attr_input_" + attr_id + "']").css('border-width', 'inherit'); 
+            }, 1000);
+
+        } else {
+            $("div[id^='attr_input_div_" + attr_id + "']").remove();
+            for (var i = 0 ; i < response.value.length ; i++) {
+                var id = "attr_input_div_" + attr_id + "_" + i;
+                $("#attr_form_" + attr_id).append('<div id="' + id + '" class="attr_input_div"></div>');
+                create_input(id,  response.value[i]);    
+                $("#attr_" + attr_id + "_" + i).text(response.value[i]);
+            }
+            var id = "attr_input_div_" + attr_id + "_" + response.value.length;
+            $("#attr_form_" + attr_id).append('<div id="' + id + '" class="attr_input_div"></div>');
+            create_input(id, "");    
+
+            $("input[id^='attr_input_" + attr_id + "']").css('border-color', 'rgb(35, 230, 35)');
+            $("input[id^='attr_input_" + attr_id + "']").css('border-width', '5px');
+            setTimeout(function() { 
+                $("input[id^='attr_input_" + attr_id + "']").css('border-color', 'inherit'); 
+                $("input[id^='attr_input_" + attr_id + "']").css('border-width', 'inherit'); 
+            }, 1000);
+
+
+        } 
+    }
 });
 
 $("#edit").click(function(e) {
@@ -7,18 +88,10 @@ $("#edit").click(function(e) {
         $(this).text("done");
         $('.attr').hide(); // hides all the current info
         $('.attr_input_div').each(function(index) {
-            var id = $(this).attr('id');        // ex: attr_cn_0_input_div
-            var val = $('#' + id.slice(0, -10)).text();
-            var attr = id.split('_')[1];        // ex: cn
-            var input_id = id.slice(0, -4);     // ex: attr_cn_0_input
-            var input_name = id.slice(5, -10);  // ex: cn_0
-            $('#' + id).append('<input id="' + input_id + '" name="' + input_name + '" type="text" value="' + val  + '">');
-            $('#' + input_id).keypress(function(event) {
-                if (event.which == 13) {
-                    event.preventDefault();
-                    $('#attr_form_' + attr).submit();
-                }
-            });
+            var id = $(this).attr('id');           // ex: attr_input_div_cn_0
+            var attr_id = id.slice(15, id.length); // ex: cn_0
+            var val = $('#attr_' + attr_id).text();
+            create_input(id, val);    
         });
     } else {
         $(this).text("edit");

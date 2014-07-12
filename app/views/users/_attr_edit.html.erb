@@ -2,8 +2,12 @@
     <%= form_tag "/update", method: :post, remote: true, class: 'attr_form', id: "attr_form_#{attr}" do %>
         <% if value[1] == :single %>
             <h5><%= format_attr key %>:</h5>
-            <div id="attr_<%= attr %>" class="attr"><%= value[0][0] if value[0] != nil %></div>
-            <div id="attr_<%= attr %>_input_div" class="attr_input_div"></div>
+            <% if attr == "birthday" || attr == "memberSince" %>
+                <div id="attr_<%= attr %>" class="attr"><%= format_date value[0][0] if value[0] != nil %></div>
+            <% else %>
+                <div id="attr_<%= attr %>" class="attr"><%= value[0][0] if value[0] != nil %></div>
+            <% end %>
+            <div id="attr_input_div_<%= attr %>" class="attr_input_div"></div>
         <% else %>
             <h5><%= format_attr key %>:</h5>
             <% count = 0 %>
@@ -13,12 +17,12 @@
                 <% end %>
                 <% value[0].each do |elem| %>
                     <div id="attr_<%= attr %>_<%= count %>" class="attr"><%= elem %></div>
-                    <div id="attr_<%= attr %>_<%= count %>_input_div" class="attr_input_div"></div>
+                    <div id="attr_input_div_<%= attr %>_<%= count %>" class="attr_input_div"></div>
                     <% count += 1 %>
                 <% end %>
-                <div id="attr_<%= attr %>_<%= count %>_input_div" class="attr_input_div"></div>
+                <div id="attr_input_div_<%= attr %>_<%= count %>" class="attr_input_div"></div>
             <% else %>
-                <div id="attr_<%= attr %>_<%= count %>_input_div" class="attr_input_div"></div>
+                <div id="attr_input_div_<%= attr %>_<%= count %>" class="attr_input_div"></div>
             <% end %>
         <% end %>
     <% end %>

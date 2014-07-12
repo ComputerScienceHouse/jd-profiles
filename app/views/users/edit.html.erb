@@ -4,7 +4,7 @@
         <div class="info_panel">
             <h4>Personal Info:</h4>
             <%= render partial: "attr_edit", locals: {attr: "cn", key: "common name", value: @user["cn"] } %>
-            <%= render partial: "attr_date_edit", locals: {attr: "birthday", key: "birthday", value: @user["birthday"] } %>
+            <%= render partial: "attr_edit", locals: {attr: "birthday", key: "birthday", value: @user["birthday"] } %>
         </div>
     <% end %>
     <% if !@user["mobile"].nil? || !@user["mail"].nil? %>
@@ -24,7 +24,7 @@
             <%= render partial: "attr_edit", locals: {attr: "drinkBalance", key: "drink balance", value: @user["drinkBalance"] } %>
             <%= render partial: "attr_edit", locals: {attr: "drinkAdmin", key: "drink admin", value: @user["drinkAdmin"] } %>
             <%= render partial: "attr_edit", locals: {attr: "ibutton", key: "ibutton", value: @user["ibutton"] } %>
-            <%= render partial: "attr_date_edit", locals: {attr: "memberSince", key: "member since", value: @user["memberSince"] } %>
+            <%= render partial: "attr_edit", locals: {attr: "memberSince", key: "member since", value: @user["memberSince"] } %>
             <%= render partial: "attr_edit", locals: {attr: "loginShell", key: "login shell", value: @user["loginShell"] } %>
         </div>
     <% end %>
