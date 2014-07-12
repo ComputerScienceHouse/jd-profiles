@@ -1,13 +1,16 @@
-var cache = {};
+jQuery.fn.redraw = function() {
+    return this.hide(0, function() {
+                    $(this).show();
+                        });
+};
+
 $("#edit").click(function(e) {
     if ($(this).text() == "edit") {
         $(this).text("done");
-        $(".attr").each(function(index) {
+        $('.attr').hide(); // hides all the current info
+        $('.attr_input_div').each(function(index) {
             var id = $(this).attr('id');
-            var val = $(this).text();
-            cache[id] = val;
-            $('#' + id).empty();
-            $('#' + id).css('display', 'inline');
+            var val = $('#' + id.slice(0, -10)).text();
             $('#' + id).append('<input id="' + id + '_input" name="' + id + '_input" type="text" value="' + val  + '">');
             $('#' + id + '_form').bind('ajax:success', function(evt, data, xhr) {
                 console.log($.parseJSON(status));
@@ -15,12 +18,11 @@ $("#edit").click(function(e) {
         });
     } else {
         $(this).text("edit");
-        $(".attr").each(function(index) {
-            var id = $(this).attr('id');
-            $('#' + id).css('display', 'inline-block');
-            $('#' + id).empty();
-            $('#' + id).append(cache[id]);
-        });
-
+        $('.attr').show();
+        $('.attr_input_div').empty();
+        $('body').hide();
+        setTimeout(function() {
+            $('body').show();
+        }, 0);
     }
 });

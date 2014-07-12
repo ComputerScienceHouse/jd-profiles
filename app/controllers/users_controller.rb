@@ -117,7 +117,7 @@ class UsersController < ApplicationController
     # Displays all the information for the given user
     def user 
         @uid = params[:uid] #ENV['WEBAUTH_USER'] 
-        if ENV['WEBAUTH_USER'] != params[:uid]
+        if false && ENV['WEBAUTH_USER'] != params[:uid]
             bind_ldap
             @ldap_conn.search(@@user_treebase, 
                               LDAP::LDAP_SCOPE_SUBTREE, 
@@ -137,12 +137,12 @@ class UsersController < ApplicationController
             bind_ldap
             @ldap_conn.search(@@user_treebase, 
                 LDAP::LDAP_SCOPE_SUBTREE, 
-                "(uid=#{request.headers['WEBAUTH_USER']})") do |entry|
+                "(uid=#{params[:uid]})") do |entry|
             
                 @user = format_fields entry.to_hash
                 get_attrs(@user["objectClass"]).each do |attr|
                     if @user[attr[0]] == nil
-                        @user[attr[0]] = [[""], attr[1]]
+                        @user[attr[0]] = [nil, attr[1]]
                     else
                         @user[attr[0]] = [@user[attr[0]], attr[1]]
                     end
