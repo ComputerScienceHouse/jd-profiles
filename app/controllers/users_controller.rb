@@ -114,55 +114,59 @@ class UsersController < ApplicationController
         end
     end
 
+    def edit
+        @uid = ENV['WEBAUTH_USER']
+        bind_ldap
+        @ldap_conn.search(@@user_treebase, 
+            LDAP::LDAP_SCOPE_SUBTREE, 
+            "(uid=#{params[:uid]})") do |entry|
+        
+            @user = format_fields entry.to_hash
+            get_attrs(@user["objectClass"]).each do |attr|
+                if @user[attr[0]] == nil
+                    @user[attr[0]] = [nil, attr[1]]
+                else
+                    @user[attr[0]] = [@user[attr[0]], attr[1]]
+                end
+            end
+            @title = @user["uid"][0][0]
+            @user = @user.except("uidNumber", "homeDirectory",
+                             "diskQuotaSoft", "diskQuotaHard", 
+                             "gidNumber", "objectClass", "uid", "ou",
+                             "userPassword", "l", "o", 
+                             "conditional", "gecos")
+        end
+        @groups = []
+        @ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE,
+                          "(member=#{@user["dn"][0]})") do |entry|
+            @groups << entry.to_hash["cn"][0]
+        end
+        unbind_ldap
+        render 'edit'
+    end
+
     # Displays all the information for the given user
     def user 
-        @uid = params[:uid] #ENV['WEBAUTH_USER'] 
-        if ENV['WEBAUTH_USER'] != params[:uid]
-            bind_ldap
-            @ldap_conn.search(@@user_treebase, 
-                              LDAP::LDAP_SCOPE_SUBTREE, 
-                              "(uid=#{params[:uid]})") do |entry|
-                @user = format_fields entry.to_hash.except(
-                    "objectClass", "uidNumber", "homeDirectory",
-                    "diskQuotaSoft", "diskQuotaHard", "gidNumber")
-            end
+        return edit if ENV['WEBAUTH_USER'] == params[:uid]
+        bind_ldap
+        @user = nil
+        @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
+                          "(uid=#{params[:uid]})") do |entry|
+            @user = format_fields entry.to_hash.except(
+                "objectClass", "uidNumber", "homeDirectory",
+                "diskQuotaSoft", "diskQuotaHard", "gidNumber")
+        end
+        if @user == nil
+            redirect_to root_path
+        else
             @groups = []
             @title = @user["uid"][0]
-            @ldap_conn.search(@@group_treebase, 
-                              LDAP::LDAP_SCOPE_SUBTREE,
+            @ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE,
                             "(member=#{@user["dn"][0]})") do |entry|
                 @groups << entry.to_hash["cn"][0]
             end
-            unbind_ldap
-        else
-            bind_ldap
-            @ldap_conn.search(@@user_treebase, 
-                LDAP::LDAP_SCOPE_SUBTREE, 
-                "(uid=#{params[:uid]})") do |entry|
-            
-                @user = format_fields entry.to_hash
-                get_attrs(@user["objectClass"]).each do |attr|
-                    if @user[attr[0]] == nil
-                        @user[attr[0]] = [nil, attr[1]]
-                    else
-                        @user[attr[0]] = [@user[attr[0]], attr[1]]
-                    end
-                end
-                @title = @user["uid"][0][0]
-                @user = @user.except("uidNumber", "homeDirectory",
-                                 "diskQuotaSoft", "diskQuotaHard", 
-                                 "gidNumber", "objectClass", "uid", "ou",
-                                 "userPassword", "l", "o", 
-                                 "conditional", "gecos")
-            end
-            @groups = []
-            @ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE,
-                              "(member=#{@user["dn"][0]})") do |entry|
-                @groups << entry.to_hash["cn"][0]
-            end
-            unbind_ldap
-            render 'edit'
         end
+        unbind_ldap
     end
 
     # Updates the given user's attributes
@@ -217,13 +221,17 @@ class UsersController < ApplicationController
         if @users.length > 100
             @current = params[:page]
             @url = "group/#{params[:group]}"
-            @users.each { |dn| filter += "(uid=#{dn.split(",")[0].split("=")[1]})" if dn.split(",")[0].split("=")[1][0] == params[:page] }
+            @users.each do |dn| 
+                if dn.split(",")[0].split("=")[1][0] == params[:page]
+                    filter += "(uid=#{dn.split(",")[0].split("=")[1]})"
+                end
+            end
         else
             @users.each { |dn| filter += "(uid=#{dn.split(",")[0].split("=")[1]})" }
         end
         filter += ")"
         @users = []
-        @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, filter, attrs = attrs) do |entry|
+        @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, filter, attrs) do |entry|
             @users << entry.to_hash
         end
         @users.sort! { |x,y| x["uid"] <=> y["uid"] }
@@ -238,8 +246,10 @@ class UsersController < ApplicationController
         attrs = ["uid", "cn", "memberSince"]
         filter  = "(&(memberSince>=#{year}0801010101-0400)(memberSince<=#{year + 1}0801010101-0400))"
         bind_ldap
-        @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, filter, 
-                        attrs = attrs) do |entry|
+        @ldap_conn.search(@@user_treebase, 
+                          LDAP::LDAP_SCOPE_SUBTREE, 
+                          filter, 
+                          attrs) do |entry|
             @users << entry.to_hash
         end
         unbind_ldap

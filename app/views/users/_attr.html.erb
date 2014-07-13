@@ -1,11 +1,16 @@
-<% if !attr.nil? %>
-    <% if attr.size == 1 %>
-        <h5><%= format_attr key %>:</h5><div class="attr"><%= attr[0] %></div>
+<% if !value.nil? %>
+    <% if value.size == 1 %>
+        <h5><%= format_attr key %>:</h5>
+        <% if attr == "birthday" || attr == "memberSince" %>
+            <div class="attr"><%= format_date value[0] %></div>
+        <% else %>
+            <div class="attr"><%= value[0] %></div>
+        <% end %>
         <br>
     <% else %>
         <h5><%= format_attr key %>:</h5>
         <ul>
-        <% attr.each do |elem| %>
+        <% value.each do |elem| %>
             <li><div class="attr"><%= elem %></div></li>
         <% end %>
         </ul>
