@@ -17,32 +17,37 @@ function create_input(id, val) {
     });
 }
 
+/*
+ * Flashes the success status to the user. It makes the inputs' border color
+ * green if it successfully updated, red otherwise
+ * id: the id of the inputs to modify
+ * success: if the updats was successful
+ */
+function flash_success(id, success) {
+    var org_border_color = $(id).css('border-color');
+    var org_border_width = $(id).css('border-width');
+    var border_color = success ? 'rgb(35, 230, 35)' : 'red';
+
+    $(id).css('border-color', border_color);
+    $(id).css('border-width', '5px');
+    
+    setTimeout(function() { 
+        $(id).css('border-color', org_border_color); 
+        $(id).css('border-width', org_border_width); 
+    }, 1000);
+}
+
 $('.attr_form').bind('ajax:success', function(evt, data, xhr) {
-    console.log(status);
     var response = $.parseJSON(status);
     var attr_id = response.key;
     //TODO(batchik): Show error message on failure
     if (response.single == true) {
         if (!response.success) { // reset the value if the attr could not be modified
             $('#attr_input_' + attr_id).val(response.value[0]);
-            
-            $('#attr_input_' + attr_id).css('border-color', 'red');
-            $('#attr_input_' + attr_id).css('border-width', '5px');
-            setTimeout(function() { 
-                $('#attr_input_' + attr_id).css('border-color', 'inherit'); 
-                $('#attr_input_' + attr_id).css('border-width', 'inherit'); 
-            }, 1000);
-
+            flash_success('#attr_input_' + attr_id, false);
         } else { // resets the read-only mode's value for the attr
             $('#attr_' + attr_id).text(response.value[0]);
-
-            $('#attr_input_' + attr_id).css('border-color', 'rgb(35, 230, 35)');
-            $('#attr_input_' + attr_id).css('border-width', '5px');
-            setTimeout(function() { 
-                $('#attr_input_' + attr_id).css('border-color', 'inherit'); 
-                $('#attr_input_' + attr_id).css('border-width', 'inherit'); 
-            }, 1000);
-
+            flash_success('#attr_input_' + attr_id, true);
         }
     } else {
         if (!response.success) {
@@ -51,14 +56,8 @@ $('.attr_form').bind('ajax:success', function(evt, data, xhr) {
                 var id = $(this).attr('id'); // ex: attr_input_div_cn_0
                 var val = (index < response.value.length) ? response.value[index] : "";    
                 create_input(id,  val);    
-            });
-            $("input[id^='attr_input_" + attr_id + "']").css('border-color', 'red');
-            $("input[id^='attr_input_" + attr_id + "']").css('border-width', '5px');
-            setTimeout(function() { 
-                $("input[id^='attr_input_" + attr_id + "']").css('border-color', 'inherit'); 
-                $("input[id^='attr_input_" + attr_id + "']").css('border-width', 'inherit'); 
-            }, 1000);
-
+                });
+            flash_success("input[id^='attr_input_" + attr_id + "']", false);
         } else {
             $("div[id^='attr_input_div_" + attr_id + "']").remove();
             for (var i = 0 ; i < response.value.length ; i++) {
@@ -70,15 +69,7 @@ $('.attr_form').bind('ajax:success', function(evt, data, xhr) {
             var id = "attr_input_div_" + attr_id + "_" + response.value.length;
             $("#attr_form_" + attr_id).append('<div id="' + id + '" class="attr_input_div"></div>');
             create_input(id, "");    
-
-            $("input[id^='attr_input_" + attr_id + "']").css('border-color', 'rgb(35, 230, 35)');
-            $("input[id^='attr_input_" + attr_id + "']").css('border-width', '5px');
-            setTimeout(function() { 
-                $("input[id^='attr_input_" + attr_id + "']").css('border-color', 'inherit'); 
-                $("input[id^='attr_input_" + attr_id + "']").css('border-width', 'inherit'); 
-            }, 1000);
-
-
+            flash_success("input[id^='attr_input_" + attr_id + "']", true);
         } 
     }
 });
@@ -103,3 +94,16 @@ $("#edit").click(function(e) {
         setTimeout(function() { $('body').show(); }, 0);
     }
 });
+
+
+$('#img-thumb').click(function() {
+    console.log("hi");
+    if ($("#img-form").css("display") == "none") {
+        $("#img-form").css("display", "inherit");    
+    } else {
+        $("#img-form").css("display", "none");    
+    }
+});
+
+
+

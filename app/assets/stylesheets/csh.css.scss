@@ -405,7 +405,19 @@ input[type="text"]{
     border-radius: 150px;
 }
 
-#image_bar {
+#img-form {
+    display: none;
+}
+
+#img-button { 
+    @extend .button;
+    padding: 8px; 
+    font-size: 12px;
+    margin-bottom: 1px;
+    border-radius:5px;
+}
+
+#image-bar {
     float:right;
 }
 
@@ -430,6 +442,8 @@ input[type="text"]{
     -o-column-break-inside:avoid;
     -ms-column-break-inside:avoid;
     column-break-inside:avoid;
+    break-after: column;
+    page-break-inside: avoid;
 }
 
 .other_attr {

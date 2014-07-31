@@ -4,9 +4,9 @@ require 'will_paginate/array'
 
 class UsersController < ApplicationController
     include CacheableCSRFTokenRails
-    caches_action :list_users, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
     caches_action :list_years, :expires_in => 5.hour
     caches_action :list_groups, :expires_in => 5.hour
+    caches_action :list_users, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
     caches_action :group, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
     caches_action :year, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
     caches_action :image, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
@@ -24,9 +24,9 @@ class UsersController < ApplicationController
                 "(sn=*#{search_str}*)(uid=*#{search_str}*)" + 
                 "(mobile=#{search_str})(twitterName=#{search_str})" + 
                 "(github=#{search_str}))"
-        attrs = ["uid", "cn", "memberSince"]
         bind_ldap
-        @ldap_conn.search(@@user_treebase,  LDAP::LDAP_SCOPE_SUBTREE, filter, attrs = attrs) do |entry|
+        @ldap_conn.search(@@user_treebase,  LDAP::LDAP_SCOPE_SUBTREE, filter, 
+                          attrs = ["uid", "cn", "memberSince"]) do |entry|
             @users << entry.to_hash   
         end
         unbind_ldap
@@ -50,7 +50,8 @@ class UsersController < ApplicationController
         params[:page] = "a" if params[:page] == nil
         attrs = ["uid", "cn", "memberSince"]
         bind_ldap
-        @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, "(uid=#{params[:page]}*)", attrs = attrs) do |entry|
+        @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
+                          "(uid=#{params[:page]}*)", attrs = attrs) do |entry|
             @users << entry.to_hash
         end
         unbind_ldap
@@ -64,7 +65,8 @@ class UsersController < ApplicationController
     def list_groups
         @groups = []
         bind_ldap
-        @ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE, "(cn=*)") do |entry|
+        @ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
+                          "(cn=*)") do |entry|
             @groups << entry.to_hash
         end
         @title = "groups"
@@ -101,12 +103,12 @@ class UsersController < ApplicationController
     def autocomplete
         @users = []
         bind_ldap
-        attrs = ["uid", "cn"]
         @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE,
                          "(|(uid=*#{params[:term]}*)(cn=*#{params[:term]}*))",
-                         attrs = attrs) do |entry|
+                         attrs = ["uid", "cn"]) do |entry|
             @users << entry.to_hash["uid"][0]
         end
+        unbind_ldap
         if @users.length > 10
             render :json => @users[1..10]
         else
@@ -170,38 +172,67 @@ class UsersController < ApplicationController
     end
 
     # Updates the given user's attributes
-    def update
-        expire_action :action => :image, :uid => request.headers['WEBAUTH_USER']
-        expire_action :action => :user, :uid => request.headers['WEBAUTH_USER']
-        expire_action :action => :search
-
+    def update 
         attr_key = nil
+        image_upload = false
         attr_value = []
-        params.except("controller", "action", "utf8").each do |key, value|
-            attr_key = key.split("_")[0]
-            attr_value << value if value != ""
+        real_input = []
+        if params['picture'] != nil
+            attr_key = 'jpegPhoto'
+            image_upload = true
+            update = LDAP.mod(LDAP::LDAP_MOD_REPLACE | LDAP::LDAP_MOD_BVALUES, 
+                              attr_key, [params[:picture].read])
+        else
+            params.except("controller", "action", "utf8").each do |key, value|
+                attr_key = key.split("_")[0]
+                if attr_key == "birthday"
+                    begin
+                        attr_value << value.to_datetime.strftime('%Y%m%d%H%M%S-0400') if value != ""
+                        real_input << value if value != ""
+                    rescue Exception
+                        attr_value << "BAD"
+                    end
+                else
+                    attr_value << value if value != ""
+                    real_input << value if value != ""
+                end
+            end
+            update = LDAP.mod(LDAP::LDAP_MOD_REPLACE, attr_key, attr_value)
         end
-        update = [LDAP.mod(LDAP::LDAP_MOD_REPLACE, attr_key, attr_value)]
         result = {"key" => attr_key}
-
         bind_ldap
         begin
             result["single"] = is_single attr_key
-            #raise LDAP::Error.new "help"
-            @ldap_conn.modify("uid=#{request.headers['WEBAUTH_USER']},#{@@user_treebase}", update)
+            @ldap_conn.modify("uid=#{request.headers['WEBAUTH_USER']},#{@@user_treebase}", [update])
             result["success"] = true
-            result["value"] = attr_value
+            result["value"] = real_input if real_input != nil
+            unbind_ldap
+
+            if image_upload
+                expire_action :action => :image, :uid => request.headers['WEBAUTH_USER']
+            else
+                expire_action :action => :user, :uid => request.headers['WEBAUTH_USER']
+                expire_action :action => :search
+            end
+
         rescue LDAP::Error => e
             Rails.logger.error "Error modifying ldap for #{request.headers['WEBAUTH_USER']}, #{e}"
+            result["success"] = false
+            bind_ldap
             @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
                               "(uid=#{request.headers['WEBAUTH_USER']})", [attr_key]) do |entry|
                 user = format_fields entry.to_hash
                 result["value"] = user[attr_key] != nil ? user[attr_key] : ""
+                if (attr_key == "birthday" || attr_key == "memberSince") && result["value"][0] != nil
+                    result["value"] = [DateTime.parse(result["value"][0]).strftime('%m/%d/%Y')]
+                end
             end
-            result["success"] = false
         end
-        unbind_ldap
-        render text: "var status = '#{result.to_s.gsub(/=>/, ":")}';"
+        if image_upload
+            redirect_to action: 'me'
+        else
+            render text: "var status = '#{result.to_s.gsub(/=>/, ":")}';"
+        end
     end
 
     # Gets all the users for the give group
@@ -283,9 +314,8 @@ class UsersController < ApplicationController
         # provided by webauth
         def bind_ldap
             ENV['KRB5CCNAME'] = request.env['KRB5CCNAME']
-            @ldap_conn = LDAP::SSLConn.new(
-                host = Global.ldap.host, 
-                port = Global.ldap.port)
+            @ldap_conn = LDAP::Conn.new(host = Global.ldap.host)
+            @ldap_conn.set_option( LDAP::LDAP_OPT_PROTOCOL_VERSION, 3 ) 
             @ldap_conn.sasl_bind('', '')
         end
 

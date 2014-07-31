@@ -1,5 +1,19 @@
 <div style="text-align:center;">
-    <%= render :partial => "pagination", :locals => { current: @current, url: @url } %>
+    <% if @current %>
+        <div class="pagination-centered">
+            <ul class="pagination">
+                <% ("a".ord.."z".ord).each do |char| %>
+                    <% if char == @current.ord %>
+                        <li class="current">
+                    <% else %>
+                        <li>
+                    <% end %>
+                    <a rel="start" href="/<%= @url %>?page=<%= char.chr %>" style="padding: 5px"><%= char.chr %></a></li>
+                <% end %>
+            </ul>
+        </div>
+        <br />
+    <% end %>
 </div>
 <% if @users.length == 0 %>
     <h3 style="text-align: center">No Users found</h3>

@@ -1,13 +1,19 @@
-<div id="image_bar">
+<div id="image-bar">
     <h3>
-    <% if @user["onfloor"] == ["1"] || @user["onfloor"] == [["1"], :single] %>
-        Active - on-floor
-    <% elsif @user["onfloor"] == ["0"] || @user["onfloor"] == [["0"], :single] %>
-        Active - off-floor
-    <% else %>
+    <% if @user["alumni"] == ["1"] || @user["alumni"] == [["1"], :single] %>
         Alumni
+    <% elsif @user["onfloor"] == ["1"] || @user["onfloor"] == [["1"], :single] %>
+        Active - on-floor
+    <% else %>
+        Active - off-floor
     <% end %>
-    <img class="thumbnail" src="/image/<%= uid %>">
+    <img id="img-thumb" class="thumbnail" src="/image/<%= uid %>">
+    <% if edit %>
+        <%= form_tag('/update', method: :post, multipart: true, id: 'img-form') do %>
+            <div style="float: left"><%= file_field_tag 'picture' %></div>
+            <div style="float: right"><%= submit_tag "Submit", id: "img-button" %></div>
+        <% end %>
+    <% end %>
 </div>
 <h3 style="margin-left:10px; margin-top:30px;"><%= cn %></h3>
 <br>

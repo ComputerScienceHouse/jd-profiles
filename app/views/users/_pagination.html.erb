@@ -1,16 +1,1 @@
-<% if current %>
-    <div class="pagination-centered">
-        <ul class="pagination">
-            <% ("a".ord.."z".ord).each do |char| %>
-                <% if char == current.ord %>
-                    <li class="current">
-                <% else %>
-                    <li>
-                <% end %>
-                <a rel="start" href="/<%= url %>?page=<%= char.chr %>" style="padding: 5px"><%= char.chr %></a></li>
-            <% end %>
-        </ul>
-    </div>
-    <br />
-    <br />
-<% end %>
+
