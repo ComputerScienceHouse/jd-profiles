@@ -77,7 +77,8 @@ $('.attr_form').bind('ajax:success', function(evt, data, xhr) {
 $("#edit").click(function(e) {
     if ($(this).text() == "edit") {
         $(this).text("done");
-        $('.attr').hide(); // hides all the current info
+        $('.attr_form').css('display', 'inherit'); // unhides empty fields
+        $('.attr').hide();                         // hides all the current info
         $('.attr_input_div').each(function(index) {
             var id = $(this).attr('id');           // ex: attr_input_div_cn_0
             var attr_id = id.slice(15, id.length); // ex: cn_0
@@ -85,6 +86,20 @@ $("#edit").click(function(e) {
             create_input(id, val);    
         });
     } else {
+        /* hides all empty forms */
+        $('.attr_form').each(function(index) {
+            var is_empty = true;
+            $(this).find('input').each(function(index) {
+                if (index != 0 && $(this).val().length != 0) {
+                    is_empty = false;
+                    return false;
+                }
+            });
+            if (is_empty) {
+                $(this).css('display', 'none');
+            }
+        });
+        
         $(this).text("edit");
         $('.attr').show();
         $('.attr_input_div').empty();
@@ -96,12 +111,11 @@ $("#edit").click(function(e) {
 });
 
 
-$('#img-thumb').click(function() {
-    console.log("hi");
-    if ($("#img-form").css("display") == "none") {
-        $("#img-form").css("display", "inherit");    
+$('#img_thumb').click(function() {
+    if ($("#img_form").css("display") == "none") {
+        $("#img_form").css("display", "inherit");    
     } else {
-        $("#img-form").css("display", "none");    
+        $("#img_form").css("display", "none");    
     }
 });
 

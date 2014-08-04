@@ -47,12 +47,14 @@
                         {class: "nav-button" } %>
                     <%= link_to "RTPs", "/group/rtp", 
                         {class: "nav-button" } %>
+                    <%= link_to "Drink Admins", "/group/drink", 
+                        {class: "nav-button" } %> 
                     <%= link_to "Me", "/user/#{request.headers['WEBAUTH_USER']}", 
                     {class: "nav-button" } %>
                 </div>
                 <div id="search">
                      <%= form_tag("/search", method: "post") do %>
-                        <%= text_field("search", "search", size: "25", placeholder: "search...") %>
+                        <%= text_field("search", "search", size: "21", placeholder: "search...") %>
                     <% end %>
                 </div>
             </div>

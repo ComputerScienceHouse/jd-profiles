@@ -24,12 +24,12 @@ class UsersController < ApplicationController
                 "(sn=*#{search_str}*)(uid=*#{search_str}*)" + 
                 "(mobile=#{search_str})(twitterName=#{search_str})" + 
                 "(github=#{search_str}))"
-        bind_ldap
-        @ldap_conn.search(@@user_treebase,  LDAP::LDAP_SCOPE_SUBTREE, filter, 
-                          attrs = ["uid", "cn", "memberSince"]) do |entry|
-            @users << entry.to_hash   
+        bind_ldap do |ldap_conn|
+            ldap_conn.search(@@user_treebase,  LDAP::LDAP_SCOPE_SUBTREE, filter, 
+                              attrs = ["uid", "cn", "memberSince"]) do |entry|
+                @users << entry.to_hash   
+            end
         end
-        unbind_ldap
         # if only one result is returned, redirect to that user
         if @users.length == 1
             redirect_to "/user/#{@users[0]["uid"][0]}"
@@ -49,12 +49,12 @@ class UsersController < ApplicationController
         @users = []
         params[:page] = "a" if params[:page] == nil
         attrs = ["uid", "cn", "memberSince"]
-        bind_ldap
-        @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
+        bind_ldap do |ldap_conn|
+            ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
                           "(uid=#{params[:page]}*)", attrs = attrs) do |entry|
-            @users << entry.to_hash
+                @users << entry.to_hash
+            end
         end
-        unbind_ldap
         @users.sort! { |x,y| x["uid"] <=> y["uid"] }
         @title = "users"
         @current = params[:page]
@@ -64,13 +64,13 @@ class UsersController < ApplicationController
     # Lists all the groups sorted alphabetically
     def list_groups
         @groups = []
-        bind_ldap
-        @ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
-                          "(cn=*)") do |entry|
-            @groups << entry.to_hash
+        bind_ldap do |ldap_conn|
+            ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
+                              "(cn=*)") do |entry|
+                @groups << entry.to_hash
+            end
         end
         @title = "groups"
-        unbind_ldap
         @groups.sort! { |x,y| x["cn"] <=> y["cn"] }
     end
 
@@ -86,89 +86,81 @@ class UsersController < ApplicationController
 
     def image
         response.headers["Expires"] = 10.minute.from_now.httpdate
-        bind_ldap
-        @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
-                          "(uid=#{params[:uid]})") do |entry|
-            if entry["jpegPhoto"] != nil && entry["jpegPhoto"] != [""]
-                send_data entry["jpegPhoto"][0], :filename => "#{params[:uid]}", 
-                    :type => 'image/png',:disposition => 'inline'
-            else
-                data = File.open("app/assets/images/blank_user.png").read
-                send_data(data , :filename => "#{params[:uid]}.png", :type=>'image/png')
+        bind_ldap do |ldap_conn|
+            ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
+                              "(uid=#{params[:uid]})") do |entry|
+                if entry["jpegPhoto"] != nil && entry["jpegPhoto"] != [""]
+                    send_data entry["jpegPhoto"][0], :filename => "#{params[:uid]}", 
+                        :type => 'image/png',:disposition => 'inline'
+                else
+                    data = File.open("app/assets/images/blank_user.png").read
+                    send_data(data , :filename => "#{params[:uid]}.png", :type=>'image/png')
+                end
             end
         end
-        unbind_ldap
     end
     
     def autocomplete
         @users = []
-        bind_ldap
-        @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE,
-                         "(|(uid=*#{params[:term]}*)(cn=*#{params[:term]}*))",
-                         attrs = ["uid", "cn"]) do |entry|
-            @users << entry.to_hash["uid"][0]
+        bind_ldap do |ldap_conn|
+            ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE,
+                             "(|(uid=*#{params[:term]}*)(cn=*#{params[:term]}*))",
+                             attrs = ["uid", "cn"]) do |entry|
+                @users << entry.to_hash["uid"][0]
+            end
         end
-        unbind_ldap
-        if @users.length > 10
-            render :json => @users[1..10]
-        else
-            render :json => @users
-        end
+        render :json => @users[1..10]
     end
 
     def edit
         @uid = ENV['WEBAUTH_USER']
-        bind_ldap
-        @ldap_conn.search(@@user_treebase, 
-            LDAP::LDAP_SCOPE_SUBTREE, 
-            "(uid=#{params[:uid]})") do |entry|
+        bind_ldap do |ldap_conn|
+            ldap_conn.search(@@user_treebase, 
+                LDAP::LDAP_SCOPE_SUBTREE, 
+                "(uid=#{params[:uid]})") do |entry|
         
-            @user = format_fields entry.to_hash
-            get_attrs(@user["objectClass"]).each do |attr|
-                if @user[attr[0]] == nil
-                    @user[attr[0]] = [nil, attr[1]]
-                else
-                    @user[attr[0]] = [@user[attr[0]], attr[1]]
+                @user = format_fields entry.to_hash
+                get_attrs(@user["objectClass"], ldap_conn).each do |attr|
+                    @user[attr[0]] = (@user[attr[0]] == nil) ? [nil, attr[1]] : [@user[attr[0]], attr[1]]
                 end
+                @title = @user["uid"][0][0]
+                @user = @user.except("uidNumber", "homeDirectory",
+                                 "diskQuotaSoft", "diskQuotaHard", 
+                                 "gidNumber", "objectClass", "uid", "ou",
+                                 "userPassword", "l", "o", 
+                                 "conditional", "gecos")
             end
-            @title = @user["uid"][0][0]
-            @user = @user.except("uidNumber", "homeDirectory",
-                             "diskQuotaSoft", "diskQuotaHard", 
-                             "gidNumber", "objectClass", "uid", "ou",
-                             "userPassword", "l", "o", 
-                             "conditional", "gecos")
+            @groups = []
+            ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE,
+                              "(member=#{@user["dn"][0]})") do |entry|
+                @groups << entry.to_hash["cn"][0]
+            end
         end
-        @groups = []
-        @ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE,
-                          "(member=#{@user["dn"][0]})") do |entry|
-            @groups << entry.to_hash["cn"][0]
-        end
-        unbind_ldap
         render 'edit'
     end
 
     # Displays all the information for the given user
     def user 
         return edit if ENV['WEBAUTH_USER'] == params[:uid]
-        bind_ldap
         @user = nil
-        @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
-                          "(uid=#{params[:uid]})") do |entry|
-            @user = format_fields entry.to_hash.except(
-                "objectClass", "uidNumber", "homeDirectory",
-                "diskQuotaSoft", "diskQuotaHard", "gidNumber")
-        end
-        if @user == nil
-            redirect_to root_path
-        else
-            @groups = []
-            @title = @user["uid"][0]
-            @ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE,
-                            "(member=#{@user["dn"][0]})") do |entry|
-                @groups << entry.to_hash["cn"][0]
+        bind_ldap do |ldap_conn|
+            ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
+                              "(uid=#{params[:uid]})") do |entry|
+                @user = format_fields entry.to_hash.except(
+                    "objectClass", "uidNumber", "homeDirectory",
+                    "diskQuotaSoft", "diskQuotaHard", "gidNumber")
+            end
+            if @user == nil
+                redirect_to root_path
+            else
+                @groups = []
+                @title = @user["uid"][0]
+                ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE,
+                                "(member=#{@user["dn"][0]})") do |entry|
+                    @groups << entry.to_hash["cn"][0]
+                end
             end
         end
-        unbind_ldap
     end
 
     # Updates the given user's attributes
@@ -200,38 +192,37 @@ class UsersController < ApplicationController
             update = LDAP.mod(LDAP::LDAP_MOD_REPLACE, attr_key, attr_value)
         end
         result = {"key" => attr_key}
-        bind_ldap
-        begin
-            result["single"] = is_single attr_key
-            @ldap_conn.modify("uid=#{request.headers['WEBAUTH_USER']},#{@@user_treebase}", [update])
-            result["success"] = true
-            result["value"] = real_input if real_input != nil
-            unbind_ldap
+        bind_ldap do |ldap_conn|
+            begin
+                result["single"] = is_single attr_key, ldap_conn
+                ldap_conn.modify("uid=#{request.headers['WEBAUTH_USER']},#{@@user_treebase}", [update])
+                result["success"] = true
+                result["value"] = real_input if real_input != nil
+    
+                if image_upload
+                    expire_action :action => :image, :uid => request.headers['WEBAUTH_USER']
+                else
+                    expire_action :action => :search
+                end
 
-            if image_upload
-                expire_action :action => :image, :uid => request.headers['WEBAUTH_USER']
-            else
-                expire_action :action => :user, :uid => request.headers['WEBAUTH_USER']
-                expire_action :action => :search
-            end
-
-        rescue LDAP::Error => e
-            Rails.logger.error "Error modifying ldap for #{request.headers['WEBAUTH_USER']}, #{e}"
-            result["success"] = false
-            bind_ldap
-            @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
-                              "(uid=#{request.headers['WEBAUTH_USER']})", [attr_key]) do |entry|
-                user = format_fields entry.to_hash
-                result["value"] = user[attr_key] != nil ? user[attr_key] : ""
-                if (attr_key == "birthday" || attr_key == "memberSince") && result["value"][0] != nil
-                    result["value"] = [DateTime.parse(result["value"][0]).strftime('%m/%d/%Y')]
+            rescue LDAP::Error => e
+                Rails.logger.error "Error modifying ldap for #{request.headers['WEBAUTH_USER']}, #{e}"
+                result["success"] = false
+                ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
+                                  "(uid=#{request.headers['WEBAUTH_USER']})", [attr_key]) do |entry|
+                    user = format_fields entry.to_hash
+                    result["value"] = user[attr_key] != nil ? user[attr_key] : ""
+                    if (attr_key == "birthday" || attr_key == "memberSince") && result["value"][0] != nil
+                        result["value"] = [DateTime.parse(result["value"][0]).strftime('%m/%d/%Y')]
+                    end
                 end
             end
-        end
-        if image_upload
-            redirect_to action: 'me'
-        else
-            render text: "var status = '#{result.to_s.gsub(/=>/, ":")}';"
+            # uploading images refreshes the screen while everything else is ajax / js 
+            if image_upload
+                redirect_to action: 'me'
+            else
+                render text: "var status = '#{result.to_s.gsub(/=>/, ":")}';"
+            end
         end
     end
 
@@ -241,32 +232,32 @@ class UsersController < ApplicationController
         @users = []
         attrs = ["uid", "cn", "memberSince"]
         filter = "(cn=#{params[:group]})"
-        bind_ldap
-        @ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE, filter) do |entry|
-            @users = entry.to_hash["member"].to_a
-            @title = entry.to_hash["cn"][0]
-        end
-        @users = [] if @users == [""]
-        
-        filter = "(|"
-        if @users.length > 100
-            @current = params[:page]
-            @url = "group/#{params[:group]}"
-            @users.each do |dn| 
-                if dn.split(",")[0].split("=")[1][0] == params[:page]
-                    filter += "(uid=#{dn.split(",")[0].split("=")[1]})"
-                end
+        bind_ldap do |ldap_conn|
+            ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE, filter) do |entry|
+                @users = entry.to_hash["member"].to_a
+                @title = entry.to_hash["cn"][0]
             end
-        else
-            @users.each { |dn| filter += "(uid=#{dn.split(",")[0].split("=")[1]})" }
+            @users = [] if @users == [""]
+        
+            filter = "(|"
+            if @users.length > 100
+                @current = params[:page]
+                @url = "group/#{params[:group]}"
+                @users.each do |dn| 
+                    if dn.split(",")[0].split("=")[1][0] == params[:page]
+                        filter += "(uid=#{dn.split(",")[0].split("=")[1]})"
+                    end
+                end
+            else
+                @users.each { |dn| filter += "(uid=#{dn.split(",")[0].split("=")[1]})" }
+            end
+            filter += ")"
+            @users = []
+            ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, filter, attrs) do |entry|
+                @users << entry.to_hash
+            end
+            @users.sort! { |x,y| x["uid"] <=> y["uid"] }
         end
-        filter += ")"
-        @users = []
-        @ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, filter, attrs) do |entry|
-            @users << entry.to_hash
-        end
-        @users.sort! { |x,y| x["uid"] <=> y["uid"] }
-        unbind_ldap
         render 'list_users'
     end
 
@@ -276,14 +267,11 @@ class UsersController < ApplicationController
         year = params[:year].to_i
         attrs = ["uid", "cn", "memberSince"]
         filter  = "(&(memberSince>=#{year}0801010101-0400)(memberSince<=#{year + 1}0801010101-0400))"
-        bind_ldap
-        @ldap_conn.search(@@user_treebase, 
-                          LDAP::LDAP_SCOPE_SUBTREE, 
-                          filter, 
-                          attrs) do |entry|
-            @users << entry.to_hash
+        bind_ldap do |ldap_conn|
+            ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, filter, attrs) do |entry|
+                @users << entry.to_hash
+            end
         end
-        unbind_ldap
         @users.reverse!
         @title = "#{params[:year]} - #{params[:year].to_i + 1}"
         render 'list_users'
@@ -314,18 +302,15 @@ class UsersController < ApplicationController
         # provided by webauth
         def bind_ldap
             ENV['KRB5CCNAME'] = request.env['KRB5CCNAME']
-            @ldap_conn = LDAP::Conn.new(host = Global.ldap.host)
-            @ldap_conn.set_option( LDAP::LDAP_OPT_PROTOCOL_VERSION, 3 ) 
-            @ldap_conn.sasl_bind('', '')
+            ldap_conn = LDAP::Conn.new(host = Global.ldap.host)
+            ldap_conn.set_option( LDAP::LDAP_OPT_PROTOCOL_VERSION, 3 ) 
+            ldap_conn.sasl_bind('', '')
+            yield ldap_conn
+            ldap_conn.unbind()
         end
 
-        # Unbinds the ldap connection
-        def unbind_ldap
-            @ldap_conn.unbind()
-        end
-
-        def is_single attr
-            schema = @ldap_conn.schema()
+        def is_single (attr, ldap_conn)
+            schema = ldap_conn.schema()
             schema["attributeTypes"].each do |s|
                 name = s.split(" ")[3][1..-2]
                 # deals with when attributes have aliases
@@ -340,8 +325,8 @@ class UsersController < ApplicationController
         # on if there can be multiple of the value
         # object_classes - the object classes that the user belongs to, used
         #   to get the values allowed
-        def get_attrs object_classes
-            schema = @ldap_conn.schema()
+        def get_attrs (object_classes, ldap_conn)
+            schema = ldap_conn.schema()
             attr_set = Set.new
             real_attrs = []
 

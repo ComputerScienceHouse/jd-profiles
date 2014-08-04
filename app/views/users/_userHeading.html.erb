@@ -1,20 +1,25 @@
-<div id="image-bar">
-    <h3>
-    <% if @user["alumni"] == ["1"] || @user["alumni"] == [["1"], :single] %>
-        Alumni
-    <% elsif @user["onfloor"] == ["1"] || @user["onfloor"] == [["1"], :single] %>
-        Active - on-floor
-    <% else %>
-        Active - off-floor
-    <% end %>
-    <img id="img-thumb" class="thumbnail" src="/image/<%= uid %>">
-    <% if edit %>
-        <%= form_tag('/update', method: :post, multipart: true, id: 'img-form') do %>
-            <div style="float: left"><%= file_field_tag 'picture' %></div>
-            <div style="float: right"><%= submit_tag "Submit", id: "img-button" %></div>
-        <% end %>
-    <% end %>
+<div class="row">
+    <div class="medium-6 columns">
+        <h3 id="cn_title"><%= cn %></h3>
+    </div> 
+    <div class="medium-6 columns">
+        <h3 id="image_title">
+            <% if @user["alumni"] == ["1"] || @user["alumni"] == [["1"], :single] %>
+                Alumni
+            <% elsif @user["onfloor"] == ["1"] || @user["onfloor"] == [["1"], :single] %>
+                Active - on-floor
+            <% else %>
+                Active - off-floor
+            <% end %>
+            <img id="img_thumb" class="thumbnail" src="/image/<%= uid %>">
+            <% if edit %>
+                <%= form_tag('/update', method: :post, multipart: true, id: 'img_form') do %>
+                    <div style="float: left"><%= file_field_tag 'picture' %></div>
+                    <div style="float: right"><%= submit_tag "Submit", id: "img_button" %></div>
+                <% end %>
+            <% end %>
+        </h3>
+    </div>
 </div>
-<h3 style="margin-left:10px; margin-top:30px;"><%= cn %></h3>
 <br>
 

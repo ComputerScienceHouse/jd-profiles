@@ -167,7 +167,8 @@ h2 {
 
 #main-header {
   padding: 20px;
-  padding-top: 15px;
+  padding-top: 5px;
+  padding-left: 5px;
   margin-bottom: 15px;
   background-color: #ddd;
   border: 1px solid #ddd;
@@ -180,7 +181,8 @@ h2 {
 }
 
 #view-options {
-  float: right;
+    text-align: center;
+    float: right;
 }
 
 #popular {
@@ -314,7 +316,7 @@ ul.pagination li.current a:hover {
     @extend .button;
     padding: 8px; 
     font-size: 12px;
-    margin-bottom: 1px;
+    margin-bottom: 7px;
     border-radius:5px;
 }
 
@@ -330,6 +332,8 @@ ul.pagination li.current a:hover {
 input[type="text"]{
         margin: 5px;
 }
+
+// --------year page--------------------------------------------
 
 .year-row {
     @include grid-row();
@@ -348,6 +352,8 @@ input[type="text"]{
         }
     }    
 }
+
+// --------group page--------------------------------------------
 
 @media(min-width: 100px) {
     .custom-row {
@@ -398,6 +404,16 @@ input[type="text"]{
 @import "foundation/components/panels";
 @import "foundation/components/grid";
 
+#cn_title {
+    margin-left:10px; 
+    margin-top:30px;
+}
+
+#image_title {
+    float:right; 
+    white-space: nowrap
+}
+
 .thumbnail {
     @include thumb;
     width: 75px;
@@ -405,11 +421,11 @@ input[type="text"]{
     border-radius: 150px;
 }
 
-#img-form {
+#img_form {
     display: none;
 }
 
-#img-button { 
+#img_button { 
     @extend .button;
     padding: 8px; 
     font-size: 12px;
@@ -417,13 +433,10 @@ input[type="text"]{
     border-radius:5px;
 }
 
-#image-bar {
-    float:right;
-}
-
 .info_panel {
     @include panel();
     h5 {
+        white-space: nowrap;
         margin: 0px;
         display:inline-block;
     }
@@ -459,23 +472,22 @@ input[type="text"]{
     -moz-columns: 1; 
     -webkit-columns: 1; 
     columns: 1; 
-    //column-fill: balance;
 }
+
 @media(min-width: 600px) {
     .panel_container {
         width: 100%;
         -moz-columns: 2; 
         -webkit-columns: 2; 
         columns: 2; 
-        //column-fill: balance;
     }    
 }
+
 @media(min-width: 900px) {
     .panel_container {
         width: 100%;
         -moz-columns: 3; 
         -webkit-columns: 3; 
         columns: 3; 
-        //column-fill: balance;
     }    
 }
