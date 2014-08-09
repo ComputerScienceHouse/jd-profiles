@@ -24,18 +24,18 @@
                 <div class="custom-column">
                     <ul class="pricing-table" data-equalizer-watch style="margin: 0px">
                         <%= link_to "/user/#{user["uid"][0]}"  do %>
-                            <li class="title" style="overflow:hidden; white-space: nowrap; padding: 10px;">
+                            <li class="title title_bullet">
                             <div class="row">
                                 <div class="medium-5 columns">
-                                    <%= image_tag "/image/#{user["uid"][0]}" %>
+                                    <%= image_tag "/image/#{user["uid"][0]}", size: '120' %>
                                 </div>
                                 <div class="medium-7 columns">
-                                <p style="text-align:center; margin-top: 25%; word-wrap:break-word;"><%= user["uid"][0] %><p>
+                                <p class="uid_bullet"><%= user["uid"][0] %><p>
                             </div>
                         </div>
                             </li>
                         <% end %>
-                        <li class="bullet-item" style="word-wrap:break-word; padding: 10px"><%= user["cn"][0] %></li>
+                        <li class="bullet-item cn_bullet"><%= user["cn"][0] %></li>
                     </ul>
                     <br> 
                 </div>

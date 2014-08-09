@@ -4,32 +4,33 @@ require 'will_paginate/array'
 
 class UsersController < ApplicationController
     include CacheableCSRFTokenRails
-    caches_action :list_years, :expires_in => 5.hour
-    caches_action :list_groups, :expires_in => 5.hour
-    caches_action :list_users, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
-    caches_action :group, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
-    caches_action :year, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
-    caches_action :image, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
-    caches_action :search, :expires_in => 5.hour, :cache_path => Proc.new { |c| c.params }
+    # Yo Man I heard you wanted some caching
+    caches_action :list_years, expires_in: 5.hour
+    caches_action :list_groups, expires_in: 5.hour
+    caches_action :list_users, expires_in: 5.hour, cache_path: Proc.new { |c| c.params }
+    caches_action :group, expires_in: 5.hour, cache_path: Proc.new { |c| c.params }
+    caches_action :year, expires_in: 5.hour, cache_path: Proc.new { |c| c.params }
+    caches_action :image, expires_in: 5.hour, cache_path: Proc.new { |c| c.params }
+    caches_action :search, expires_in: 5.hour, cache_path: Proc.new { |c| c.params }
     @@user_treebase="ou=Users,dc=csh,dc=rit,dc=edu"
     @@group_treebase="ou=Groups,dc=csh,dc=rit,dc=edu"
+    @@search_vars = Set.new ['cn', 'description', 'displayName', 'mail', 'nickName',
+        'plex', 'sn', 'uid', 'mobile', 'twitterName', 'github']
 
     # Searches LDAP for users
     def search
         @users = []
         search_str = params[:search][:search]
-        filter = "(|(cn=*#{search_str}*)(description=*#{search_str}*)" + 
-                "(displayName=*#{search_str}*)(mail=*#{search_str}*)" + 
-                "(nickName=*#{search_str}*)(plex=*#{search_str}*)" + 
-                "(sn=*#{search_str}*)(uid=*#{search_str}*)" + 
-                "(mobile=#{search_str})(twitterName=#{search_str})" + 
-                "(github=#{search_str}))"
+        filter = "(|"
+        @@search_vars.each { |var| filter << "(#{var}=*#{search_str}*)" }
+        filter << ")"
         bind_ldap do |ldap_conn|
             ldap_conn.search(@@user_treebase,  LDAP::LDAP_SCOPE_SUBTREE, filter, 
                               attrs = ["uid", "cn", "memberSince"]) do |entry|
                 @users << entry.to_hash   
             end
         end
+        
         # if only one result is returned, redirect to that user
         if @users.length == 1
             redirect_to "/user/#{@users[0]["uid"][0]}"
@@ -38,7 +39,6 @@ class UsersController < ApplicationController
             render 'list_users'
         end
     end
-
     # Shows the current user's page
     def me
         redirect_to "/user/#{request.headers['WEBAUTH_USER']}"
@@ -90,11 +90,9 @@ class UsersController < ApplicationController
             ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
                               "(uid=#{params[:uid]})") do |entry|
                 if entry["jpegPhoto"] != nil && entry["jpegPhoto"] != [""]
-                    send_data entry["jpegPhoto"][0], :filename => "#{params[:uid]}", 
-                        :type => 'image/png',:disposition => 'inline'
+                    send_data(entry["jpegPhoto"][0], filename: "#{params[:uid]}.jpg") 
                 else
-                    data = File.open("app/assets/images/blank_user.png").read
-                    send_data(data , :filename => "#{params[:uid]}.png", :type=>'image/png')
+                    send_file("app/assets/images/blank_user.png", x_sendfile: true)
                 end
             end
         end
@@ -104,12 +102,13 @@ class UsersController < ApplicationController
         @users = []
         bind_ldap do |ldap_conn|
             ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE,
-                             "(|(uid=*#{params[:term]}*)(cn=*#{params[:term]}*))",
+                             "(|(uid=*#{params[:term]}*)(cn=*#{params[:term]}*)
+                             (mail=*#{params[:term]}*)(nickName=*#{params[:term]}*))",
                              attrs = ["uid", "cn"]) do |entry|
                 @users << entry.to_hash["uid"][0]
             end
         end
-        render :json => @users[1..10]
+        render :json => @users[0..10]
     end
 
     def edit
@@ -199,12 +198,24 @@ class UsersController < ApplicationController
                 result["success"] = true
                 result["value"] = real_input if real_input != nil
     
+                # deals with expiring all the needed cache
                 if image_upload
-                    expire_action :action => :image, :uid => request.headers['WEBAUTH_USER']
-                else
-                    expire_action :action => :search
-                end
-
+                    expire_action action: :image, uid: request.headers['WEBAUTH_USER']
+                elsif attr_key == 'cn'
+                    expire_action action: :list_users, page: request.headers['WEBAUTH_USER'][0]
+                    dn = "uid=#{request.headers['WEBAUTH_USER']},#{@@user_treebase}"
+                    ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE, "(member=#{dn})") do |entry|
+                        expire_action action: :group, group: entry.to_hash["cn"][0]
+                        expire_action action: :group, group: entry.to_hash["cn"][0], 
+                            page: request.headers['WEBAUTH_USER'][0]
+                    end
+                    ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
+                                     "(uid=#{request.headers['WEBAUTH_USER']})", ["memberSince"]) do |entry|
+                        expire_action action: :year, year: entry.to_hash['memberSince'][0][0..3]
+                    end
+                elsif @@search_vars.include? attr_key
+                    expire_action action: :search
+                end 
             rescue LDAP::Error => e
                 Rails.logger.error "Error modifying ldap for #{request.headers['WEBAUTH_USER']}, #{e}"
                 result["success"] = false
@@ -301,6 +312,7 @@ class UsersController < ApplicationController
         # Gets the ldap connection for the given user using the kerberos auth
         # provided by webauth
         def bind_ldap
+            Rails.logger.info "-------------BINDING LDAP"
             ENV['KRB5CCNAME'] = request.env['KRB5CCNAME']
             ldap_conn = LDAP::Conn.new(host = Global.ldap.host)
             ldap_conn.set_option( LDAP::LDAP_OPT_PROTOCOL_VERSION, 3 ) 

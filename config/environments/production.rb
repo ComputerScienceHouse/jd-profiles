@@ -1,6 +1,10 @@
 Profiles::Application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
+  # uncomment if you want to get performance data of requests by adding
+  # profile_request=true to all requests
+  # config.middleware.use "Rack::RequestProfiler"
+
   # Code is not reloaded between requests.
   config.cache_classes = true
 
@@ -20,7 +24,7 @@ Profiles::Application.configure do
   # config.action_dispatch.rack_cache = true
 
   # Disable Rails's static asset server (Apache or nginx will already do this).
-  config.serve_static_assets = true
+  config.serve_static_assets = false
   config.static_cache_control = "public, max-age=86400"
   
   # Compress JavaScripts and CSS.
@@ -37,35 +41,21 @@ Profiles::Application.configure do
   # Version of your assets, change this if you want to expire all your assets.
   config.assets.version = '1.0'
 
-  # Specifies the header that your server uses for sending files.
-  # config.action_dispatch.x_sendfile_header = "X-Sendfile" # for apache
-  # config.action_dispatch.x_sendfile_header = 'X-Accel-Redirect' # for nginx
-
-  # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  # config.force_ssl = true
-
-  # Set to :debug to see everything in the log.
-  config.log_level = :info
-
-  # Prepend all log lines with the following tags.
-  # config.log_tags = [ :subdomain, :uuid ]
-
-  # Use a different logger for distributed setups.
-  # config.logger = ActiveSupport::TaggedLogging.new(SyslogLogger.new)
-
-  # Use a different cache store in production.
-  # config.cache_store = :mem_cache_store
-
-  # Enable serving of images, stylesheets, and JavaScripts from an asset server.
-  # config.action_controller.asset_host = "http://assets.example.com"
-
   # Precompile additional assets.
   # application.js, application.css, and all non-JS/CSS in app/assets folder are already added.
   config.assets.precompile << /(^[^_\/]|\/[^_])[^\/]*$/
-  # Ignore bad email addresses and do not raise email delivery errors.
-  # Set this to true and configure the email server for immediate delivery to raise delivery errors.
-  # config.action_mailer.raise_delivery_errors = false
 
+
+  # Specifies the header that your server uses for sending files.
+  config.action_dispatch.x_sendfile_header = "X-Sendfile" # for apache
+
+  # Set to :debug to see everything in the log.
+  config.log_level = :info
+ 
+  # Use a different cache store in production.
+  config.cache_store = :file_store, "tmp/cache" # default store
+  #config.cache_store = :dalli_store, "localhost:9876"
+  
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation can not be found).
   config.i18n.fallbacks = true
@@ -74,7 +64,7 @@ Profiles::Application.configure do
   config.active_support.deprecation = :notify
 
   # Disable automatic flushing of the log to improve performance.
-  # config.autoflush_log = false
+  config.autoflush_log = 1000
 
   # Use default logging formatter so that PID and timestamp are not suppressed.
   config.log_formatter = ::Logger::Formatter.new

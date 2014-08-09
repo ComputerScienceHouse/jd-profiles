@@ -37,87 +37,105 @@ function flash_success(id, success) {
     }, 1000);
 }
 
-$('.attr_form').bind('ajax:success', function(evt, data, xhr) {
-    var response = $.parseJSON(status);
-    var attr_id = response.key;
-    //TODO(batchik): Show error message on failure
-    if (response.single == true) {
-        if (!response.success) { // reset the value if the attr could not be modified
-            $('#attr_input_' + attr_id).val(response.value[0]);
-            flash_success('#attr_input_' + attr_id, false);
-        } else { // resets the read-only mode's value for the attr
-            $('#attr_' + attr_id).text(response.value[0]);
-            flash_success('#attr_input_' + attr_id, true);
-        }
-    } else {
-        if (!response.success) {
-            $("input[id^='attr_input_" + attr_id + "']").remove();
-            $("div[id^='attr_input_div_" + attr_id + "']").each(function(index) {
-                var id = $(this).attr('id'); // ex: attr_input_div_cn_0
-                var val = (index < response.value.length) ? response.value[index] : "";    
-                create_input(id,  val);    
-                });
-            flash_success("input[id^='attr_input_" + attr_id + "']", false);
-        } else {
-            $("div[id^='attr_input_div_" + attr_id + "']").remove();
-            for (var i = 0 ; i < response.value.length ; i++) {
-                var id = "attr_input_div_" + attr_id + "_" + i;
-                $("#attr_form_" + attr_id).append('<div id="' + id + '" class="attr_input_div"></div>');
-                create_input(id,  response.value[i]);    
-                $("#attr_" + attr_id + "_" + i).text(response.value[i]);
+$(document).on('page:change', function () {
+        
+    $('.attr_form').bind('ajax:success', function(evt, data, xhr) {
+        var response = $.parseJSON(status);
+        var attr_id = response.key;
+        //TODO(batchik): Show error message on failure
+        if (response.single == true) {
+            if (!response.success) { // reset the value if the attr could not be modified
+                $('#attr_input_' + attr_id).val(response.value[0]);
+                flash_success('#attr_input_' + attr_id, false);
+            } else { // resets the read-only mode's value for the attr
+                $('#attr_' + attr_id).text(response.value[0]);
+                flash_success('#attr_input_' + attr_id, true);
             }
-            var id = "attr_input_div_" + attr_id + "_" + response.value.length;
-            $("#attr_form_" + attr_id).append('<div id="' + id + '" class="attr_input_div"></div>');
-            create_input(id, "");    
-            flash_success("input[id^='attr_input_" + attr_id + "']", true);
-        } 
-    }
-});
+        } else {
+            if (!response.success) {
+                $("input[id^='attr_input_" + attr_id + "']").remove();
+                $("div[id^='attr_input_div_" + attr_id + "']").each(function(index) {
+                    var id = $(this).attr('id'); // ex: attr_input_div_cn_0
+                    var val = (index < response.value.length) ? response.value[index] : "";    
+                    create_input(id,  val);    
+                    });
+                flash_success("input[id^='attr_input_" + attr_id + "']", false);
+            } else {
+                $("div[id^='attr_input_div_" + attr_id + "']").remove();
+                for (var i = 0 ; i < response.value.length ; i++) {
+                    var id = "attr_input_div_" + attr_id + "_" + i;
+                    $("#attr_form_" + attr_id).append('<div id="' + id + '" class="attr_input_div"></div>');
+                    create_input(id,  response.value[i]);    
+                    $("#attr_" + attr_id + "_" + i).text(response.value[i]);
+                }
+                var id = "attr_input_div_" + attr_id + "_" + response.value.length;
+                $("#attr_form_" + attr_id).append('<div id="' + id + '" class="attr_input_div"></div>');
+                create_input(id, "");    
+                flash_success("input[id^='attr_input_" + attr_id + "']", true);
+            } 
+        }
+    });
+    
+    var cache = {};
+    $("#search_search").autocomplete({
+        minLength: 2,
+        source: function( request, response ) {
+            var term = request.term;
+            if ( term in cache ) {
+                response( cache[ term ] );
+                return;
+            }
+            $.getJSON( "/autocomplete", request, function( data, status, xhr ) {
+                cache[ term ] = data;
+                response( data );
+            });
+        }
+    });
 
-$("#edit").click(function(e) {
-    if ($(this).text() == "edit") {
-        $(this).text("done");
-        $('.attr_form').css('display', 'inherit'); // unhides empty fields
-        $('.attr').hide();                         // hides all the current info
-        $('.attr_input_div').each(function(index) {
-            var id = $(this).attr('id');           // ex: attr_input_div_cn_0
-            var attr_id = id.slice(15, id.length); // ex: cn_0
-            var val = $('#attr_' + attr_id).text();
-            create_input(id, val);    
-        });
-    } else {
-        /* hides all empty forms */
-        $('.attr_form').each(function(index) {
-            var is_empty = true;
-            $(this).find('input').each(function(index) {
-                if (index != 0 && $(this).val().length != 0) {
-                    is_empty = false;
-                    return false;
+    $("#edit_button").click(function(e) {
+        if ($(this).text() == "edit") {
+            $(this).text("done");
+            $('.attr_form').css('display', 'inherit'); // unhides empty fields
+            $('.attr').hide();                         // hides all the current info
+            $('.attr_input_div').each(function(index) {
+                var id = $(this).attr('id');           // ex: attr_input_div_cn_0
+                var attr_id = id.slice(15, id.length); // ex: cn_0
+                var val = $('#attr_' + attr_id).text();
+                create_input(id, val);    
+            });
+        } else {
+            /* hides all empty forms */
+            $('.attr_form').each(function(index) {
+                var is_empty = true;
+                $(this).find('input').each(function(index) {
+                    if (index != 0 && $(this).val().length != 0) {
+                        is_empty = false;
+                        return false;
+                    }
+                });
+                if (is_empty) {
+                    $(this).css('display', 'none');
                 }
             });
-            if (is_empty) {
-                $(this).css('display', 'none');
-            }
-        });
-        
-        $(this).text("edit");
-        $('.attr').show();
-        $('.attr_input_div').empty();
+            
+            $(this).text("edit");
+            $('.attr').show();
+            $('.attr_input_div').empty();
 
-        // This forces a reflow to deal with the columns
-        $('body').hide();
-        setTimeout(function() { $('body').show(); }, 0);
-    }
+            // This forces a reflow to deal with the columns
+            $('body').hide();
+            setTimeout(function() { $('body').show(); }, 0);
+        }
+    });
+
+
+    $('#image_thumb').click(function() {
+        if ($("#image_form").css("display") == "none") {
+            $("#image_form").css("display", "inherit");    
+        } else {
+            $("#image_form").css("display", "none");    
+        }
+    });
 });
-
-
-$('#img_thumb').click(function() {
-    if ($("#img_form").css("display") == "none") {
-        $("#img_form").css("display", "inherit");    
-    } else {
-        $("#img_form").css("display", "none");    
-    }
-});
-
 
 

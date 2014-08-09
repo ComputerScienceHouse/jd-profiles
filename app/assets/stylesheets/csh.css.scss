@@ -31,7 +31,7 @@ html, body {
   line-height:1.5;
   font-family: 'Oxygen', sans-serif;
   color:#222222;
-  background:url('/assets/background.png');
+  background: image-url('background.png');
   background-repeat: repeat;
 }
 * {
@@ -303,16 +303,17 @@ ul.pagination li.current a:hover {
 }
 // --------------------------------------------------------------
 
-#view-options {
+#view_options {
     float: left;
     padding-top: 5px;
+    text-align: center;
 }
 
 #search {
     float: right;
 }
 
-.nav-button { 
+.nav_button { 
     @extend .button;
     padding: 8px; 
     font-size: 12px;
@@ -320,15 +321,6 @@ ul.pagination li.current a:hover {
     border-radius:5px;
 }
 
-.edit-button {
-    @extend .button;
-    margin-bottom: 0px;    
-}
-.edit-row {
-    padding-top: 0px;
-    padding-bottom: 0px;
-    word-break: break-all;
-}
 input[type="text"]{
         margin: 5px;
 }
@@ -353,9 +345,29 @@ input[type="text"]{
     }    
 }
 
-// --------group page--------------------------------------------
+.title_bullet {
+    overflow:hidden; 
+    white-space: nowrap; 
+    padding: 10px;    
+}
 
-@media(min-width: 100px) {
+.uid_bullet {
+    text-align:center; 
+    margin-top: 25%; 
+    word-wrap:break-word;
+}
+
+.cn_bullet {
+    word-wrap:break-word; 
+    padding: 10px; 
+    //height: 50px;    
+    overflow:hidden;
+    height:1%;
+}
+
+// --------user page--------------------------------------------
+
+@media(min-width: 10px) {
     .custom-row {
         @include grid-row();
         .custom-column {
@@ -421,11 +433,11 @@ input[type="text"]{
     border-radius: 150px;
 }
 
-#img_form {
+#image_form {
     display: none;
 }
 
-#img_button { 
+#image_button { 
     @extend .button;
     padding: 8px; 
     font-size: 12px;
@@ -465,6 +477,11 @@ input[type="text"]{
     -o-column-break-inside:avoid;
     -ms-column-break-inside:avoid;
     column-break-inside:avoid;
+}
+
+#edit_button {
+    background-color: #9D4799;
+    font-weight: bold;
 }
 
 .panel_container {
