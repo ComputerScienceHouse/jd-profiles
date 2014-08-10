@@ -1,0 +1,20 @@
+@import "foundation/components/grid";
+
+.year-row {
+    @include grid-row();
+    .year-column {
+        @include grid-column(2);
+        width: 50%;
+    }
+}    
+
+@media(min-width: 630px) {
+    .year-row {
+        @include grid-row();
+        .year-column {
+            @include grid-column(2);
+            width: 16.6%;
+        }
+    }    
+}
+

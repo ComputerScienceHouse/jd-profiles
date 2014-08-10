@@ -1,0 +1,95 @@
+@import "foundation/components/thumbs";
+@import "foundation/components/panels";
+
+#cn_title {
+    margin-left:10px; 
+    margin-top:30px;
+}
+
+#image_title {
+    float:right; 
+    white-space: nowrap
+}
+
+.thumbnail {
+    @include thumb;
+    width: 75px;
+    height: 75px;
+    border-radius: 150px;
+}
+
+#image_form {
+    display: none;
+}
+
+#image_button { 
+    @extend .button;
+    padding: 8px; 
+    font-size: 12px;
+    margin-bottom: 1px;
+    border-radius:5px;
+}
+
+.info_panel {
+    @include panel();
+    h5 {
+        white-space: nowrap;
+        margin: 0px;
+        display:inline-block;
+    }
+    .attr {
+        display:inline-block; 
+        word-break:break-all;
+    }
+    input {
+        height: 30px;    
+    }
+    ul {
+        margin: 0px;    
+    }
+    -webkit-column-break-inside:avoid;
+    -moz-column-break-inside:avoid;
+    -o-column-break-inside:avoid;
+    -ms-column-break-inside:avoid;
+    column-break-inside:avoid;
+    break-after: column;
+    page-break-inside: avoid;
+}
+
+.other_attr {
+    -webkit-column-break-inside:avoid;
+    -moz-column-break-inside:avoid;
+    -o-column-break-inside:avoid;
+    -ms-column-break-inside:avoid;
+    column-break-inside:avoid;
+}
+
+#edit_button {
+    background-color: #9D4799;
+    font-weight: bold;
+}
+
+.panel_container {
+    width: 100%;
+    -moz-columns: 1; 
+    -webkit-columns: 1; 
+    columns: 1; 
+}
+
+@media(min-width: 600px) {
+    .panel_container {
+        width: 100%;
+        -moz-columns: 2; 
+        -webkit-columns: 2; 
+        columns: 2; 
+    }    
+}
+
+@media(min-width: 900px) {
+    .panel_container {
+        width: 100%;
+        -moz-columns: 3; 
+        -webkit-columns: 3; 
+        columns: 3; 
+    }    
+}

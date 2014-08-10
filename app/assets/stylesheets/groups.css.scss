@@ -1,0 +1,31 @@
+@import "foundation/components/grid";
+
+@media(min-width: 10px) {
+    .group-row {
+        @include grid-row();
+        .group-column {
+            @include grid-column(3);
+            width: 50%;
+        }
+    }
+}
+
+@media(min-width: 600px) {
+    .group-row {
+        @include grid-row();
+        .group-column {
+            @include grid-column(3);
+            width: 33%;
+        }
+    }
+}
+
+@media(min-width: 800px) {
+    .group-row {
+        @include grid-row();
+        .group-column {
+            @include grid-column(2);
+            width: 16.6%;
+        }
+    }   
+}

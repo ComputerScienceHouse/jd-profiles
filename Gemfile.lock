@@ -35,7 +35,7 @@ GEM
       thread_safe (~> 0.1)
       tzinfo (~> 0.3.37)
     arel (4.0.2)
-    atomic (1.1.15)
+    atomic (1.1.16)
     builder (3.1.4)
     coffee-rails (4.0.1)
       coffee-script (>= 2.2.0)
@@ -44,7 +44,7 @@ GEM
       coffee-script-source
       execjs
     coffee-script-source (1.7.0)
-    dalli (2.7.2)
+    dalli (1.1.5)
     erubis (2.7.0)
     execjs (2.0.2)
     foundation-rails (5.2.1.0)
@@ -66,7 +66,7 @@ GEM
       treetop (~> 1.4.8)
     mime-types (1.25.1)
     minitest (4.7.5)
-    multi_json (1.9.0)
+    multi_json (1.9.2)
     polyglot (0.3.4)
     rack (1.5.2)
     rack-test (0.6.2)
@@ -86,10 +86,10 @@ GEM
       thor (>= 0.18.1, < 2.0)
     rake (10.1.1)
     ref (1.0.5)
-    request-log-analyzer (1.13.0)
+    request-log-analyzer (1.12.10)
     ruby-ldap (0.9.16)
     ruby-prof (0.15.1)
-    sass (3.2.15)
+    sass (3.2.17)
     sass-rails (4.0.2)
       railties (>= 4.0.0, < 5.0)
       sass (~> 3.2.0)
@@ -109,7 +109,7 @@ GEM
       libv8 (~> 3.16.14.0)
       ref
     thor (0.18.1)
-    thread_safe (0.2.0)
+    thread_safe (0.3.1)
       atomic (>= 1.1.7, < 2)
     tilt (1.4.1)
     treetop (1.4.15)
@@ -130,6 +130,7 @@ PLATFORMS
 
 DEPENDENCIES
   actionpack-action_caching
+  coffee-rails (~> 4.0.0)
   dalli
   foundation-rails
   global

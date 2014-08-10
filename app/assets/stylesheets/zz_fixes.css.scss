@@ -1,0 +1,38 @@
+// ------Fixed the navbar issues---------------------------------
+
+.top-bar-section li:not(.has-form) a:not(.button) {
+    background: #9D4799;
+}
+
+.top-bar-section li:not(.has-form) a:not(.button):hover {
+    background: #ad57a9;
+}
+
+#menu_logo {
+    box-shadow: none;
+}
+
+#main-header {
+    height: auto;
+    padding-bottom: 0px;
+}
+
+ul.pagination li.current a {
+    background: #9D4799;    
+}
+
+ul.pagination li.current a:hover {
+    background: #9D4799;    
+}
+
+.alert-box {
+    background-color: #9D4799;
+    border-color: #9D4799;
+}
+
+.top-bar-section ul li > a {
+    font-weight: bold;
+}
+.top-bar .name h1 a {
+    font-weight: bold;    
+}

@@ -1,0 +1,42 @@
+@import "foundation/components/grid";
+
+@media(min-width: 10px) {
+    .custom-row {
+        @include grid-row();
+        .custom-column {
+            @include grid-column(3);
+            width: 50%;
+        }
+    }
+}
+
+@media(min-width: 600px) {
+    .custom-row {
+        @include grid-row();
+        .custom-column {
+            @include grid-column(3);
+            width: 25%;
+        }
+    }
+}
+
+.title_bullet {
+    overflow:hidden; 
+    white-space: nowrap; 
+    padding: 10px;    
+}
+
+.uid_bullet {
+    text-align:center; 
+    margin-top: 25%; 
+    word-wrap:break-word;
+}
+
+.cn_bullet {
+    word-wrap:break-word; 
+    padding: 10px; 
+    //height: 50px;    
+    overflow:hidden;
+    height:1%;
+}
+

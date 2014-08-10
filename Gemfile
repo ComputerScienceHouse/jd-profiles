@@ -4,6 +4,7 @@ gem 'rails', '4.0.2'
 gem 'ruby-ldap'
 gem 'i18n', '0.6.9'
 gem 'global'
+gem 'sqlite3'
 
 # asset compilers
 gem 'sass-rails', '~> 4.0.0'
