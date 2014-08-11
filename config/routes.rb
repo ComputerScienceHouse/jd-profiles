@@ -12,4 +12,5 @@ Profiles::Application.routes.draw do
     match '/group/:group', to: 'users#group', via: 'get'
     match '/year/:year', to: 'users#year', via: 'get'
     match '/autocomplete', to: 'users#autocomplete', via: 'get'
+    match '/clearcache', to: 'users#clear_cache', via: 'get'
 end

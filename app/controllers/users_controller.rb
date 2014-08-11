@@ -90,7 +90,7 @@ class UsersController < ApplicationController
             ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
                               "(uid=#{params[:uid]})") do |entry|
                 if entry["jpegPhoto"] != nil && entry["jpegPhoto"] != [""]
-                    send_data(entry["jpegPhoto"][0], filename: "#{params[:uid]}.jpg") 
+                    send_data(entry["jpegPhoto"][0], filename: "#{params[:uid]}.jpg", type: "image/jpeg") 
                 else
                     send_file("app/assets/images/blank_user.png", x_sendfile: true)
                 end
@@ -134,6 +134,22 @@ class UsersController < ApplicationController
                               "(member=#{@user["dn"][0]})") do |entry|
                 @groups << entry.to_hash["cn"][0]
             end
+            @positions = []
+            ldap_conn.search("ou=Committees,dc=csh,dc=rit,dc=edu", LDAP::LDAP_SCOPE_SUBTREE,
+                            "(head=#{@user["dn"][0]})") do |entry|
+                @positions << "#{entry.to_hash['cn'][0]} Director"
+            end
+            @positions << "RTP" if @groups.include? "rtp"
+            @positions << "Drink Admin" if @groups.include? "drink"
+                
+            @status = "Active - off-floor"
+            if @user["alumni"] == [["1"], :single]
+                @status = "Alumni"
+            elsif @user["onfloor"] == [["1"], :single]
+                @status = "Active - on-floor"
+            end
+
+            
         end
         render 'edit'
     end
@@ -157,6 +173,20 @@ class UsersController < ApplicationController
                 ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE,
                                 "(member=#{@user["dn"][0]})") do |entry|
                     @groups << entry.to_hash["cn"][0]
+                end
+                @positions = []
+                ldap_conn.search("ou=Committees,dc=csh,dc=rit,dc=edu", LDAP::LDAP_SCOPE_SUBTREE,
+                            "(head=#{@user["dn"][0]})") do |entry|
+                    @positions << "#{entry.to_hash['cn'][0]} Director"
+                end
+                @positions << "RTP" if @groups.include? "rtp"
+                @positions << "Drink Admin" if @groups.include? "drink"
+                
+                @status = "Active - off-floor"
+                if @user["alumni"] == ["1"]
+                    @status = "Alumni"
+                elsif @user["onfloor"] == ["1"]
+                    @status = "Active - on-floor"
                 end
             end
         end
@@ -288,6 +318,14 @@ class UsersController < ApplicationController
         render 'list_users'
     end
 
+    def clear_cache
+        Rails.logger.info "------------------"
+        Rails.logger.info "CLEARING ALL CACHE"
+        Rails.logger.info "------------------"
+        Rails.cache.clear
+        redirect_to action: 'me'
+    end
+
     private
         
         def format_fields map
@@ -312,7 +350,6 @@ class UsersController < ApplicationController
         # Gets the ldap connection for the given user using the kerberos auth
         # provided by webauth
         def bind_ldap
-            Rails.logger.info "-------------BINDING LDAP"
             ENV['KRB5CCNAME'] = request.env['KRB5CCNAME']
             ldap_conn = LDAP::Conn.new(host = Global.ldap.host)
             ldap_conn.set_option( LDAP::LDAP_OPT_PROTOCOL_VERSION, 3 ) 

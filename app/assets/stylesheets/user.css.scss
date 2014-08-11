@@ -1,14 +1,38 @@
 @import "foundation/components/thumbs";
 @import "foundation/components/panels";
+@import "foundation/components/labels";
 
 #cn_title {
     margin-left:10px; 
-    margin-top:30px;
+    margin-top:20px;
 }
 
 #image_title {
     float:right; 
     white-space: nowrap
+}
+
+#image_thumb {
+    float: right;
+}
+
+#info_parent {
+    float: right;
+    line-height: 60px;
+}
+
+#info_container {
+    vertical-align: middle;
+    margin-right: 10px;
+}
+
+#status_container {
+    height: 50px;
+}
+
+.position_label {
+    float: right;
+    margin-left: 5px;
 }
 
 .thumbnail {
