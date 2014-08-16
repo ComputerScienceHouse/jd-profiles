@@ -1,10 +1,3 @@
-GIT
-  remote: git://github.com/justinweiss/request_profiler.git
-  revision: 1f2d8d23c2c1f38e77800727c0ec411a45f29113
-  specs:
-    request_profiler (0.0.4)
-      ruby-prof
-
 GEM
   remote: https://rubygems.org/
   specs:
@@ -44,7 +37,6 @@ GEM
       coffee-script-source
       execjs
     coffee-script-source (1.7.0)
-    dalli (1.1.5)
     erubis (2.7.0)
     execjs (2.0.2)
     foundation-rails (5.2.1.0)
@@ -88,7 +80,6 @@ GEM
     ref (1.0.5)
     request-log-analyzer (1.12.10)
     ruby-ldap (0.9.16)
-    ruby-prof (0.15.1)
     sass (3.2.17)
     sass-rails (4.0.2)
       railties (>= 4.0.0, < 5.0)
@@ -131,7 +122,6 @@ PLATFORMS
 DEPENDENCIES
   actionpack-action_caching
   coffee-rails (~> 4.0.0)
-  dalli
   foundation-rails
   global
   i18n (= 0.6.9)
@@ -139,9 +129,7 @@ DEPENDENCIES
   jquery-ui-rails
   rails (= 4.0.2)
   request-log-analyzer
-  request_profiler!
   ruby-ldap
-  ruby-prof
   sass-rails (~> 4.0.0)
   sqlite3
   therubyracer

@@ -43,7 +43,7 @@
                     <%= link_to "E-Board", "/group/eboard", {class: "nav_button" } %>
                     <%= link_to "RTPs", "/group/rtp", {class: "nav_button" } %>
                     <%= link_to "Drink Admins", "/group/drink", {class: "nav_button" } %> 
-                    <%= link_to "Me", "/user/#{request.headers['WEBAUTH_USER']}", {class: "nav_button" } %>
+                    <%= link_to "Me", "/me", {class: "nav_button" } %>
                 </div>
                 <div id="search">
                      <%= form_tag("/search", method: "post") do %>

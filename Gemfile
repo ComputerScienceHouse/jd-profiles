@@ -24,11 +24,3 @@ gem 'actionpack-action_caching'
 gem 'will_paginate-foundation'
 gem 'request-log-analyzer'
 
-group :test do
-    gem 'ruby-prof'
-    gem 'request_profiler', :git => "git://github.com/justinweiss/request_profiler.git"
-end
-
-group :production do
-    gem 'dalli'
-end

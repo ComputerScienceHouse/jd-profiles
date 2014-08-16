@@ -1,6 +1,7 @@
 @import "foundation/components/thumbs";
 @import "foundation/components/panels";
 @import "foundation/components/labels";
+@import "foundation/components/tooltips";
 
 #cn_title {
     margin-left:10px; 
@@ -27,12 +28,20 @@
 }
 
 #status_container {
+    text-align: right;
     height: 50px;
 }
 
 .position_label {
     float: right;
     margin-left: 5px;
+}
+
+.position_tooltip {
+    @extend has-tip;
+    font-weight: normal;
+    cursor: default;
+    border: none;
 }
 
 .thumbnail {

@@ -5,15 +5,17 @@ require 'will_paginate/array'
 class UsersController < ApplicationController
     include CacheableCSRFTokenRails
     # Yo Man I heard you wanted some caching
-    caches_action :list_years, expires_in: 5.hour
-    caches_action :list_groups, expires_in: 5.hour
-    caches_action :list_users, expires_in: 5.hour, cache_path: Proc.new { |c| c.params }
-    caches_action :group, expires_in: 5.hour, cache_path: Proc.new { |c| c.params }
-    caches_action :year, expires_in: 5.hour, cache_path: Proc.new { |c| c.params }
-    caches_action :image, expires_in: 5.hour, cache_path: Proc.new { |c| c.params }
-    caches_action :search, expires_in: 5.hour, cache_path: Proc.new { |c| c.params }
-    @@user_treebase="ou=Users,dc=csh,dc=rit,dc=edu"
-    @@group_treebase="ou=Groups,dc=csh,dc=rit,dc=edu"
+    caches_action :list_years, expires_in: 24.hours
+    caches_action :list_groups, expires_in: 24.hours
+    caches_action :list_users, expires_in: 24.hours, cache_path: Proc.new { |c| c.params }
+    caches_action :group, expires_in: 24.hours, cache_path: Proc.new { |c| c.params }
+    caches_action :year, expires_in: 24.hours, cache_path: Proc.new { |c| c.params }
+    caches_action :image, expires_in: 24.hours, cache_path: Proc.new { |c| c.params }
+    caches_action :search, expires_in: 24.hours, cache_path: Proc.new { |c| c.params['search'] }
+
+    @@user_treebase = "ou=Users,dc=csh,dc=rit,dc=edu"
+    @@group_treebase = "ou=Groups,dc=csh,dc=rit,dc=edu"
+    @@committee_treebase = "ou=Committees,dc=csh,dc=rit,dc=edu"
     @@search_vars = Set.new ['cn', 'description', 'displayName', 'mail', 'nickName',
         'plex', 'sn', 'uid', 'mobile', 'twitterName', 'github']
 
@@ -24,6 +26,7 @@ class UsersController < ApplicationController
         filter = "(|"
         @@search_vars.each { |var| filter << "(#{var}=*#{search_str}*)" }
         filter << ")"
+        
         bind_ldap do |ldap_conn|
             ldap_conn.search(@@user_treebase,  LDAP::LDAP_SCOPE_SUBTREE, filter, 
                               attrs = ["uid", "cn", "memberSince"]) do |entry|
@@ -39,11 +42,7 @@ class UsersController < ApplicationController
             render 'list_users'
         end
     end
-    # Shows the current user's page
-    def me
-        redirect_to "/user/#{request.headers['WEBAUTH_USER']}"
-    end
-
+    
     # List all the users by newest members first
     def list_users
         @users = []
@@ -76,11 +75,7 @@ class UsersController < ApplicationController
 
     # Lists all the years for members
     def list_years
-        if Time.new.month >= 8
-            @years = (1994..Time.new.year).to_a.reverse
-        else
-            @years = (1994...Time.new.year).to_a.reverse
-        end
+        @years = Time.new.month >= 8 ? (1994..Time.new.year).to_a.reverse : (1994...Time.new.year).to_a.reverse
         @title = "years"
     end
 
@@ -111,36 +106,24 @@ class UsersController < ApplicationController
         render :json => @users[0..10]
     end
 
-    def edit
+    def me
         @uid = ENV['WEBAUTH_USER']
         bind_ldap do |ldap_conn|
-            ldap_conn.search(@@user_treebase, 
-                LDAP::LDAP_SCOPE_SUBTREE, 
-                "(uid=#{params[:uid]})") do |entry|
-        
+            ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, "(uid=#{@uid})") do |entry|
                 @user = format_fields entry.to_hash
                 get_attrs(@user["objectClass"], ldap_conn).each do |attr|
                     @user[attr[0]] = (@user[attr[0]] == nil) ? [nil, attr[1]] : [@user[attr[0]], attr[1]]
                 end
-                @title = @user["uid"][0][0]
+                @title = @uid
                 @user = @user.except("uidNumber", "homeDirectory",
                                  "diskQuotaSoft", "diskQuotaHard", 
                                  "gidNumber", "objectClass", "uid", "ou",
                                  "userPassword", "l", "o", 
                                  "conditional", "gecos")
             end
-            @groups = []
-            ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE,
-                              "(member=#{@user["dn"][0]})") do |entry|
-                @groups << entry.to_hash["cn"][0]
-            end
-            @positions = []
-            ldap_conn.search("ou=Committees,dc=csh,dc=rit,dc=edu", LDAP::LDAP_SCOPE_SUBTREE,
-                            "(head=#{@user["dn"][0]})") do |entry|
-                @positions << "#{entry.to_hash['cn'][0]} Director"
-            end
-            @positions << "RTP" if @groups.include? "rtp"
-            @positions << "Drink Admin" if @groups.include? "drink"
+            
+            @groups = get_groups(ldap_conn, @user["dn"][0])           
+            @positions = get_positions(ldap_conn, @user["dn"][0])
                 
             @status = "Active - off-floor"
             if @user["alumni"] == [["1"], :single]
@@ -148,19 +131,16 @@ class UsersController < ApplicationController
             elsif @user["onfloor"] == [["1"], :single]
                 @status = "Active - on-floor"
             end
-
-            
         end
-        render 'edit'
+        render 'me'
     end
 
     # Displays all the information for the given user
     def user 
-        return edit if ENV['WEBAUTH_USER'] == params[:uid]
+        redirect_to :me if ENV['WEBAUTH_USER'] == params[:uid]
         @user = nil
         bind_ldap do |ldap_conn|
-            ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
-                              "(uid=#{params[:uid]})") do |entry|
+            ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, "(uid=#{params[:uid]})") do |entry|
                 @user = format_fields entry.to_hash.except(
                     "objectClass", "uidNumber", "homeDirectory",
                     "diskQuotaSoft", "diskQuotaHard", "gidNumber")
@@ -168,19 +148,9 @@ class UsersController < ApplicationController
             if @user == nil
                 redirect_to root_path
             else
-                @groups = []
                 @title = @user["uid"][0]
-                ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE,
-                                "(member=#{@user["dn"][0]})") do |entry|
-                    @groups << entry.to_hash["cn"][0]
-                end
-                @positions = []
-                ldap_conn.search("ou=Committees,dc=csh,dc=rit,dc=edu", LDAP::LDAP_SCOPE_SUBTREE,
-                            "(head=#{@user["dn"][0]})") do |entry|
-                    @positions << "#{entry.to_hash['cn'][0]} Director"
-                end
-                @positions << "RTP" if @groups.include? "rtp"
-                @positions << "Drink Admin" if @groups.include? "drink"
+                @groups = get_groups(ldap_conn, @user["dn"][0])           
+                @positions = get_positions(ldap_conn, @user["dn"][0])
                 
                 @status = "Active - off-floor"
                 if @user["alumni"] == ["1"]
@@ -198,6 +168,7 @@ class UsersController < ApplicationController
         image_upload = false
         attr_value = []
         real_input = []
+        
         if params['picture'] != nil
             attr_key = 'jpegPhoto'
             image_upload = true
@@ -220,32 +191,16 @@ class UsersController < ApplicationController
             end
             update = LDAP.mod(LDAP::LDAP_MOD_REPLACE, attr_key, attr_value)
         end
+        
         result = {"key" => attr_key}
+        dn = "uid=#{request.headers['WEBAUTH_USER']},#{@@user_treebase}"
         bind_ldap do |ldap_conn|
             begin
                 result["single"] = is_single attr_key, ldap_conn
-                ldap_conn.modify("uid=#{request.headers['WEBAUTH_USER']},#{@@user_treebase}", [update])
+                ldap_conn.modify(dn, [update])
                 result["success"] = true
                 result["value"] = real_input if real_input != nil
-    
-                # deals with expiring all the needed cache
-                if image_upload
-                    expire_action action: :image, uid: request.headers['WEBAUTH_USER']
-                elsif attr_key == 'cn'
-                    expire_action action: :list_users, page: request.headers['WEBAUTH_USER'][0]
-                    dn = "uid=#{request.headers['WEBAUTH_USER']},#{@@user_treebase}"
-                    ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE, "(member=#{dn})") do |entry|
-                        expire_action action: :group, group: entry.to_hash["cn"][0]
-                        expire_action action: :group, group: entry.to_hash["cn"][0], 
-                            page: request.headers['WEBAUTH_USER'][0]
-                    end
-                    ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
-                                     "(uid=#{request.headers['WEBAUTH_USER']})", ["memberSince"]) do |entry|
-                        expire_action action: :year, year: entry.to_hash['memberSince'][0][0..3]
-                    end
-                elsif @@search_vars.include? attr_key
-                    expire_action action: :search
-                end 
+                expire_cache(ldap_conn, dn, image_upload, attr_key)
             rescue LDAP::Error => e
                 Rails.logger.error "Error modifying ldap for #{request.headers['WEBAUTH_USER']}, #{e}"
                 result["success"] = false
@@ -258,16 +213,17 @@ class UsersController < ApplicationController
                     end
                 end
             end
-            # uploading images refreshes the screen while everything else is ajax / js 
-            if image_upload
-                redirect_to action: 'me'
-            else
-                render text: "var status = '#{result.to_s.gsub(/=>/, ":")}';"
-            end
+        end
+        
+        # uploading images refreshes the screen while everything else is ajax / js 
+        if image_upload
+            redirect_to :me
+        else
+            render text: "var status = '#{result.to_s.gsub(/=>/, ":")}';"
         end
     end
 
-    # Gets all the users for the give group
+    # Gets all the users for the given group
     def group
         params[:page] = "a" if params[:page] == nil
         @users = []
@@ -319,11 +275,8 @@ class UsersController < ApplicationController
     end
 
     def clear_cache
-        Rails.logger.info "------------------"
-        Rails.logger.info "CLEARING ALL CACHE"
-        Rails.logger.info "------------------"
         Rails.cache.clear
-        redirect_to action: 'me'
+        redirect_to root_path
     end
 
     private
@@ -350,70 +303,139 @@ class UsersController < ApplicationController
         # Gets the ldap connection for the given user using the kerberos auth
         # provided by webauth
         def bind_ldap
+            start_time = Time.now.to_f * 1000
             ENV['KRB5CCNAME'] = request.env['KRB5CCNAME']
             ldap_conn = LDAP::Conn.new(host = Global.ldap.host)
             ldap_conn.set_option( LDAP::LDAP_OPT_PROTOCOL_VERSION, 3 ) 
             ldap_conn.sasl_bind('', '')
             yield ldap_conn
             ldap_conn.unbind()
+            end_time = Time.now.to_f * 1000
+            Rails.logger.info "LDAP time: #{(end_time - start_time).round(2)} ms"
         end
 
-        def is_single (attr, ldap_conn)
-            schema = ldap_conn.schema()
-            schema["attributeTypes"].each do |s|
-                name = s.split(" ")[3][1..-2]
-                # deals with when attributes have aliases
-                n = s.split("NAME")[1].split("DESC")[0].strip
-                name = n.split("'")[1] if n[0] == "("
-                return s.split(" ")[-2] == "SINGLE-VALUE" if name == attr
-            end
-            return false
+        # deals with expiring all the needed cache when an update happens. Only the
+        # affected cache is expired
+        def expire_cache ldap_conn, dn, image_upload, attr_key
+            if image_upload
+                expire_action action: :image, uid: request.headers['WEBAUTH_USER']
+            elsif attr_key == 'cn'
+                expire_action action: :list_users, page: request.headers['WEBAUTH_USER'][0]
+                get_groups(ldap_conn, dn).each do |cn|
+                    expire_action action: :group, group: cn
+                    expire_action action: :group, group: cn, page: request.headers['WEBAUTH_USER'][0]
+                end
+                expire_action action: :year, year: get_year(ldap_conn, request.headers['WEBAUTH_USER'])
+            elsif @@search_vars.include? attr_key
+                expire_action action: :search
+            end 
         end
+
+        # Gets the positions that the user holds and caches the result. 
+        # get_groups must be called first
+        def get_positions(ldap_conn, dn)
+            Rails.cache.fetch("positions-#{dn}", expires_in: 24.hours) do
+                Rails.logger.info "Getting positions for #{dn}"
+                positions = []
+                ldap_conn.search(@@committee_treebase, LDAP::LDAP_SCOPE_SUBTREE, "(head=#{dn})") do |entry|
+                    positions << "#{entry.to_hash['cn'][0]} Director"
+                end
+                positions << "RTP" if @groups.include? "rtp"
+                positions << "Drink Admin" if @groups.include? "drink"
+                positions
+            end
+        end
+
+        # Gets the groups that the given user is a part of and caches them
+        def get_groups(ldap_conn, dn)
+            Rails.cache.fetch("groups-#{dn}", expires_in: 24.hours) do
+                Rails.logger.info "Getting groups for #{dn}"
+                groups = []
+                ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE, "(member=#{dn})") do |entry|
+                    groups << entry.to_hash["cn"][0]
+                end
+                groups
+            end
+        end
+        
+        # Gets the year that the person is from. This is used in clearing the 
+        # cache for the given year
+        def get_year(ldap_conn, uid)
+            Rails.cache.fetch("member-since-#{uid}", expires_in: 24.hours) do
+                Rails.logger.info "Getting year for #{uid}"
+                member_since = nil
+                ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, "(uid=#{uid})", ["memberSince"]) do |entry|
+                    member_since = entry.to_hash['memberSince']
+                end
+                year = member_since[0][0..3] if member_since != nil && member_since.length >= 1
+                year 
+            end
+        end
+
 
         # Gets the attributes that the given user can have along with info
         # on if there can be multiple of the value
         # object_classes - the object classes that the user belongs to, used
         #   to get the values allowed
-        def get_attrs (object_classes, ldap_conn)
-            schema = ldap_conn.schema()
-            attr_set = Set.new
-            real_attrs = []
+        def get_attrs(object_classes, ldap_conn)
+            Rails.cache.fetch("object-classes-#{object_classes}", expires_in: 24.hours) do
+                Rails.logger.info "Getting attributes for #{object_classes}"
+                schema = ldap_conn.schema()
+                attr_set = Set.new
+                real_attrs = []
 
-            object_classes.each do |oc|
-                if oc == "person"
-                    schema.must(oc).each { |attr| attr_set.add attr }
-                elsif oc == "posixAccount"
-                    schema.must(oc).each { |attr| attr_set.add attr }
-                    schema.may(oc).each { |attr| attr_set.add attr }
-                elsif oc == "drinkUser"
-                    schema.must(oc).each { |attr| attr_set.add attr }
-                elsif oc == "ibuttonUser"
-                    schema.may(oc).each { |attr| attr_set.add attr }
-                elsif oc == "profiledMember"
-                    schema.may(oc).each { |attr| attr_set.add attr }
-                elsif oc == "houseMember"
-                    schema.may(oc).each { |attr| attr_set.add attr }
-                elsif oc == "ritStudent"
-                    schema.must(oc).each { |attr| attr_set.add attr }
-                    schema.may(oc).each { |attr| attr_set.add attr }
-                elsif oc == "inetOrgPerson"
-                    schema.may(oc).each { |attr| attr_set.add attr }
-                end
-            end
-            schema["attributeTypes"].each do |s|
-                name = s.split(" ")[3][1..-2]
-                # deals with when attributes have aliases
-                n = s.split("NAME")[1].split("DESC")[0].strip
-                name = n.split("'")[1] if n[0] == "("
-                
-                if attr_set.include? name.strip
-                    if s.split(" ")[-2] == "SINGLE-VALUE"
-                        real_attrs << [name, :single]
-                    else
-                        real_attrs << [name, :multiple]
+                object_classes.each do |oc|
+                    if oc == "person"
+                        schema.must(oc).each { |attr| attr_set.add attr }
+                    elsif oc == "posixAccount"
+                        schema.must(oc).each { |attr| attr_set.add attr }
+                        schema.may(oc).each { |attr| attr_set.add attr }
+                    elsif oc == "drinkUser"
+                        schema.must(oc).each { |attr| attr_set.add attr }
+                    elsif oc == "ibuttonUser"
+                        schema.may(oc).each { |attr| attr_set.add attr }
+                    elsif oc == "profiledMember"
+                        schema.may(oc).each { |attr| attr_set.add attr }
+                    elsif oc == "houseMember"
+                        schema.may(oc).each { |attr| attr_set.add attr }
+                    elsif oc == "ritStudent"
+                        schema.must(oc).each { |attr| attr_set.add attr }
+                        schema.may(oc).each { |attr| attr_set.add attr }
+                    elsif oc == "inetOrgPerson"
+                        schema.may(oc).each { |attr| attr_set.add attr }
                     end
                 end
+                schema["attributeTypes"].each do |s|
+                    name = s.split(" ")[3][1..-2]
+                    # deals with when attributes have aliases
+                    n = s.split("NAME")[1].split("DESC")[0].strip
+                    name = n.split("'")[1] if n[0] == "("
+                    
+                    if attr_set.include? name.strip
+                        if s.split(" ")[-2] == "SINGLE-VALUE"
+                            real_attrs << [name, :single]
+                        else
+                            real_attrs << [name, :multiple]
+                        end
+                    end
+                end
+                real_attrs
             end
-            return real_attrs
+        end
+
+        def is_single (attr, ldap_conn)
+            Rails.cache.fetch("is-single-#{attr}", expires_in: 24.hours) do
+                Rails.logger.info "Getting single status for #{attr}"
+                result = false
+                schema = ldap_conn.schema()
+                schema["attributeTypes"].each do |s|
+                    name = s.split(" ")[3][1..-2]
+                    # deals with when attributes have aliases
+                    n = s.split("NAME")[1].split("DESC")[0].strip
+                    name = n.split("'")[1] if n[0] == "("
+                    result = s.split(" ")[-2] == "SINGLE-VALUE" if name == attr
+                end
+                result
+            end
         end
 end

@@ -9,25 +9,25 @@
             <% @positions.each do |position| %>
                 <% if position == "Social Director" %>
                     <span class="radius secondary round label position_label">
-                        <span data-tooltip class="has-tip" title="SOCIAL GOOD, TECHNICAL BAD!" style="font-weight: normal">
+                        <span data-tooltip class="position_tooltip" title="SOCIAL GOOD, TECHNICAL BAD!">
                             <%= position %>
                         </span>
                     </span>
                 <% elsif position == "Financial Director" %>
                     <span class="radius secondary round label position_label">
-                        <span data-tooltip class="has-tip" title="Dues, Swag, Receipts, Amen" style="font-weight: normal">
+                        <span data-tooltip class="position_tooltip" title="Dues, Swag, Receipts, Amen">
                             <%= position %>
                         </span>
                     </span>
                 <% elsif position == "RTP" %>
                     <span class="radius secondary round label position_label">
-                        <span data-tooltip class="has-tip" title="Shit is broke" style="font-weight: normal">
+                        <span data-tooltip class="position_tooltip" title="Doing it live">
                             <%= position %>
                         </span>
                     </span>
                 <% elsif position == "Drink Admin" %>
                     <span class="radius secondary round label position_label">
-                        <span data-tooltip class="has-tip" title="Drink is down" style="font-weight: normal">
+                        <span data-tooltip class="position_tooltip" title="Drink is down">
                             <%= position %>
                         </span>
                     </span>
