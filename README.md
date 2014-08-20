@@ -11,9 +11,11 @@ view / modify attributes that they have access to.
 
 It is also able to be used as a easy way to access member's profile pictures.
 A default profile picture will be returned if the user has not set one yet.
+You can specify the size of the picture, if you do not then the default image
+size will be returned.
 
 ```html
-<img src="https://jdprofiles.csh.rit.edu/image/:uid">
+<img src="https://jdprofiles.csh.rit.edu/image/:uid?size=:size">
 ```
 
 The server uses heavy caching to speed up the results as much as possible.

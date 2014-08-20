@@ -1,21 +1,29 @@
 @import "foundation/components/grid";
+@import "foundation/components/pricing-tables";
 
 @media(min-width: 10px) {
-    .custom-row {
+    .user-row {
         @include grid-row();
-        .custom-column {
-            @include grid-column(3);
-            width: 50%;
+        .user-column {
+            @include grid-column(6);
         }
     }
 }
 
-@media(min-width: 600px) {
-    .custom-row {
+@media(min-width: 500px) {
+    .user-row {
         @include grid-row();
-        .custom-column {
+        .user-column {
+            @include grid-column(4);
+        }
+    }
+}
+
+@media(min-width: 800px) {
+    .user-row {
+        @include grid-row();
+        .user-column {
             @include grid-column(3);
-            width: 25%;
         }
     }
 }
@@ -33,10 +41,9 @@
 }
 
 .cn_bullet {
-    word-wrap:break-word; 
-    padding: 10px; 
-    //height: 50px;    
+    @include pricing-table-bullet;
     overflow:hidden;
-    height:1%;
+    height: 50px;
+    text-align: center;
 }
 

@@ -1,48 +1,46 @@
 <div style="text-align:center;">
-    <% if @current %>
-        <div class="pagination-centered">
-            <ul class="pagination">
-                <% ("a".ord.."z".ord).each do |char| %>
-                    <% if char == @current.ord %>
-                        <li class="current">
-                    <% else %>
-                        <li>
-                    <% end %>
-                    <a rel="start" href="/<%= @url %>?page=<%= char.chr %>" style="padding: 5px"><%= char.chr %></a></li>
-                <% end %>
-            </ul>
-        </div>
-        <br />
-    <% end %>
+  <% if @current %>
+    <div class="pagination-centered">
+      <ul class="pagination">
+        <% ("a".ord.."z".ord).each do |char| %>
+          <% if char == @current.ord %>
+            <li class="current">
+          <% else %>
+            <li>
+          <% end %>
+          <a rel="start" href="/<%= @url %>?page=<%= char.chr %>" style="padding: 5px"><%= char.chr %></a></li>
+        <% end %>
+      </ul>
+    </div>
+    <br />
+  <% end %>
 </div>
 <% if @users.length == 0 %>
-    <h3 style="text-align: center">No Users found</h3>
+  <h3 style="text-align: center">No Users found</h3>
 <% else %>
-    <% @users.each_slice(4).each do |row| %>
-        <div class="custom-row">
-            <% row.each do |user| %>
-                <div class="custom-column">
-                    <ul class="pricing-table" data-equalizer-watch style="margin: 0px">
-                        <%= link_to "/user/#{user["uid"][0]}"  do %>
-                            <li class="title title_bullet">
-                            <div class="row">
-                                <div class="medium-5 columns">
-                                    <%= image_tag "/image/#{user["uid"][0]}", size: '120' %>
-                                </div>
-                                <div class="medium-7 columns">
-                                <p class="uid_bullet"><%= user["uid"][0] %><p>
-                            </div>
-                        </div>
-                            </li>
-                        <% end %>
-                        <li class="bullet-item cn_bullet"><%= user["cn"][0] %></li>
-                    </ul>
-                    <br> 
+  <div class="user-row">
+    <% @users.each do |user| %>
+      <div class="user-column">
+        <ul class="pricing-table" style="margin: 0px;">
+          <%= link_to "/user/#{user["uid"][0]}"  do %>
+            <li class="title title_bullet">
+              <div class="row">
+                <div class="large-5 columns" style="min-height: 60px;">
+                  <%= image_tag "/image/#{user["uid"][0]}?size=60" %>
                 </div>
-                <% for i in row.length..4 %>
-                    <div class="custom-column"></div>
-                <% end %>
-            <% end %>
-        </div>
+                <div class="large-7 columns">
+                  <p class="uid_bullet"><%= user["uid"][0] %><p>
+                </div>
+              </div>
+            </li>
+          <% end %>
+          <li class="cn_bullet"><%= user["cn"][0] %></li>
+        </ul>
+        <br> 
+      </div>
     <% end %>
+    <% for i in (@users.length % 4)..4 %>
+      <div class="user-column"></div>
+    <% end %>
+  </div>
 <% end %>

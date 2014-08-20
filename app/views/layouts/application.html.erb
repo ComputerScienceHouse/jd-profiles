@@ -3,12 +3,12 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <%= favicon_link_tag "favicon.ico" %>
-            
     <title>CSH Profiles</title>
-
+    <%= favicon_link_tag "favicon.ico" %>
     <%= stylesheet_link_tag "application" %>
     <%= csrf_meta_tags %>
+    <%= javascript_include_tag "vendor/modernizr" %>
+    <%= javascript_include_tag "application" %>
   </head>
   <body>
     <div id="menu">
@@ -37,12 +37,12 @@
         <div class="large-12 columns" id="container">
             <div class="row panel" id="main-header">
                 <div id="view_options" class="button-bar">
-                    <%= link_to "Users", {controller: 'users', action: 'list_users'}, {class: "nav_button" } %>
-                    <%= link_to "Groups", {controller: 'users', action: 'list_groups'}, {class: "nav_button" } %>
-                    <%= link_to "Years", {controller: 'users', action: 'list_years'}, {class: "nav_button" } %>
-                    <%= link_to "E-Board", "/group/eboard", {class: "nav_button" } %>
-                    <%= link_to "RTPs", "/group/rtp", {class: "nav_button" } %>
-                    <%= link_to "Drink Admins", "/group/drink", {class: "nav_button" } %> 
+                    <%= link_to "Users", {controller: :users, action: 'list_users'}, {class: "nav_button" } %>
+                    <%= link_to "Groups", {controller: :users, action: 'list_groups'}, {class: "nav_button" } %>
+                    <%= link_to "Years", {controller: :users, action: 'list_years'}, {class: "nav_button" } %>
+                    <%= link_to "E-Board", {controller: :users, action: :group, group: 'eboard'}, {class: "nav_button" } %>
+                    <%= link_to "RTPs", {controller: :users, action: :group, group: 'rtp'}, {class: "nav_button" } %>
+                    <%= link_to "Drink Admins", {controller: :users, action: :group, group: 'drink'}, {class: "nav_button"} %> 
                     <%= link_to "Me", "/me", {class: "nav_button" } %>
                 </div>
                 <div id="search">
@@ -64,6 +64,4 @@
     <h5 style="text-align:center">Made by J.D. - <%= link_to("Profiles", "https://github.com/JDrit/profiles") %></h5>
     <br />
   </body>
-  <%= javascript_include_tag "vendor/modernizr" %>
-  <%= javascript_include_tag "application" %>
-</html>
+  </html>

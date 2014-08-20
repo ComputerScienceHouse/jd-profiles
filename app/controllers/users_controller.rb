@@ -4,20 +4,22 @@ require 'will_paginate/array'
 
 class UsersController < ApplicationController
     include CacheableCSRFTokenRails
-    # Yo Man I heard you wanted some caching
-    caches_action :list_years, expires_in: 24.hours
-    caches_action :list_groups, expires_in: 24.hours
-    caches_action :list_users, expires_in: 24.hours, cache_path: Proc.new { |c| c.params }
-    caches_action :group, expires_in: 24.hours, cache_path: Proc.new { |c| c.params }
-    caches_action :year, expires_in: 24.hours, cache_path: Proc.new { |c| c.params }
-    caches_action :image, expires_in: 24.hours, cache_path: Proc.new { |c| c.params }
-    caches_action :search, expires_in: 24.hours, cache_path: Proc.new { |c| c.params['search'] }
 
+    @@cache_time = 24.hours
     @@user_treebase = "ou=Users,dc=csh,dc=rit,dc=edu"
     @@group_treebase = "ou=Groups,dc=csh,dc=rit,dc=edu"
     @@committee_treebase = "ou=Committees,dc=csh,dc=rit,dc=edu"
     @@search_vars = Set.new ['cn', 'description', 'displayName', 'mail', 'nickName',
         'plex', 'sn', 'uid', 'mobile', 'twitterName', 'github']
+
+    # Yo Man I heard you wanted some caching
+    caches_action :list_years, expires_in: @@cache_time
+    caches_action :list_groups, expires_in: @@cache_time
+    caches_action :list_users, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params }
+    caches_action :group, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params }
+    caches_action :year, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params }
+    caches_action :image, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params }
+    caches_action :search, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params['search'] }
 
     # Searches LDAP for users
     def search
@@ -29,7 +31,7 @@ class UsersController < ApplicationController
         
         bind_ldap do |ldap_conn|
             ldap_conn.search(@@user_treebase,  LDAP::LDAP_SCOPE_SUBTREE, filter, 
-                              attrs = ["uid", "cn", "memberSince"]) do |entry|
+                             ["uid", "cn", "memberSince"]) do |entry|
                 @users << entry.to_hash   
             end
         end
@@ -79,18 +81,30 @@ class UsersController < ApplicationController
         @title = "years"
     end
 
+    # Returns the jpegPhoto for the given uid. The user can specify the size of
+    # the image to return as well
     def image
         response.headers["Expires"] = 10.minute.from_now.httpdate
+        image = nil
         bind_ldap do |ldap_conn|
             ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
-                              "(uid=#{params[:uid]})") do |entry|
-                if entry["jpegPhoto"] != nil && entry["jpegPhoto"] != [""]
-                    send_data(entry["jpegPhoto"][0], filename: "#{params[:uid]}.jpg", type: "image/jpeg") 
-                else
-                    send_file("app/assets/images/blank_user.png", x_sendfile: true)
-                end
+                              "(uid=#{params[:uid]})", ["jpegPhoto"]) do |entry|
+                image = entry["jpegPhoto"][0] if entry["jpegPhoto"] != nil && entry["jpegPhoto"][0].length > 0
             end
         end
+        if image
+            begin
+                image = MiniMagick::Image.read(image)
+            rescue
+                image = MiniMagick::Image.open('app/assets/images/blank_user.png')
+            end
+        else
+            image = MiniMagick::Image.open('app/assets/images/blank_user.png')
+        end
+        if params[:size] != nil && params[:size].to_i > 0
+            image.resize "#{params[:size]}x#{params[:size]}"
+        end
+        send_data(image.to_blob, filename: "#{params[:uid]}.jpg", type: "image/jpeg")
     end
     
     def autocomplete
@@ -99,7 +113,7 @@ class UsersController < ApplicationController
             ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE,
                              "(|(uid=*#{params[:term]}*)(cn=*#{params[:term]}*)
                              (mail=*#{params[:term]}*)(nickName=*#{params[:term]}*))",
-                             attrs = ["uid", "cn"]) do |entry|
+                             ["uid", "cn"]) do |entry|
                 @users << entry.to_hash["uid"][0]
             end
         end
@@ -172,8 +186,18 @@ class UsersController < ApplicationController
         if params['picture'] != nil
             attr_key = 'jpegPhoto'
             image_upload = true
-            update = LDAP.mod(LDAP::LDAP_MOD_REPLACE | LDAP::LDAP_MOD_BVALUES, 
+            image = MiniMagick::Image.read(params[:picture])
+            max = [image[:width].to_f, image[:height].to_f].max
+            if max > 1024
+                height = image[:height].to_f / (max / 1024)
+                width = image[:width].to_f / (max / 1024)
+                image.resize("#{height.to_i}x#{width.to_i}")
+                update = LDAP.mod(LDAP::LDAP_MOD_REPLACE | LDAP::LDAP_MOD_BVALUES, 
+                              attr_key, [image.to_blob])
+            else
+                update = LDAP.mod(LDAP::LDAP_MOD_REPLACE | LDAP::LDAP_MOD_BVALUES, 
                               attr_key, [params[:picture].read])
+            end
         else
             params.except("controller", "action", "utf8").each do |key, value|
                 attr_key = key.split("_")[0]
@@ -227,7 +251,6 @@ class UsersController < ApplicationController
     def group
         params[:page] = "a" if params[:page] == nil
         @users = []
-        attrs = ["uid", "cn", "memberSince"]
         filter = "(cn=#{params[:group]})"
         bind_ldap do |ldap_conn|
             ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE, filter) do |entry|
@@ -250,7 +273,8 @@ class UsersController < ApplicationController
             end
             filter += ")"
             @users = []
-            ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, filter, attrs) do |entry|
+            ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, filter, 
+                             ["uid", "cn", "memberSince"]) do |entry|
                 @users << entry.to_hash
             end
             @users.sort! { |x,y| x["uid"] <=> y["uid"] }
@@ -334,7 +358,7 @@ class UsersController < ApplicationController
         # Gets the positions that the user holds and caches the result. 
         # get_groups must be called first
         def get_positions(ldap_conn, dn)
-            Rails.cache.fetch("positions-#{dn}", expires_in: 24.hours) do
+            Rails.cache.fetch("positions-#{dn}", expires_in: @@cache_time) do
                 Rails.logger.info "Getting positions for #{dn}"
                 positions = []
                 ldap_conn.search(@@committee_treebase, LDAP::LDAP_SCOPE_SUBTREE, "(head=#{dn})") do |entry|
@@ -348,7 +372,7 @@ class UsersController < ApplicationController
 
         # Gets the groups that the given user is a part of and caches them
         def get_groups(ldap_conn, dn)
-            Rails.cache.fetch("groups-#{dn}", expires_in: 24.hours) do
+            Rails.cache.fetch("groups-#{dn}", expires_in: @@cache_time) do
                 Rails.logger.info "Getting groups for #{dn}"
                 groups = []
                 ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE, "(member=#{dn})") do |entry|
@@ -361,7 +385,7 @@ class UsersController < ApplicationController
         # Gets the year that the person is from. This is used in clearing the 
         # cache for the given year
         def get_year(ldap_conn, uid)
-            Rails.cache.fetch("member-since-#{uid}", expires_in: 24.hours) do
+            Rails.cache.fetch("member-since-#{uid}", expires_in: @@cache_time) do
                 Rails.logger.info "Getting year for #{uid}"
                 member_since = nil
                 ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, "(uid=#{uid})", ["memberSince"]) do |entry|
@@ -378,7 +402,7 @@ class UsersController < ApplicationController
         # object_classes - the object classes that the user belongs to, used
         #   to get the values allowed
         def get_attrs(object_classes, ldap_conn)
-            Rails.cache.fetch("object-classes-#{object_classes}", expires_in: 24.hours) do
+            Rails.cache.fetch("object-classes-#{object_classes}", expires_in: @@cache_time) do
                 Rails.logger.info "Getting attributes for #{object_classes}"
                 schema = ldap_conn.schema()
                 attr_set = Set.new
@@ -424,7 +448,7 @@ class UsersController < ApplicationController
         end
 
         def is_single (attr, ldap_conn)
-            Rails.cache.fetch("is-single-#{attr}", expires_in: 24.hours) do
+            Rails.cache.fetch("is-single-#{attr}", expires_in: @@cache_time) do
                 Rails.logger.info "Getting single status for #{attr}"
                 result = false
                 schema = ldap_conn.schema()
