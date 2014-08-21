@@ -18,7 +18,6 @@ class UsersController < ApplicationController
     caches_action :list_users, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params }
     caches_action :group, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params }
     caches_action :year, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params }
-    caches_action :image, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params }
     caches_action :search, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params['search'] }
 
     # Searches LDAP for users
@@ -87,10 +86,7 @@ class UsersController < ApplicationController
         response.headers["Expires"] = 10.minute.from_now.httpdate
         image = nil
         bind_ldap do |ldap_conn|
-            ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
-                              "(uid=#{params[:uid]})", ["jpegPhoto"]) do |entry|
-                image = entry["jpegPhoto"][0] if entry["jpegPhoto"] != nil && entry["jpegPhoto"][0].length > 0
-            end
+            image = get_image(ldap_conn, params[:uid])
         end
         if image
             begin
@@ -189,9 +185,10 @@ class UsersController < ApplicationController
             image = MiniMagick::Image.read(params[:picture])
             max = [image[:width].to_f, image[:height].to_f].max
             if max > 1024
-                height = image[:height].to_f / (max / 1024)
-                width = image[:width].to_f / (max / 1024)
-                image.resize("#{height.to_i}x#{width.to_i}")
+                height = (image[:height].to_f / (max / 1024)).to_i
+                width = (image[:width].to_f / (max / 1024)).to_i
+                Rails.logger.info "Resizing user to #{width}x#{height}"
+                image.resize("#{height}x#{width}")
                 update = LDAP.mod(LDAP::LDAP_MOD_REPLACE | LDAP::LDAP_MOD_BVALUES, 
                               attr_key, [image.to_blob])
             else
@@ -335,14 +332,14 @@ class UsersController < ApplicationController
             yield ldap_conn
             ldap_conn.unbind()
             end_time = Time.now.to_f * 1000
-            Rails.logger.info "LDAP time: #{(end_time - start_time).round(2)} ms"
+            Rails.logger.info "LDAP time: #{(end_time - start_time).round(2)}ms"
         end
 
         # deals with expiring all the needed cache when an update happens. Only the
         # affected cache is expired
         def expire_cache ldap_conn, dn, image_upload, attr_key
             if image_upload
-                expire_action action: :image, uid: request.headers['WEBAUTH_USER']
+                Rails.cache.delete("image-#{request.headers['WEBAUTH_USER']}")
             elsif attr_key == 'cn'
                 expire_action action: :list_users, page: request.headers['WEBAUTH_USER'][0]
                 get_groups(ldap_conn, dn).each do |cn|
@@ -393,6 +390,21 @@ class UsersController < ApplicationController
                 end
                 year = member_since[0][0..3] if member_since != nil && member_since.length >= 1
                 year 
+            end
+        end
+       
+        # Gets the image profile picture for a given user and caches it. This is used so
+        # that the actual picutre is cached and it is resized each request for the 
+        # given size
+        def get_image(ldap_conn, uid)
+            Rails.cache.fetch("image-#{uid}", expires_in: @@cache_time) do
+                Rails.logger.info "Getting image for #{uid}"
+                image = nil
+                ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
+                              "(uid=#{params[:uid]})", ["jpegPhoto"]) do |entry|
+                    image = entry["jpegPhoto"][0] if entry["jpegPhoto"] != nil && entry["jpegPhoto"][0].length > 0
+                end
+                image
             end
         end
 
