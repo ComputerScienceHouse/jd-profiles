@@ -1,10 +1,10 @@
 @import "foundation/components/grid";
+@import "foundation/components/pricing-tables";
 
 .year-row {
     @include grid-row();
     .year-column {
-        @include grid-column(2);
-        width: 50%;
+        @include grid-column(6);
     }
 }    
 
@@ -13,8 +13,11 @@
         @include grid-row();
         .year-column {
             @include grid-column(2);
-            width: 16.6%;
         }
     }    
 }
 
+.year-title {
+    @include pricing-table-title;
+    font-size: 14px;
+}

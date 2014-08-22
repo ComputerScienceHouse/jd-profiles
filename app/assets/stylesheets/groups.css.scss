@@ -1,4 +1,5 @@
 @import "foundation/components/grid";
+@import "foundation/components/pricing-tables";
 
 @media(min-width: 10px) {
     .group-row {
@@ -28,4 +29,10 @@
             width: 16.6%;
         }
     }   
+}
+
+.group-size-bullet {
+    @include pricing-table-bullet;
+    padding-left: 0px;
+    padding-right: 0px;
 }

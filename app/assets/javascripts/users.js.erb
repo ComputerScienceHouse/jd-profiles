@@ -62,11 +62,24 @@ $(document).on('page:change', function () {
                 flash_success("input[id^='attr_input_" + attr_id + "']", false);
             } else {
                 $("div[id^='attr_input_div_" + attr_id + "']").remove();
-                for (var i = 0 ; i < response.value.length ; i++) {
+                var i = 0;
+                for (i = 0 ; i < response.value.length ; i++) {
                     var id = "attr_input_div_" + attr_id + "_" + i;
                     $("#attr_form_" + attr_id).append('<div id="' + id + '" class="attr_input_div"></div>');
-                    create_input(id,  response.value[i]);    
-                    $("#attr_" + attr_id + "_" + i).text(response.value[i]);
+                    create_input(id,  response.value[i]);
+
+                    // updates the read-only versions and adds new read-only divs if needed
+                    if ($("#attr_" + attr_id + "_" + i).length) {
+                        $("#attr_" + attr_id + "_" + i).text(response.value[i]);
+                    } else {
+                        $("#attr_form_" + attr_id).append('<div id="attr_' + attr_id + '_' + i + '" class="attr" style="display: none;"></div>');
+                        $("#attr_" + attr_id + "_" + i).text(response.value[i]);
+                         
+                    }
+                }
+                // removes any extra values that were just deleted
+                while ($("#attr_" + attr_id + "_" + i).length) {
+                    $("#attr_" + attr_id + "_" + i).remove(); 
                 }
                 var id = "attr_input_div_" + attr_id + "_" + response.value.length;
                 $("#attr_form_" + attr_id).append('<div id="' + id + '" class="attr_input_div"></div>');

@@ -1,23 +1,23 @@
-<% @groups[1..-1].each_slice(6).each do |row| %>
-    <div class="group-row">
-        <% row.each do |group| %>
-            <div class="group-column">
-                <ul class="pricing-table" data-equalizer-watch>
-                    <%= link_to "/group/" + group["cn"][0] do %>
-                        <li class="title"><%= group["cn"][0] %></li>
-                    <% end %>
-                    <% if group["member"] == [""] %>
-                        <li class="bullet-item">0 members</li>
-                    <% else %>
-                        <li class="bullet-item"><%= group["member"].length %> members</li>
-                    <% end %>
-                </ul>
-                <br> 
-            </div>
-            <% for i in row.length..6 %>
-                <div class="group-column"></div>
-            <% end %>
+<div class="group-row">
+  <% @groups.each do |group| %>
+    <div class="group-column">
+      <ul class="pricing-table" data-equalizer-watch>
+        <%= link_to "/group/" + group["cn"][0] do %>
+          <li class="title"><%= group["cn"][0] %></li>
         <% end %>
+        <% if group["member"] == [""] %>
+          <li class="bullet-item">0 members</li>
+        <% else %>
+          <li class="group-size-bullet">
+            <%= group["member"].length %> members
+          </li>
+        <% end %>
+      </ul>
+      <br> 
     </div>
-<% end %>
+  <% end %>
+  <% for i in (@groups.length % 6)..6 %>
+    <div class="group-column"></div>
+  <% end %>
+</div>
 

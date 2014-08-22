@@ -18,6 +18,7 @@ class UsersController < ApplicationController
     caches_action :list_users, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params }
     caches_action :group, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params }
     caches_action :year, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params }
+    caches_action :image, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params }
     caches_action :search, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params['search'] }
 
     # Searches LDAP for users
@@ -89,18 +90,10 @@ class UsersController < ApplicationController
             image = get_image(ldap_conn, params[:uid])
         end
         if image
-            begin
-                image = MiniMagick::Image.read(image)
-            rescue
-                image = MiniMagick::Image.open('app/assets/images/blank_user.png')
-            end
+            send_data(image, filename: "#{params[:uid]}.jpg", type: "image/jpeg")
         else
-            image = MiniMagick::Image.open('app/assets/images/blank_user.png')
+            send_file("app/assets/images/blank_user.png", x_sendfile: true)
         end
-        if params[:size] != nil && params[:size].to_i > 0
-            image.resize "#{params[:size]}x#{params[:size]}"
-        end
-        send_data(image.to_blob, filename: "#{params[:uid]}.jpg", type: "image/jpeg")
     end
     
     def autocomplete
@@ -339,7 +332,7 @@ class UsersController < ApplicationController
         # affected cache is expired
         def expire_cache ldap_conn, dn, image_upload, attr_key
             if image_upload
-                Rails.cache.delete("image-#{request.headers['WEBAUTH_USER']}")
+                expire_action action: :image, uid: request.headers['WEBAUTH_USER']
             elsif attr_key == 'cn'
                 expire_action action: :list_users, page: request.headers['WEBAUTH_USER'][0]
                 get_groups(ldap_conn, dn).each do |cn|
@@ -393,19 +386,15 @@ class UsersController < ApplicationController
             end
         end
        
-        # Gets the image profile picture for a given user and caches it. This is used so
-        # that the actual picutre is cached and it is resized each request for the 
-        # given size
+        # Gets the image profile picture for a given user
         def get_image(ldap_conn, uid)
-            Rails.cache.fetch("image-#{uid}", expires_in: @@cache_time) do
-                Rails.logger.info "Getting image for #{uid}"
-                image = nil
-                ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
-                              "(uid=#{params[:uid]})", ["jpegPhoto"]) do |entry|
-                    image = entry["jpegPhoto"][0] if entry["jpegPhoto"] != nil && entry["jpegPhoto"][0].length > 0
-                end
-                image
+            Rails.logger.info "Getting image for #{uid}"
+            image = nil
+            ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
+                          "(uid=#{params[:uid]})", ["jpegPhoto"]) do |entry|
+                image = entry["jpegPhoto"][0] if entry["jpegPhoto"] != nil && entry["jpegPhoto"][0].length > 0
             end
+            return image
         end
 
 

@@ -1,18 +1,18 @@
-<% @years.each_slice(6).each do |row| %>
-    <div class="year-row">
-        <% row.each do |year| %>
-            <div class="year-column">
-                <ul class="pricing-table" data-equalizer-watch>
-                    <%= link_to "/year/#{year}" do %>
-                        <li class="title"><%= "#{year} - #{year + 1}" %></li>
-                    <% end %>
-                </ul>
-                <br> 
-            </div>
-            <% for i in row.length..6 %>
-                <div class="year-column"></div>
-            <% end %>
+<div class="year-row">
+  <% @years.each do |year| %>
+    <div class="year-column">
+      <ul class="pricing-table" data-equalizer-watch>
+        <%= link_to "/year/#{year}" do %>
+          <li class="year-title">
+            <%= "#{year} - #{year + 1}" %>
+          </li>
         <% end %>
+      </ul>
+      <br> 
     </div>
-<% end %>
+  <% end %>
+  <% for i in (@years.length % 6)..6 %>
+    <div class="year-column"></div>
+  <% end %>
+</div>
 
