@@ -1,27 +1,31 @@
 <% if !value.nil? %>
-    <%= form_tag "/update", method: :post, remote: true, class: 'attr_form', 
-        id: "attr_form_#{attr}", style: (value[0] == nil) ? 'display:none' : '' do %>
-        <h5><%= format_attr key %>:</h5>
-        <% if value[1] == :single %>
-            <% if attr == "birthday" || attr == "memberSince" %>
-                <div id="attr_<%= attr %>" class="attr"><%= format_date value[0][0] if value[0] != nil %></div>
-            <% else %>
-                <div id="attr_<%= attr %>" class="attr"><%= value[0][0] if value[0] != nil %></div>
-            <% end %>
-            <div id="attr_input_div_<%= attr %>" class="attr_input_div"></div>
-        <% else %>
-            <% count = 0 %>
-            <% if value[0] != nil %>
-                <% if value[0].length != 1 %>
-                    <br>
-                <% end %>
-                <% value[0].each do |elem| %>
-                    <div id="attr_<%= attr %>_<%= count %>" class="attr"><%= elem %></div>
-                    <div id="attr_input_div_<%= attr %>_<%= count %>" class="attr_input_div"></div>
-                    <% count += 1 %>
-                <% end %>
-            <% end %>
-            <div id="attr_input_div_<%= attr %>_<%= count %>" class="attr_input_div"></div>
+  <%= form_tag "/update", method: :post, remote: true, class: 'attr-form', 
+    id: "attr-form-#{attr}", style: (value[0] == nil) ? 'display:none' : '' do %>
+    <h5><%= format_attr key %>:</h5>
+    <% if value[1] == :single %>
+      <% if attr == "birthday" || attr == "memberSince" %>
+        <div id="attr-<%= attr %>" class="attr">
+          <%= format_date value[0][0] if value[0] != nil %>
+        </div>
+      <% else %>
+        <div id="attr-<%= attr %>" class="attr">
+          <%= value[0][0] if value[0] != nil %>
+        </div>
+      <% end %>
+      <div id="attr-input-div-<%= attr %>" class="attr-input-div"></div>
+    <% else %>
+      <% count = 0 %>
+      <% if value[0] != nil %>
+        <% if value[0].length != 1 %>
+          <br>
         <% end %>
+        <% value[0].each do |elem| %>
+          <div id="attr-<%= attr %>-<%= count %>" class="attr"><%= elem %></div>
+          <div id="attr-input-div-<%= attr %>-<%= count %>" class="attr-input-div"></div>
+          <% count += 1 %>
+        <% end %>
+      <% end %>
+      <div id="attr-input-div-<%= attr %>-<%= count %>" class="attr-input-div"></div>
     <% end %>
+  <% end %>
 <% end %>

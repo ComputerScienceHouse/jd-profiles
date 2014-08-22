@@ -28,26 +28,27 @@
     }
 }
 
-.title_bullet {
+.title-bullet {
+    @include pricing-table-title;
     overflow:hidden; 
     white-space: nowrap; 
     padding: 10px;    
 }
 
-.uid_bullet {
+.uid-bullet {
     text-align:center; 
     margin-top: 25%; 
     word-wrap:break-word;
 }
 
-.cn_bullet {
+.cn-bullet {
     @include pricing-table-bullet;
     overflow:hidden;
     height: 50px;
     text-align: center;
 }
 
-.profile_pic {
+.profile-pic {
     height: auto;
     width: auto;
     max-height: 60px;

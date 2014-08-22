@@ -3,41 +3,41 @@
 @import "foundation/components/labels";
 @import "foundation/components/tooltips";
 
-#cn_title {
+#cn-title {
     margin-left:10px; 
     margin-top:20px;
 }
 
-#image_title {
+#image-title {
     float:right; 
     white-space: nowrap
 }
 
-#image_thumb {
+#image-thumb {
     float: right;
 }
 
-#info_parent {
+#info-parent {
     float: right;
     line-height: 60px;
 }
 
-#info_container {
+#info-container {
     vertical-align: middle;
     margin-right: 10px;
 }
 
-#status_container {
+#status-container {
     text-align: right;
     height: 50px;
 }
 
-.position_label {
+.position-label {
     float: right;
     margin-left: 5px;
 }
 
-.position_tooltip {
+.position-tooltip {
     @extend has-tip;
     font-weight: normal;
     cursor: default;
@@ -51,11 +51,11 @@
     border-radius: 150px;
 }
 
-#image_form {
+#image-form {
     display: none;
 }
 
-#image_button { 
+#image-button { 
     @extend .button;
     padding: 8px; 
     font-size: 12px;
@@ -63,8 +63,8 @@
     border-radius:5px;
 }
 
-.info_panel {
-    @include panel();
+.info-panel {
+    @include panel;
     h5 {
         white-space: nowrap;
         margin: 0px;
@@ -72,10 +72,6 @@
     }
     .attr {
         display:inline; 
-        white-space: pre-wrap; /* css-3 */
-        white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
-        white-space: -pre-wrap; /* Opera 4-6 */
-        white-space: -o-pre-wrap; /* Opera 7 */
         word-wrap: break-word; /* Internet Explorer 5.5+ */
     }
     .attr:after {
@@ -97,7 +93,7 @@
     page-break-inside: avoid;
 }
 
-.other_attr {
+.other-attr {
     -webkit-column-break-inside:avoid;
     -moz-column-break-inside:avoid;
     -o-column-break-inside:avoid;
@@ -105,12 +101,12 @@
     column-break-inside:avoid;
 }
 
-#edit_button {
+#edit-button {
     background-color: #9D4799;
     font-weight: bold;
 }
 
-.panel_container {
+.panel-container {
     width: 100%;
     -moz-columns: 1; 
     -webkit-columns: 1; 
@@ -118,7 +114,7 @@
 }
 
 @media(min-width: 600px) {
-    .panel_container {
+    .panel-container {
         width: 100%;
         -moz-columns: 2; 
         -webkit-columns: 2; 
@@ -127,7 +123,7 @@
 }
 
 @media(min-width: 900px) {
-    .panel_container {
+    .panel-container {
         width: 100%;
         -moz-columns: 3; 
         -webkit-columns: 3; 

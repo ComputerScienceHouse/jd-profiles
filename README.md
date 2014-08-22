@@ -15,12 +15,9 @@ You can specify the size of the picture, if you do not then the default image
 size will be returned.
 
 ```html
-<img src="https://jdprofiles.csh.rit.edu/image/:uid?size=:size">
+<img src="https://jdprofiles.csh.rit.edu/image/:uid?size=size">
 ```
 
 The server uses heavy caching to speed up the results as much as possible.
 All you need to do to use the cache is to correctly set-up the environment
 configuration file
-
-It also utilizes X-Sendfile, so make sure your apache or nginx configuration
-supports this as well.

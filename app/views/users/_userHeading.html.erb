@@ -1,38 +1,38 @@
 <div style="float:left;">
-    <h3 id="cn_title"><%= cn %></h3>
+    <h3 id="cn-title"><%= cn %></h3>
 </div> 
-<h3 id="image_title">
-    <img id="image_thumb" class="thumbnail" src="/image/<%= uid %>">
-    <div id="info_parent">
-        <div id="info_container">
-            <div id="status_container"><%= @status %></div>
+<h3 id="image-title">
+    <img id="image-thumb" class="thumbnail" src="/image/<%= uid %>">
+    <div id="info-parent">
+        <div id="info-container">
+            <div id="status-container"><%= @status %></div>
             <% @positions.each do |position| %>
                 <% if position == "Social Director" %>
-                    <span class="radius secondary round label position_label">
-                        <span data-tooltip class="position_tooltip" title="SOCIAL GOOD, TECHNICAL BAD!">
+                    <span class="radius secondary round label position-label">
+                        <span data-tooltip class="position-tooltip" title="SOCIAL GOOD, TECHNICAL BAD!">
                             <%= position %>
                         </span>
                     </span>
                 <% elsif position == "Financial Director" %>
-                    <span class="radius secondary round label position_label">
-                        <span data-tooltip class="position_tooltip" title="Dues, Swag, Receipts, Amen">
+                    <span class="radius secondary round label position-label">
+                        <span data-tooltip class="position-tooltip" title="Dues, Swag, Receipts, Amen">
                             <%= position %>
                         </span>
                     </span>
                 <% elsif position == "RTP" %>
-                    <span class="radius secondary round label position_label">
-                        <span data-tooltip class="position_tooltip" title="Doing it live">
+                    <span class="radius secondary round label position-label">
+                        <span data-tooltip class="position-tooltip" title="Doing it live">
                             <%= position %>
                         </span>
                     </span>
                 <% elsif position == "Drink Admin" %>
-                    <span class="radius secondary round label position_label">
-                        <span data-tooltip class="position_tooltip" title="Drink is down">
+                    <span class="radius secondary round label position-label">
+                        <span data-tooltip class="position-tooltip" title="Drink is down">
                             <%= position %>
                         </span>
                     </span>
                 <% else %>
-                    <span class="radius secondary round label position_label">
+                    <span class="radius secondary round label position-label">
                         <%= position %>
                     </span>
                 <% end %>
@@ -41,9 +41,9 @@
     </div>
     
     <% if edit %>
-        <%= form_tag('/update', method: :post, multipart: true, id: 'image_form') do %>
+        <%= form_tag('/update', method: :post, multipart: true, id: 'image-form') do %>
             <div style="float: left"><%= file_field_tag 'picture' %></div>
-            <div style="float: right"><%= submit_tag 'Submit', id: 'image_button' %></div>
+            <div style="float: right"><%= submit_tag 'Submit', id: 'image-button' %></div>
         <% end %>
     <% end %>
 </h3>

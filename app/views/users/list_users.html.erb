@@ -23,18 +23,18 @@
       <div class="user-column">
         <ul class="pricing-table" style="margin: 0px;">
           <%= link_to "/user/#{user["uid"][0]}"  do %>
-            <li class="title title_bullet">
+            <li class="title-bullet">
               <div class="row">
                 <div class="large-5 columns" style="min-height: 60px;">
-                  <%= image_tag "/image/#{user["uid"][0]}", class: "profile_pic" %>
+                  <%= image_tag "/image/#{user["uid"][0]}", class: "profile-pic" %>
                 </div>
                 <div class="large-7 columns">
-                  <p class="uid_bullet"><%= user["uid"][0] %><p>
+                  <p class="uid-bullet"><%= user["uid"][0] %><p>
                 </div>
               </div>
             </li>
           <% end %>
-          <li class="cn_bullet"><%= user["cn"][0] %></li>
+          <li class="cn-bullet"><%= user["cn"][0] %></li>
         </ul>
         <br> 
       </div>

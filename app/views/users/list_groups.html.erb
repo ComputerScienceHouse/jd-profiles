@@ -6,7 +6,7 @@
           <li class="title"><%= group["cn"][0] %></li>
         <% end %>
         <% if group["member"] == [""] %>
-          <li class="bullet-item">0 members</li>
+          <li class="group-size-bullet">0 members</li>
         <% else %>
           <li class="group-size-bullet">
             <%= group["member"].length %> members

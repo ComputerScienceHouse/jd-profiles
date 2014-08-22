@@ -14,54 +14,60 @@
     <div id="menu">
       <nav class="top-bar" data-topbar data-options="is_hover: false">
         <ul class="title-area">
-		  <!-- Title Area -->
+		      <!-- Title Area -->
           <li class="name">
-          <h1><%= link_to (image_tag("csh.png", border: 0, alt: 'CSH Logo') + " Profiles - #{@title}"), root_path %></h1>
-		  </li>
-		  <li class="toggle-topbar menu-icon"><a href="#"><span id="menu_logo">Menu</span></a></li>  
-		</ul>
+            <h1>
+              <%= link_to (image_tag("csh.png", border: 0, alt: 'CSH Logo') + 
+                           " Profiles - #{@title}"), root_path %>
+            </h1>
+		      </li>
+		      <li class="toggle-topbar menu-icon">
+            <a href="#"><span id="menu_logo">Menu</span></a>
+          </li>  
+		    </ul>
         <section class="top-bar-section">
-		  <!-- Left Nav Section -->
-		  <ul class="left">
-		  </ul>
-		  <!-- Right Nav Section -->
+		      <!-- Left Nav Section -->
+		      <ul class="left"></ul>
+		      <!-- Right Nav Section -->
           <ul class="right">
             <li><%= link_to "Members Home", "https://members.csh.rit.edu" %></li>
             <li><%= link_to "Public Site", "http://csh.rit.edu" %></li>
             <li><%= link_to "Webauth Logout", "https://members.csh.rit.edu/logout" %></li>
-		  </ul>
-		</section>
-	  </nav>
-	</div>
+		      </ul>
+		    </section>
+	    </nav>
+	  </div>
     <div id="main" class="row ">
-        <div class="large-12 columns" id="container">
-            <div class="row panel" id="main-header">
-                <div id="view_options" class="button-bar">
-                    <%= link_to "Users", {controller: :users, action: 'list_users'}, {class: "nav_button" } %>
-                    <%= link_to "Groups", {controller: :users, action: 'list_groups'}, {class: "nav_button" } %>
-                    <%= link_to "Years", {controller: :users, action: 'list_years'}, {class: "nav_button" } %>
-                    <%= link_to "E-Board", {controller: :users, action: :group, group: 'eboard'}, {class: "nav_button" } %>
-                    <%= link_to "RTPs", {controller: :users, action: :group, group: 'rtp'}, {class: "nav_button" } %>
-                    <%= link_to "Drink Admins", {controller: :users, action: :group, group: 'drink'}, {class: "nav_button"} %> 
-                    <%= link_to "Me", "/me", {class: "nav_button" } %>
-                </div>
-                <div id="search">
-                     <%= form_tag("/search", method: "post") do %>
-                        <%= text_field("search", "search", size: "21", placeholder: "search...") %>
-                    <% end %>
-                </div>
-            </div>
-            <% flash.each do |key, value| %>
-                <div data-alert class="alert-box">
-                    <%= value %>
-                    <a href="#" class="close">&times;</a>
-                </div>
+      <div class="large-12 columns" id="container">
+        <div class="row panel" id="main-header">
+          <div id="view-options" class="button-bar">
+            <%= link_to "Users", {controller: :users, action: 'list_users'}, 
+              {class: "nav-button" } %>
+            <%= link_to "Groups", {controller: :users, action: 'list_groups'}, 
+              {class: "nav-button" } %>
+            <%= link_to "Years", {controller: :users, action: 'list_years'}, 
+              {class: "nav-button" } %>
+            <%= link_to "E-Board", {controller: :users, action: :group, group: 'eboard'}, 
+              {class: "nav-button" } %>
+            <%= link_to "RTPs", {controller: :users, action: :group, group: 'rtp'}, 
+              {class: "nav-button" } %>
+            <%= link_to "Drink Admins", {controller: :users, action: :group, group: 'drink'}, 
+              {class: "nav-button"} %> 
+            <%= link_to "Me", "/me", {class: "nav-button" } %>
+          </div>
+          <div id="search">
+            <%= form_tag("/search", method: "post") do %>
+              <%= text_field("search", "search", size: "21", placeholder: "search...") %>
             <% end %>
-            <%= yield %>
+          </div>
         </div>
+        <%= yield %>
+      </div>
     </div>
     <br />
-    <h5 style="text-align:center">Made by J.D. - <%= link_to("Profiles", "https://github.com/JDrit/profiles") %></h5>
+    <h5 style="text-align:center">
+      Made by J.D. - <%= link_to("Profiles", "https://github.com/JDrit/profiles") %>
+    </h5>
     <br />
   </body>
-  </html>
+</html>

@@ -190,7 +190,7 @@ class UsersController < ApplicationController
             end
         else
             params.except("controller", "action", "utf8").each do |key, value|
-                attr_key = key.split("_")[0]
+                attr_key = key.split("-")[0]
                 if attr_key == "birthday"
                     begin
                         attr_value << value.to_datetime.strftime('%Y%m%d%H%M%S-0400') if value != ""
