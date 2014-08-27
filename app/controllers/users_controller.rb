@@ -12,6 +12,9 @@ class UsersController < ApplicationController
     @@search_vars = Set.new ['cn', 'description', 'displayName', 'mail', 'nickName',
         'plex', 'sn', 'uid', 'mobile', 'twitterName', 'github']
 
+    before_action { |c| @uid = request.env['WEBAUTH_USER'] }
+    after_action :log_view
+    
     # Yo Man I heard you wanted some caching
     caches_action :list_years, expires_in: @@cache_time
     caches_action :list_groups, expires_in: @@cache_time
@@ -24,8 +27,8 @@ class UsersController < ApplicationController
     # Searches LDAP for users
     def search
         @users = []
-        search_str = params[:search][:search]
         filter = "(|"
+        search_str = params[:search][:search]
         @@search_vars.each { |var| filter << "(#{var}=*#{search_str}*)" }
         filter << ")"
         
@@ -40,7 +43,7 @@ class UsersController < ApplicationController
         if @users.length == 1
             redirect_to "/user/#{@users[0]["uid"][0]}"
         else
-            @users.reverse!
+            sort_by_date(@users)
             render 'list_users'
         end
     end
@@ -110,14 +113,13 @@ class UsersController < ApplicationController
     end
 
     def me
-        @uid = ENV['WEBAUTH_USER']
+        @title = @uid
         bind_ldap do |ldap_conn|
             ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, "(uid=#{@uid})") do |entry|
                 @user = format_fields entry.to_hash
                 get_attrs(@user["objectClass"], ldap_conn).each do |attr|
                     @user[attr[0]] = (@user[attr[0]] == nil) ? [nil, attr[1]] : [@user[attr[0]], attr[1]]
                 end
-                @title = @uid
                 @user = @user.except("uidNumber", "homeDirectory",
                                  "diskQuotaSoft", "diskQuotaHard", 
                                  "gidNumber", "objectClass", "uid", "ou",
@@ -135,12 +137,11 @@ class UsersController < ApplicationController
                 @status = "Active - on-floor"
             end
         end
-        render 'me'
     end
 
     # Displays all the information for the given user
     def user 
-        redirect_to :me if ENV['WEBAUTH_USER'] == params[:uid]
+        return redirect_to :me if @uid == params[:uid]
         @user = nil
         bind_ldap do |ldap_conn|
             ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, "(uid=#{params[:uid]})") do |entry|
@@ -149,7 +150,7 @@ class UsersController < ApplicationController
                     "diskQuotaSoft", "diskQuotaHard", "gidNumber")
             end
             if @user == nil
-                redirect_to root_path
+                return redirect_to root_path
             else
                 @title = @user["uid"][0]
                 @groups = get_groups(ldap_conn, @user["dn"][0])           
@@ -167,13 +168,13 @@ class UsersController < ApplicationController
 
     # Updates the given user's attributes
     def update 
-        attr_key = nil
+        @attr_key = nil
         image_upload = false
         attr_value = []
         real_input = []
         
         if params['picture'] != nil
-            attr_key = 'jpegPhoto'
+            @attr_key = 'jpegPhoto'
             image_upload = true
             image = MiniMagick::Image.read(params[:picture])
             max = [image[:width].to_f, image[:height].to_f].max
@@ -183,15 +184,15 @@ class UsersController < ApplicationController
                 Rails.logger.info "Resizing user to #{width}x#{height}"
                 image.resize("#{height}x#{width}")
                 update = LDAP.mod(LDAP::LDAP_MOD_REPLACE | LDAP::LDAP_MOD_BVALUES, 
-                              attr_key, [image.to_blob])
+                              @attr_key, [image.to_blob])
             else
                 update = LDAP.mod(LDAP::LDAP_MOD_REPLACE | LDAP::LDAP_MOD_BVALUES, 
-                              attr_key, [params[:picture].read])
+                              @attr_key, [params[:picture].read])
             end
         else
             params.except("controller", "action", "utf8").each do |key, value|
-                attr_key = key.split("-")[0]
-                if attr_key == "birthday"
+                @attr_key = key.split("-")[0]
+                if @attr_key == "birthday"
                     begin
                         attr_value << value.to_datetime.strftime('%Y%m%d%H%M%S-0400') if value != ""
                         real_input << value if value != ""
@@ -203,26 +204,26 @@ class UsersController < ApplicationController
                     real_input << value if value != ""
                 end
             end
-            update = LDAP.mod(LDAP::LDAP_MOD_REPLACE, attr_key, attr_value)
+            update = LDAP.mod(LDAP::LDAP_MOD_REPLACE, @attr_key, attr_value)
         end
         
-        result = {"key" => attr_key}
-        dn = "uid=#{request.headers['WEBAUTH_USER']},#{@@user_treebase}"
+        result = {"key" => @attr_key}
+        dn = "uid=#{@uid},#{@@user_treebase}"
         bind_ldap do |ldap_conn|
             begin
-                result["single"] = is_single attr_key, ldap_conn
+                result["single"] = is_single @attr_key, ldap_conn
                 ldap_conn.modify(dn, [update])
                 result["success"] = true
                 result["value"] = real_input if real_input != nil
-                expire_cache(ldap_conn, dn, image_upload, attr_key)
+                expire_cache(ldap_conn, dn, image_upload, @attr_key)
             rescue LDAP::Error => e
-                Rails.logger.error "Error modifying ldap for #{request.headers['WEBAUTH_USER']}, #{e}"
+                Rails.logger.error "Error modifying ldap for #{@uid}, #{e}"
                 result["success"] = false
                 ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
-                                  "(uid=#{request.headers['WEBAUTH_USER']})", [attr_key]) do |entry|
+                                  "(uid=#{@uid})", [@attr_key]) do |entry|
                     user = format_fields entry.to_hash
-                    result["value"] = user[attr_key] != nil ? user[attr_key] : ""
-                    if (attr_key == "birthday" || attr_key == "memberSince") && result["value"][0] != nil
+                    result["value"] = user[@attr_key] != nil ? user[@attr_key] : ""
+                    if (@attr_key == "birthday" || @attr_key == "memberSince") && result["value"][0] != nil
                         result["value"] = [DateTime.parse(result["value"][0]).strftime('%m/%d/%Y')]
                     end
                 end
@@ -263,8 +264,8 @@ class UsersController < ApplicationController
             end
             filter += ")"
             @users = []
-            ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, filter, 
-                             ["uid", "cn", "memberSince"]) do |entry|
+            attrs = ["uid", "cn", "memberSince"]
+            ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, filter, attrs) do |entry|
                 @users << entry.to_hash
             end
             @users.sort! { |x,y| x["uid"] <=> y["uid"] }
@@ -283,7 +284,7 @@ class UsersController < ApplicationController
                 @users << entry.to_hash
             end
         end
-        @users.reverse!
+        sort_by_date(@users)
         @title = "#{params[:year]} - #{params[:year].to_i + 1}"
         render 'list_users'
     end
@@ -294,7 +295,41 @@ class UsersController < ApplicationController
     end
 
     private
-        
+        def sort_by_date(users)
+            users.sort! do |x,y| 
+                if !x["memberSince"]
+                    1
+                elsif !y["memberSince"]
+                    -1
+                else
+                    y["memberSince"] <=> x["memberSince"]
+                end
+            end
+        end
+
+        def log_view
+            case action_name
+            when 'list_users'
+                Rails.logger.views.info "#{@uid} list_users"
+            when 'list_groups'
+                Rails.logger.views.info "#{@uid} list_groups"
+            when 'list_years'
+                Rails.logger.views.info "#{@uid} list_years"
+            when 'me'
+                Rails.logger.views.info "#{@uid} user:#{@uid}"
+            when 'user'
+                Rails.logger.views.info "#{@uid} user:#{params[:uid]}"
+            when 'update'
+                Rails.logger.views.info "#{@uid} update:#{@attr_key}"
+            when 'group'
+                Rails.logger.views.info "#{@uid} group:#{params[:group]}"
+            when 'year'
+                Rails.logger.views.info "#{@uid} year:#{params[:year]}"
+            when 'search'
+                Rails.logger.views.info "#{@uid} search:#{params[:search][:search]}"
+            end
+        end
+       
         def format_fields map
             new_map = Hash.new
             new_map["uid"] = map["uid"] if map.key? "uid"
@@ -332,14 +367,14 @@ class UsersController < ApplicationController
         # affected cache is expired
         def expire_cache ldap_conn, dn, image_upload, attr_key
             if image_upload
-                expire_action action: :image, uid: request.headers['WEBAUTH_USER']
+                expire_action action: :image, uid: @uid
             elsif attr_key == 'cn'
-                expire_action action: :list_users, page: request.headers['WEBAUTH_USER'][0]
+                expire_action action: :list_users, page: @uid[0]
                 get_groups(ldap_conn, dn).each do |cn|
                     expire_action action: :group, group: cn
-                    expire_action action: :group, group: cn, page: request.headers['WEBAUTH_USER'][0]
+                    expire_action action: :group, group: cn, page: @uid[0]
                 end
-                expire_action action: :year, year: get_year(ldap_conn, request.headers['WEBAUTH_USER'])
+                expire_action action: :year, year: get_year(ldap_conn, @uid)
             elsif @@search_vars.include? attr_key
                 expire_action action: :search
             end 

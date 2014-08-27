@@ -56,7 +56,7 @@
             <%= link_to "Me", "/me", {class: "nav-button" } %>
           </div>
           <div id="search">
-            <%= form_tag("/search", method: "post") do %>
+            <%= form_tag("/search", method: "post", id: 'search_form') do %>
               <%= text_field("search", "search", size: "21", placeholder: "search...") %>
             <% end %>
           </div>

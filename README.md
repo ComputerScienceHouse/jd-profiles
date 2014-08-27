@@ -15,7 +15,7 @@ You can specify the size of the picture, if you do not then the default image
 size will be returned.
 
 ```html
-<img src="https://jdprofiles.csh.rit.edu/image/:uid?size=size">
+<img src="https://jdprofiles.csh.rit.edu/image/:uid">
 ```
 
 The server uses heavy caching to speed up the results as much as possible.

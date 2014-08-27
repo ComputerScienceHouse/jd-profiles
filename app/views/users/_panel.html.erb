@@ -27,7 +27,7 @@
             <%= render partial: partial, locals: {attr: "loginShell", key: "login shell", value: @user["loginShell"] } %>
         </div>
     <% end %>
-    <% if !@user["ritDn"].nil? || !@user["major"].nil? || !@user["ritYear"].nil? || !@user["ritAlumni"] %>
+    <% if !@user["ritDn"].nil? || !@user["major"].nil? || !@user["ritYear"].nil? || !@user["ritAlumni"].nil? %>
         <div class="info-panel">
             <h4>RIT Info:</h4>
             <%= render partial: partial, locals: {attr: "ritDn", key: "rit dn", value: @user["ritDn"] } %>
