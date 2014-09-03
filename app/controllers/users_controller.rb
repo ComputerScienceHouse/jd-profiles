@@ -1,6 +1,7 @@
 require 'ldap'
 require 'ldap/schema'
 require 'will_paginate/array'
+require 'digest'
 
 class UsersController < ApplicationController
     include CacheableCSRFTokenRails
@@ -29,10 +30,11 @@ class UsersController < ApplicationController
         @users = []
         filter = "(|"
         search_str = params[:search][:search]
-        @@search_vars.each { |var| filter << "(#{var}=*#{search_str}*)" }
+        @@search_vars.each { |var| filter << "(#{var}=*#{search_str.tr("*", " ")}*)" }
         filter << ")"
         
         bind_ldap do |ldap_conn|
+            Rails.logger.info filter
             ldap_conn.search(@@user_treebase,  LDAP::LDAP_SCOPE_SUBTREE, filter, 
                              ["uid", "cn", "memberSince"]) do |entry|
                 @users << entry.to_hash   
@@ -89,13 +91,14 @@ class UsersController < ApplicationController
     def image
         response.headers["Expires"] = 10.minute.from_now.httpdate
         image = nil
+        type = nil
         bind_ldap do |ldap_conn|
-            image = get_image(ldap_conn, params[:uid])
+            type, image = get_image(ldap_conn, params[:uid])
         end
-        if image
-            send_data(image, filename: "#{params[:uid]}.jpg", type: "image/jpeg")
+        if type == :gravatar
+            redirect_to "http://gravatar.com/avatar/#{Digest::MD5.hexdigest(image)}?size=200&d=mm"
         else
-            send_file("app/assets/images/blank_user.png", x_sendfile: true)
+            send_data(image, filename: "#{params[:uid]}.jpg", type: "image/jpeg")
         end
     end
     
@@ -128,7 +131,7 @@ class UsersController < ApplicationController
             end
             
             @groups = get_groups(ldap_conn, @user["dn"][0])           
-            @positions = get_positions(ldap_conn, @user["dn"][0])
+            @positions = get_positions(ldap_conn, @user["dn"][0], @groups)
                 
             @status = "Active - off-floor"
             if @user["alumni"] == [["1"], :single]
@@ -154,7 +157,7 @@ class UsersController < ApplicationController
             else
                 @title = @user["uid"][0]
                 @groups = get_groups(ldap_conn, @user["dn"][0])           
-                @positions = get_positions(ldap_conn, @user["dn"][0])
+                @positions = get_positions(ldap_conn, @user["dn"][0], @groups)
                 
                 @status = "Active - off-floor"
                 if @user["alumni"] == ["1"]
@@ -289,6 +292,7 @@ class UsersController < ApplicationController
         render 'list_users'
     end
 
+    # Allows RTPs and JD to clear the page's cache
     def clear_cache
         bind_ldap do |ldap_conn|
             dn = "uid=#{@uid},#{@@user_treebase}"
@@ -315,6 +319,7 @@ class UsersController < ApplicationController
             end
         end
 
+        # Log who is viewing what page
         def log_view
             case action_name
             when 'list_users'
@@ -373,7 +378,7 @@ class UsersController < ApplicationController
 
         # deals with expiring all the needed cache when an update happens. Only the
         # affected cache is expired
-        def expire_cache ldap_conn, dn, image_upload, attr_key
+        def expire_cache(ldap_conn, dn, image_upload, attr_key)
             if image_upload
                 expire_action action: :image, uid: @uid
             elsif attr_key == 'cn'
@@ -389,8 +394,11 @@ class UsersController < ApplicationController
         end
 
         # Gets the positions that the user holds and caches the result. 
-        # get_groups must be called first
-        def get_positions(ldap_conn, dn)
+        # ldap_conn: the LDAP connection to use
+        # dn: the dn of the user to look up
+        # groups: the LDAP groups that the user belongs to, used for RTP and
+        #   drink admin positions
+        def get_positions(ldap_conn, dn, groups)
             Rails.cache.fetch("positions-#{dn}", expires_in: @@cache_time) do
                 Rails.logger.info "Getting positions for #{dn}"
                 positions = []
@@ -402,8 +410,8 @@ class UsersController < ApplicationController
                         positions << "#{entry.to_hash['cn'][0]} Director"
                     end
                 end
-                positions << "RTP" if @groups.include? "rtp"
-                positions << "Drink Admin" if @groups.include? "drink"
+                positions << "RTP" if groups.include? "rtp"
+                positions << "Drink Admin" if groups.include? "drink"
                 positions
             end
         end
@@ -434,21 +442,36 @@ class UsersController < ApplicationController
             end
         end
        
-        # Gets the image profile picture for a given user
+        # Gets the image profile picture for a given user. If the user does not
+        # have a jpegPhoto attribute in LDAP, then gravatar is used with their
+        # @csh.rit.edu email. This is not cached since the action is already
+        # being cached.
+        # ldap_conn: the ldap connection to use
+        # uid: the uid of the user to get the image of
+        # Return:
+        #   type: either :gravatar or :image depending on what the source of the
+        #       profile pic is
+        #   result: the email to use or the actual image from LDAP
         def get_image(ldap_conn, uid)
             Rails.logger.info "Getting image for #{uid}"
             image = nil
             ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
-                          "(uid=#{params[:uid]})", ["jpegPhoto"]) do |entry|
-                image = entry["jpegPhoto"][0] if entry["jpegPhoto"] != nil && entry["jpegPhoto"][0].length > 0
+                            "(uid=#{uid})", ["jpegPhoto"]) do |entry|
+                if entry["jpegPhoto"] != nil && entry["jpegPhoto"][0].length > 0
+                    image = entry["jpegPhoto"][0]
+                end
             end
-            return image
+            if !image
+                return :gravatar, "#{uid}@csh.rit.edu"
+            else
+                return :image, image
+            end
         end
 
 
         # Gets the attributes that the given user can have along with info
         # on if there can be multiple of the value
-        # object_classes - the object classes that the user belongs to, used
+        # object_classes: the object classes that the user belongs to, used
         #   to get the values allowed
         def get_attrs(object_classes, ldap_conn)
             Rails.cache.fetch("object-classes-#{object_classes}", expires_in: @@cache_time) do
@@ -496,6 +519,11 @@ class UsersController < ApplicationController
             end
         end
 
+        # used in the update method to determine if the variable can have 
+        # multiple variables
+        # attr: The attribute name to test
+        # ldap_conn: the LDAP connection to use
+        # Returns: true of false if the variable is single
         def is_single (attr, ldap_conn)
             Rails.cache.fetch("is-single-#{attr}", expires_in: @@cache_time) do
                 Rails.logger.info "Getting single status for #{attr}"

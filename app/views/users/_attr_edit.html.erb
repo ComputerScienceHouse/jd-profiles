@@ -20,7 +20,19 @@
           <br>
         <% end %>
         <% value[0].each do |elem| %>
-          <div id="attr-<%= attr %>-<%= count %>" class="attr"><%= elem %></div>
+          <% if attr == "mobile" %>
+            <div id="attr-<%= attr %>-<%= count %>" class="attr">
+              <a href="tel:<%= elem.tr("() -", "") %>"><%= elem %></a>
+            </div>
+          <% elsif attr == "mail" %>
+            <div id="attr-<%= attr %>-<%= count %>" class="attr">
+                <a href="mailto:<%= elem %>"><%= elem %></a>
+            </div>
+          <% else %>
+            <div id="attr-<%= attr %>-<%= count %>" class="attr">
+              <%= elem %>
+            </div>
+          <% end %>
           <div id="attr-input-div-<%= attr %>-<%= count %>" class="attr-input-div"></div>
           <% count += 1 %>
         <% end %>
