@@ -181,9 +181,10 @@ class UsersController < ApplicationController
             image_upload = true
             image = MiniMagick::Image.read(params[:picture])
             max = [image[:width].to_f, image[:height].to_f].max
-            if max > 1024
-                height = (image[:height].to_f / (max / 1024)).to_i
-                width = (image[:width].to_f / (max / 1024)).to_i
+            max_size = 250
+            if max > max_size
+                height = (image[:height].to_f / (max / max_size)).to_i
+                width = (image[:width].to_f / (max / max_size)).to_i
                 Rails.logger.info "Resizing user to #{width}x#{height}"
                 image.resize("#{height}x#{width}")
                 update = LDAP.mod(LDAP::LDAP_MOD_REPLACE | LDAP::LDAP_MOD_BVALUES, 
@@ -221,7 +222,9 @@ class UsersController < ApplicationController
                 expire_cache(ldap_conn, dn, image_upload, @attr_key)
             rescue LDAP::Error => e
                 Rails.logger.error "Error modifying ldap for #{@uid}, #{e}"
+                ldap_conn = create_connection
                 result["success"] = false
+                result["error"] = e.to_s
                 ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
                                   "(uid=#{@uid})", [@attr_key]) do |entry|
                     user = format_fields entry.to_hash
@@ -361,15 +364,21 @@ class UsersController < ApplicationController
 
             return new_map
         end
-    
+   
+        # Creates a LDAP connection and opens the connection
+        def create_connection
+            ENV['KRB5CCNAME'] = request.env['KRB5CCNAME']
+            ldap_conn = LDAP::SSLConn.new(host = Global.ldap.host, port = Global.ldap.port)
+            ldap_conn.set_option( LDAP::LDAP_OPT_PROTOCOL_VERSION, 3 ) 
+            ldap_conn.sasl_bind('', '')
+            return ldap_conn
+        end
+
         # Gets the ldap connection for the given user using the kerberos auth
         # provided by webauth
         def bind_ldap
             start_time = Time.now.to_f * 1000
-            ENV['KRB5CCNAME'] = request.env['KRB5CCNAME']
-            ldap_conn = LDAP::Conn.new(host = Global.ldap.host)
-            ldap_conn.set_option( LDAP::LDAP_OPT_PROTOCOL_VERSION, 3 ) 
-            ldap_conn.sasl_bind('', '')
+            ldap_conn = create_connection
             yield ldap_conn
             ldap_conn.unbind()
             end_time = Time.now.to_f * 1000
