@@ -133,12 +133,12 @@ class UsersController < ApplicationController
             @groups = get_groups(ldap_conn, @user["dn"][0])           
             @positions = get_positions(ldap_conn, @user["dn"][0], @groups)
                 
-            @status = "Active - off-floor"
-            if @user["alumni"] == [["1"], :single]
-                @status = "Alumni"
-            elsif @user["onfloor"] == [["1"], :single]
-                @status = "Active - on-floor"
-            end
+
+            status = [
+                @user["active"][0][0] == "1" ? :active : :not_active,
+                @user["alumni"][0][0] == "1" ? :alumni : :not_alumni, 
+                @user["onfloor"][0][0] == "1" ? :onfloor : :offfloor]
+            @status = get_status status    
         end
     end
 
@@ -159,12 +159,13 @@ class UsersController < ApplicationController
                 @groups = get_groups(ldap_conn, @user["dn"][0])           
                 @positions = get_positions(ldap_conn, @user["dn"][0], @groups)
                 
-                @status = "Active - off-floor"
-                if @user["alumni"] == ["1"]
-                    @status = "Alumni"
-                elsif @user["onfloor"] == ["1"]
-                    @status = "Active - on-floor"
-                end
+                status = [
+                    @user["active"][0][0] == "1" ? :active : :not_active,
+                    @user["alumni"][0][0] == "1" ? :alumni : :not_alumni, 
+                    @user["onfloor"][0][0] == "1" ? :onfloor : :offfloor]
+                @status = get_status status    
+    
+               
             end
         end
     end
@@ -310,6 +311,29 @@ class UsersController < ApplicationController
     end
 
     private
+
+        def get_status status
+            case status
+            when [:not_active, :not_alumni, :offfloor]
+                return "Inactive off-floor"
+            when [:not_active, :not_alumni, :onfloor]
+                return "Inactive on-floor"
+            when [:not_active, :alumni, :offfloor]
+                return "Inactive alumni"
+            when [:not_active, :alumni, :onfloor]
+                return "Inactive alumni"
+            when [:active, :not_alumni, :offloor]
+                return "Active off-floor"
+            when [:active, :not_alumni, :onfloor]
+                return "Active on-floor"
+            when [:active, :alumni, :offfloor]
+                return "Active alumni"
+            when [:active, :alumni, :onfloor]
+                return "Active alumni"
+            end
+        end
+
+ 
         def sort_by_date(users)
             users.sort! do |x,y| 
                 if !x["memberSince"]
