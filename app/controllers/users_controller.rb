@@ -160,9 +160,10 @@ class UsersController < ApplicationController
                 @positions = get_positions(ldap_conn, @user["dn"][0], @groups)
                 
                 status = [
-                    @user["active"][0][0] == "1" ? :active : :not_active,
-                    @user["alumni"][0][0] == "1" ? :alumni : :not_alumni, 
-                    @user["onfloor"][0][0] == "1" ? :onfloor : :offfloor]
+                    @user["active"][0] == "1" ? :active : :not_active,
+                    @user["alumni"][0] == "1" ? :alumni : :not_alumni, 
+                    @user["onfloor"][0] == "1" ? :onfloor : :offfloor]
+                Rails.logger.info status
                 @status = get_status status    
     
                
@@ -322,7 +323,7 @@ class UsersController < ApplicationController
                 return "Inactive alumni"
             when [:not_active, :alumni, :onfloor]
                 return "Inactive alumni"
-            when [:active, :not_alumni, :offloor]
+            when [:active, :not_alumni, :offfloor]
                 return "Active off-floor"
             when [:active, :not_alumni, :onfloor]
                 return "Active on-floor"
