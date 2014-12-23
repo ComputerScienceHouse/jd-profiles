@@ -30,14 +30,25 @@ function create_input(id, val, hidden) {
  * id: the id of the inputs to modify
  * success: if the updats was successful
  */
-function flash_success(id, success) {
+function flash_success(id, success, error) {
     var org_border_color = $(id).css('border-color');
     var org_border_width = $(id).css('border-width');
     var border_color = success ? 'rgb(35, 230, 35)' : 'red';
 
     $(id).css('border-color', border_color);
     $(id).css('border-width', '5px');
-    
+
+    if (!success) {
+        var error_class = Math.random().toString(36).substring(7);
+        console.log(id);
+        console.log(error);
+
+        $(id).after('<small class="' + error_class + ' error">' + error + '</small>');
+        setTimeout(function() {
+            $('.' + error_class).remove();        
+        }, 1000);
+    }
+
     setTimeout(function() { 
         $(id).css('border-color', org_border_color); 
         $(id).css('border-width', org_border_width); 
@@ -49,11 +60,10 @@ $(document).on('page:change', function () {
         var response = $.parseJSON(status);
         var attr_id = response.key;
         if (!hidden) {
-            //TODO(batchik): Show error message on failure
             if (response.single) {
                 $('#attr-input-' + attr_id).val(response.value[0]);
                 $('#attr-' + attr_id).text(response.value[0]);
-                flash_success('#attr-input-' + attr_id, response.success);
+                flash_success('#attr-input-' + attr_id, response.success, response.error);
             } else {
                 if (!response.success) {
                     $("input[id^='attr-input-" + attr_id + "']").remove();
@@ -62,7 +72,7 @@ $(document).on('page:change', function () {
                         var val = (index < response.value.length) ? response.value[index] : "";    
                         create_input(id,  val, false);    
                         });
-                    flash_success("input[id^='attr-input-" + attr_id + "']", false);
+                    flash_success("input[id^='attr-input-" + attr_id + "']", false, response.error);
                 } else {
                     $("div[id^='attr-input-div-" + attr_id + "']").remove();
                     var i = 0;
