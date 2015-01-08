@@ -29,8 +29,8 @@ class UsersController < ApplicationController
     def search
         @users = []
         filter = "(|"
-        search_str = params[:search][:search]
-        @@search_vars.each { |var| filter << "(#{var}=*#{search_str.tr("*", " ")}*)" }
+        search_str = params[:search][:search].split(" ").join("*")
+        @@search_vars.each { |var| filter << "(#{var}=*#{search_str}*)" }
         filter << ")"
         
         bind_ldap do |ldap_conn|
@@ -133,7 +133,6 @@ class UsersController < ApplicationController
             @groups = get_groups(ldap_conn, @user["dn"][0])           
             @positions = get_positions(ldap_conn, @user["dn"][0], @groups)
                 
-            Rails.logger.info @user.except("jpegPhoto")
             status = [
                 @user["active"] != nil && @user["active"][0] != nil && @user["active"][0][0] == "1" ? :active : :not_active,
                 @user["alumni"] != nil && @user["alumni"][0] != nil && @user["alumni"][0][0] == "1" ? :alumni : :not_alumni, 
