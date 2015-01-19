@@ -199,9 +199,11 @@ class UsersController < ApplicationController
                 @attr_key = key.split("-")[0]
                 if @attr_key == "birthday"
                     begin
-                        attr_value << value.to_datetime.strftime('%Y%m%d%H%M%S-0400') if value != ""
+                        attr_value << DateTime.strptime(value.to_s, "%m/%d/%Y").
+                            strftime('%Y%m%d%H%M%S-0400') 
                         real_input << value if value != ""
-                    rescue Exception
+                    rescue Exception => e
+                        Rails.logger.info "Error parsing birthday input #{value.to_s}, #{e}"
                         attr_value << "BAD"
                     end
                 else
@@ -230,8 +232,10 @@ class UsersController < ApplicationController
                                   "(uid=#{@uid})", [@attr_key]) do |entry|
                     user = format_fields entry.to_hash
                     result["value"] = user[@attr_key] != nil ? user[@attr_key] : ""
-                    if (@attr_key == "birthday" || @attr_key == "memberSince") && result["value"][0] != nil
-                        result["value"] = [DateTime.parse(result["value"][0]).strftime('%m/%d/%Y')]
+                    if (@attr_key == "birthday" || @attr_key == "memberSince") && 
+                        result["value"][0] != nil
+                        result["value"] = real_input #[DateTime.strptime(result["value"][0], "%m/%d%Y").
+                            #strftime('%m/%d/%Y')]
                     end
                 end
             end
