@@ -234,8 +234,7 @@ class UsersController < ApplicationController
                     result["value"] = user[@attr_key] != nil ? user[@attr_key] : ""
                     if (@attr_key == "birthday" || @attr_key == "memberSince") && 
                         result["value"][0] != nil
-                        result["value"] = real_input #[DateTime.strptime(result["value"][0], "%m/%d%Y").
-                            #strftime('%m/%d/%Y')]
+                        result["value"] = real_input
                     end
                 end
             end

@@ -56,6 +56,18 @@ function flash_success(id, success, error) {
 }
 
 $(document).on('page:change', function () { 
+        
+    $("#ibutton-toggle").click(function() {
+        if ($("#attr-form-ibutton").is(":visible")) {
+            $("#ibutton-toggle").text("show iButtons")    
+        } else {
+            $("#ibutton-toggle").text("hide iButtons")    
+        }
+        $("#attr-form-ibutton").toggle();
+    });
+    $("#attr-form-ibutton").hide();
+
+        
     $('.attr-form').bind('ajax:success', function(evt, data, xhr) {
         var response = $.parseJSON(status);
         var attr_id = response.key;
