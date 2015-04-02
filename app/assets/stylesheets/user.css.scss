@@ -1,4 +1,5 @@
 @import "foundation/components/thumbs";
+@import "foundation/components/buttons";
 @import "foundation/components/panels";
 @import "foundation/components/labels";
 @import "foundation/components/tooltips";
@@ -38,7 +39,7 @@
 }
 
 .position-tooltip {
-    @extend has-tip;
+    @extend has-tip !optional;
     font-weight: normal;
     cursor: default;
     border: none;
@@ -104,6 +105,15 @@
     background-color: #9D4799;
     font-weight: bold;
 }
+
+#ibutton-toggle {
+    @include button(rem-calc(5), #9D4799);
+    @extend .round;
+    font-weight: bold;
+    font-size: small;
+    margin-bottom: 0px;
+}
+
 
 .panel-container {
     width: 100%;

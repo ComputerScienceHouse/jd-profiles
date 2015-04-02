@@ -40,4 +40,7 @@
       <div id="attr-input-div-<%= attr %>-<%= count %>" class="attr-input-div"></div>
     <% end %>
   <% end %>
+  <% if attr == "ibutton" %>
+    <%= button_tag "view iButtons", id: "ibutton-toggle" %>
+  <% end %>
 <% end %>

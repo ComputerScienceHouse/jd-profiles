@@ -29,8 +29,8 @@ class UsersController < ApplicationController
     def search
         @users = []
         filter = "(|"
-        search_str = params[:search][:search]
-        @@search_vars.each { |var| filter << "(#{var}=*#{search_str.tr("*", " ")}*)" }
+        search_str = params[:search][:search].split(" ").join("*")
+        @@search_vars.each { |var| filter << "(#{var}=*#{search_str}*)" }
         filter << ")"
         
         bind_ldap do |ldap_conn|
@@ -133,12 +133,11 @@ class UsersController < ApplicationController
             @groups = get_groups(ldap_conn, @user["dn"][0])           
             @positions = get_positions(ldap_conn, @user["dn"][0], @groups)
                 
-            @status = "Active - off-floor"
-            if @user["alumni"] == [["1"], :single]
-                @status = "Alumni"
-            elsif @user["onfloor"] == [["1"], :single]
-                @status = "Active - on-floor"
-            end
+            status = [
+                @user["active"] != nil && @user["active"][0] != nil && @user["active"][0][0] == "1" ? :active : :not_active,
+                @user["alumni"] != nil && @user["alumni"][0] != nil && @user["alumni"][0][0] == "1" ? :alumni : :not_alumni, 
+                @user["onfloor"] != nil && @user["onfloor"][0] != nil && @user["onfloor"][0][0] == "1" ? :onfloor : :offfloor]
+            @status = get_status status    
         end
     end
 
@@ -158,13 +157,15 @@ class UsersController < ApplicationController
                 @title = @user["uid"][0]
                 @groups = get_groups(ldap_conn, @user["dn"][0])           
                 @positions = get_positions(ldap_conn, @user["dn"][0], @groups)
-                
-                @status = "Active - off-floor"
-                if @user["alumni"] == ["1"]
-                    @status = "Alumni"
-                elsif @user["onfloor"] == ["1"]
-                    @status = "Active - on-floor"
-                end
+               
+
+                status = [
+                    @user["active"] != nil && @user["active"][0] == "1" ? :active : :not_active,
+                    @user["alumni"] != nil && @user["alumni"][0] == "1" ? :alumni : :not_alumni, 
+                    @user["onfloor"] != nil && @user["onfloor"][0] == "1" ? :onfloor : :offfloor]
+                @status = get_status status    
+    
+               
             end
         end
     end
@@ -198,9 +199,11 @@ class UsersController < ApplicationController
                 @attr_key = key.split("-")[0]
                 if @attr_key == "birthday"
                     begin
-                        attr_value << value.to_datetime.strftime('%Y%m%d%H%M%S-0400') if value != ""
+                        attr_value << DateTime.strptime(value.to_s, "%m/%d/%Y").
+                            strftime('%Y%m%d%H%M%S-0400') 
                         real_input << value if value != ""
-                    rescue Exception
+                    rescue Exception => e
+                        Rails.logger.info "Error parsing birthday input #{value.to_s}, #{e}"
                         attr_value << "BAD"
                     end
                 else
@@ -229,8 +232,9 @@ class UsersController < ApplicationController
                                   "(uid=#{@uid})", [@attr_key]) do |entry|
                     user = format_fields entry.to_hash
                     result["value"] = user[@attr_key] != nil ? user[@attr_key] : ""
-                    if (@attr_key == "birthday" || @attr_key == "memberSince") && result["value"][0] != nil
-                        result["value"] = [DateTime.parse(result["value"][0]).strftime('%m/%d/%Y')]
+                    if (@attr_key == "birthday" || @attr_key == "memberSince") && 
+                        result["value"][0] != nil
+                        result["value"] = real_input
                     end
                 end
             end
@@ -310,6 +314,29 @@ class UsersController < ApplicationController
     end
 
     private
+
+        def get_status status
+            case status
+            when [:not_active, :not_alumni, :offfloor]
+                return "Inactive off-floor"
+            when [:not_active, :not_alumni, :onfloor]
+                return "Inactive on-floor"
+            when [:not_active, :alumni, :offfloor]
+                return "Inactive alumni"
+            when [:not_active, :alumni, :onfloor]
+                return "Inactive alumni"
+            when [:active, :not_alumni, :offfloor]
+                return "Active off-floor"
+            when [:active, :not_alumni, :onfloor]
+                return "Active on-floor"
+            when [:active, :alumni, :offfloor]
+                return "Active alumni"
+            when [:active, :alumni, :onfloor]
+                return "Active alumni"
+            end
+        end
+
+ 
         def sort_by_date(users)
             users.sort! do |x,y| 
                 if !x["memberSince"]
