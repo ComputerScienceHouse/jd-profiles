@@ -2,13 +2,21 @@
     <% if value.size == 1 %>
         <h5><%= format_attr key %>:</h5>
         <% if attr == "birthday" || attr == "memberSince" %>
-            <div class="attr"><%= format_date value[0] %></div>
+            <div class="attr">
+                <%= format_date value[0] %>
+            </div>
         <% elsif attr == "mail" %>
-            <div class="attr"><a href="mailto:<%= value[0] %>"><%= value[0] %></a></div>
+            <div class="attr">
+                <a href="mailto:<%= value[0] %>"><%= value[0] %></a>
+            </div>
         <% elsif attr == "mobile" %>
-	    <div class="attr"><a href="tel:<%= value[0].tr("() -", "") %>"><%= value[0] %></a></div>
-	<% elsif attr == "github" %>
-            <div class="attr"><a href="https://github.com/<%= value[0].tr("() -", "") %>"><%= value[0] %></a></div>
+	        <div class="attr">
+                <a href="tel:<%= value[0].tr("() -", "") %>"><%= value[0] %></a>
+            </div>
+	    <% elsif attr == "github" %>
+            <div class="attr">
+                <a href="https://github.com/<%= value[0].tr("() -", "") %>"><%= value[0] %></a>
+            </div>
         <% else %>
             <div class="attr"><%= value[0] %></div>
         <% end %>
