@@ -1,0 +1,240 @@
+@import 'bootstrap-sprockets';
+@import 'bootstrap';
+
+@import 'members';
+
+$purple: #8b2c93;
+
+body {
+  padding-top: 76px;
+  padding-bottom: 20px;
+  background-color: #eee;
+  background-image: image-url("background.png");
+  background-attachment: fixed;
+}
+
+.btn:hover {
+  color: white;
+}
+
+.csh-button {
+    @extend .btn;
+    background-color: $purple;
+    color: white;
+}
+
+.nav-button {
+    @extend .csh-button;
+    margin-bottom: 2px;
+}
+
+.logo {
+    width: 48px;
+    height: 46px;
+}
+
+.navbar-brand .logo {
+    width: 24px;
+    height: 23px;
+    position: relative;
+    top: -2px;
+    display: inline;
+}
+
+.navbar-brand span {
+    padding-left: 10px;
+}
+
+/*
+ * User page heading
+ */
+
+#name-title {
+    margin-left: 25px;
+    margin-top: 20px;
+    float: left;
+}
+
+#image-title {
+    float: right;
+    white-space: nowrap;
+}
+
+#image-thumb {
+    margin-right: 25px;
+    float: right;
+    height: 75px;
+    width: 75px;
+}
+
+#image-button {
+    @extend .csh-button;
+    margin: 8px;
+    font-size: 12px;
+    margin-bottom: 1px;
+    border-radius: 5px;
+}
+
+#image-form {
+    display: none;
+}
+
+#picture {
+    margin-top: 15px;
+    font-size: 12px;
+}
+
+#info-parent {
+    float: right;
+    line-height: 60px;
+}
+
+#info-container {
+    vertial-align: middle;
+    margin-right: 10px;
+}
+
+#status-container {
+    text-align: right;
+    height: 50px;
+}
+
+.position-badge {
+    @extend .badge;
+    float: right;
+    margin-left: 5px;
+    background-color: $purple;
+}
+
+.position-tooltip {
+    font-weight: normal;
+    cursor: default;
+    border: none;
+}
+
+#search-bar {
+    margin-top: 5px;
+}
+
+/*
+ * User Page
+ */
+.panel-container {
+    width: 100%;
+    -moz-columns: 1; 
+    -webkit-columns: 1; 
+    columns: 1; 
+}
+
+.panel-padding {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.other-panel {
+    margin-left: 15px;
+    margin-right: 15px;
+}
+
+@media(min-width: 600px) {
+    .panel-container {
+        width: 100%;
+        -moz-columns: 2; 
+        -webkit-columns: 2; 
+        columns: 2; 
+    }    
+}
+
+@media(min-width: 900px) {
+    .panel-container {
+        width: 100%;
+        -moz-columns: 3; 
+        -webkit-columns: 3; 
+        columns: 3; 
+    }    
+}
+
+.info-heading {
+    padding: 0px;
+}
+
+.panel-text {
+    padding-left: 20px;
+}
+
+.info-panel {
+    h5 {
+        white-space: nowrap;
+        margin: 0px;
+        display:inline-block;
+    }
+    .attr {
+        display:inline; 
+        word-wrap: break-word; /* Internet Explorer 5.5+ */
+    }
+    .attr:after {
+        content: "\a";
+        white-space: pre;
+    }
+    ul {
+        margin: 0px;    
+    }
+    -webkit-column-break-inside: avoid;
+    -moz-column-break-inside: avoid;
+    -o-column-break-inside: avoid;
+    -ms-column-break-inside: avoid;
+    column-break-inside: avoid;
+    break-after: column;
+    page-break-inside: avoid;
+    background-color: #f2f2f2;
+}
+
+.other-attr {
+    -webkit-column-break-inside: avoid;
+    -moz-column-break-inside: avoid;
+    -o-column-break-inside: avoid;
+    -ms-column-break-inside: avoid;
+    column-break-inside: avoid;
+    break-after: column;
+    page-break-inside: avoid;
+}
+
+#ibutton-toggle {
+    @extend .csh-button;
+    font-size: 12px;
+    height: 30px;
+}
+
+#edit-button {
+    @extend .csh-button;
+    margin: 10px;
+}
+
+.ui-autocomplete {
+    position: absolute;
+    z-index: 1000;
+    cursor: default;
+    padding: 0;
+    margin-top: 2px;
+    list-style: none;
+    background-color: #ffffff;
+    border: 1px solid #ccc;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    -moz-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+}
+
+.ui-autocomplete > li {
+    padding: 3px 20px;
+}
+
+.ui-autocomplete > li.ui-state-focus {
+    background-color: #DDD;
+}
+
+.ui-helper-hidden-accessible {
+    display: none;
+}

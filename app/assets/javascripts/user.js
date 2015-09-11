@@ -11,7 +11,7 @@ function create_input(id, val, hidden) {
     var input_id = "attr-input-" + attr_id; // ex: attr-input-cn-0
     
     $("#" + input_id).remove();
-    $('#' + id).append('<input id="' + input_id + '" name="' + attr_id + '" type="text" value="' + $.trim(val)  + '">');
+    $('#' + id).append('<input class="form-control" id="' + input_id + '" name="' + attr_id + '" type="text" value="' + $.trim(val)  + '">');
     $('#' + input_id).keypress(function(event) {
         if (event.which == 13) {
             event.preventDefault();
@@ -55,8 +55,16 @@ function flash_success(id, success, error) {
     }, 1000);
 }
 
-$(document).on('page:change', function () { 
-        
+
+$(document).on('page:change', function () {
+    $('#image-thumb').click(function() {
+        if ($("#image-form").css("display") == "none") {
+            $("#image-form").css("display", "inherit");    
+        } else {
+            $("#image-form").css("display", "none");    
+        }
+    });
+
     $("#ibutton-toggle").click(function() {
         if ($("#attr-form-ibutton").is(":visible")) {
             $("#ibutton-toggle").text("show iButtons")    
@@ -67,7 +75,6 @@ $(document).on('page:change', function () {
     });
     $("#attr-form-ibutton").hide();
 
-        
     $('.attr-form').bind('ajax:success', function(evt, data, xhr) {
         var response = $.parseJSON(status);
         var attr_id = response.key;
@@ -176,7 +183,8 @@ $(document).on('page:change', function () {
             $('#search_form').submit();  // This submits the form
         }
      });
- 
+
+
     $("#edit-button").click(function(e) {
         if ($(this).text() == "edit") {
             hidden = false;
@@ -232,15 +240,6 @@ $(document).on('page:change', function () {
             // This forces a reflow to deal with the columns
             $('body').hide();
             setTimeout(function() { $('body').show(); }, 0);
-        }
-    });
-
-
-    $('#image-thumb').click(function() {
-        if ($("#image-form").css("display") == "none") {
-            $("#image-form").css("display", "inherit");    
-        } else {
-            $("#image-form").css("display", "none");    
         }
     });
 });

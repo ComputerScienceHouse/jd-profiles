@@ -12,11 +12,13 @@
 //
 //= require jquery
 //= require jquery_ujs
-//= require jquery-ui/autocomplete
-//= require foundation
+//= require jquery-ui
+//= require bootstrap-sprockets
 //= require turbolinks
 //= require_tree .
 
+
+// initilizes all the tooltips for the badges
 $(document).on('page:change', function () {
-      $(document).foundation();
+      $('[data-toggle="tooltip"]').tooltip()
 });

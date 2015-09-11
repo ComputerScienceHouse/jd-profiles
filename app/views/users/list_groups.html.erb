@@ -1,23 +1,22 @@
-<div class="group-row">
+<br />
+<div class="row group-row">
   <% @groups.each do |group| %>
-    <div class="group-column">
-      <ul class="pricing-table" data-equalizer-watch>
-        <%= link_to "/group/" + group["cn"][0] do %>
-          <li class="title"><%= group["cn"][0] %></li>
-        <% end %>
-        <% if group["member"] == [""] %>
-          <li class="group-size-bullet">0 members</li>
-        <% else %>
-          <li class="group-size-bullet">
-            <%= group["member"].length %> members
-          </li>
-        <% end %>
-      </ul>
-      <br> 
-    </div>
+    <div class="col-lg-2 col-md-3 col-sm-6">
+        <div class="panel panel-default">
+            <div class="panel-heading group-header">
+                <%= link_to "/group/" + group["cn"][0] do %>
+                    <strong><%= group["cn"][0] %></strong>
+                <% end %>
+            </div>
+            <div class="panel-body group-body">
+                <% if group["member"] == [""] %>
+                    0 members
+                <% else %>
+                    <%= group["member"].length %> members
+                <% end %>
+            </div><!-- /.panel-body -->
+        </div><!-- /.panel .panel-default -->
+    </div><!-- /.group-column -->
   <% end %>
-  <% for i in (@groups.length % 6)..6 %>
-    <div class="group-column"></div>
-  <% end %>
-</div>
+</div><!-- /.row group-row -->
 

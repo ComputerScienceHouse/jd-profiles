@@ -14,7 +14,7 @@ class UsersController < ApplicationController
         'plex', 'sn', 'uid', 'mobile', 'twitterName', 'github']
 
     before_action { |c| @uid = request.env['WEBAUTH_USER'] }
-    after_action :log_view
+    #after_action :log_view
     
     # Yo Man I heard you wanted some caching
     caches_action :list_years, expires_in: @@cache_time
@@ -30,11 +30,11 @@ class UsersController < ApplicationController
         @users = []
         filter = "(|"
         search_str = params[:search][:search].split(" ").join("*")
+        Rails.logger.info search_str
         @@search_vars.each { |var| filter << "(#{var}=*#{search_str}*)" }
         filter << ")"
         
         bind_ldap do |ldap_conn|
-            Rails.logger.info filter
             ldap_conn.search(@@user_treebase,  LDAP::LDAP_SCOPE_SUBTREE, filter, 
                              ["uid", "cn", "memberSince"]) do |entry|
                 @users << entry.to_hash   
@@ -96,7 +96,7 @@ class UsersController < ApplicationController
             type, image = get_image(ldap_conn, params[:uid])
         end
         if type == :gravatar
-            redirect_to "http://gravatar.com/avatar/#{Digest::MD5.hexdigest(image)}?size=200&d=mm"
+            redirect_to "https://gravatar.com/avatar/#{Digest::MD5.hexdigest(image)}?size=200&d=mm"
         else
             send_data(image, filename: "#{params[:uid]}.jpg", type: "image/jpeg")
         end
@@ -109,9 +109,16 @@ class UsersController < ApplicationController
                              "(|(uid=*#{params[:term]}*)(cn=*#{params[:term]}*)
                              (mail=*#{params[:term]}*)(nickName=*#{params[:term]}*))",
                              ["uid", "cn"]) do |entry|
-                @users << entry.to_hash["uid"][0]
+                hash = entry.to_hash
+                uid = entry.to_hash["uid"][0]
+                if hash["cn"].length > 0
+                    @users << {value: uid, label: hash["cn"][0]}
+                else
+                    @users << {label: uid, value: uid}
+                end
             end
         end
+        Rails.logger.info @users[0..10]
         render :json => @users[0..10]
     end
 

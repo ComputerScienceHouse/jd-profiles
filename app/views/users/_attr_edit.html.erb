@@ -1,18 +1,12 @@
 <% if !value.nil? %>
   <%= form_tag "/update", method: :post, remote: true, class: 'attr-form', 
     id: "attr-form-#{attr}", style: (value[0] == nil) ? 'display:none' : '' do %>
-    <h5><%= format_attr key %>:</h5>
+    <strong><%= format_attr key %>:</strong>
     <% if value[1] == :single %>
       <% if attr == "birthday" || attr == "memberSince" %>
         <div id="attr-<%= attr %>" class="attr">
           <%= format_date value[0][0] if value[0] != nil %>
         </div>
-      <% elsif attr == "github" %>
-        <a href="https://github.com/<%= value[0][0] if value[0] != nil %>">
-          <div id="attr-<%= attr %>" class="attr">
-            <%= value[0][0] if value[0] != nil %>
-          </div>
-        </a>
       <% else %>
         <div id="attr-<%= attr %>" class="attr">
           <%= value[0][0] if value[0] != nil %>

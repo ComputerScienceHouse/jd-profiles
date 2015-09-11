@@ -1,38 +1,14 @@
-@import "foundation/components/grid";
-@import "foundation/components/pricing-tables";
-
-@media(min-width: 10px) {
-    .group-row {
-        @include grid-row();
-        .group-column {
-            @include grid-column(3);
-            width: 50%;
-        }
-    }
+.group-row {
+    padding-left: 15px;
+    padding-right: 15px;
 }
 
-@media(min-width: 600px) {
-    .group-row {
-        @include grid-row();
-        .group-column {
-            @include grid-column(3);
-            width: 33%;
-        }
-    }
+.group-header {
+    text-align: center;
 }
 
-@media(min-width: 800px) {
-    .group-row {
-        @include grid-row();
-        .group-column {
-            @include grid-column(2);
-            width: 16.6%;
-        }
-    }   
+.group-body {
+    text-align: center;
 }
 
-.group-size-bullet {
-    @include pricing-table-bullet;
-    padding-left: 0px;
-    padding-right: 0px;
-}
+

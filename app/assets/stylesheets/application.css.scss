@@ -9,7 +9,11 @@
  * compiled file, but it's generally better to create a new file per style scope.
  *
  *= require_self
- *= require foundation_and_overrides
- *= require jquery-ui/autocomplete
- *= require_tree .
+ *= require 'profiles'
+ *= require 'autocomplete'
+ *= require 'groups'
+ *= require 'users'
+ *= require 'years'
  */
+
+
