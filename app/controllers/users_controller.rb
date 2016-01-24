@@ -13,9 +13,9 @@ class UsersController < ApplicationController
     @@search_vars = Set.new ['cn', 'description', 'displayName', 'mail', 'nickName',
         'plex', 'sn', 'uid', 'mobile', 'twitterName', 'github']
 
+    # require the user to be logged in, except when getting profile pics so that 
+    # APIs can call this
     before_action :require_webauth, :except => [:image]
-
-    before_action { |c| @uid = request.env['WEBAUTH_USER'] }
 
     # Yo Man I heard you wanted some caching
     caches_action :list_years, expires_in: @@cache_time
