@@ -13,9 +13,8 @@ class UsersController < ApplicationController
     @@search_vars = Set.new ['cn', 'description', 'displayName', 'mail', 'nickName',
         'plex', 'sn', 'uid', 'mobile', 'twitterName', 'github']
 
-    before_action { |c| @uid = request.env['WEBAUTH_USER'] }
-    after_action :log_view
-    
+    before_action :require_webauth, :except => [:image]
+
     # Yo Man I heard you wanted some caching
     caches_action :list_years, expires_in: @@cache_time
     caches_action :list_groups, expires_in: @@cache_time
@@ -25,22 +24,30 @@ class UsersController < ApplicationController
     caches_action :image, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params }
     caches_action :search, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params['search'] }
 
+
+    # Checks to see if the user is behind WebAuth and sets
+    # required variables
+    def require_webauth
+        @uid = request.env['WEBAUTH_USER']
+        redirect_to 'https://webauth.csh.rit.edu/' if @uid == nil
+    end
+
     # Searches LDAP for users
     def search
         @users = []
         filter = "(|"
         search_str = params[:search][:search].split(" ").join("*")
+        Rails.logger.info search_str
         @@search_vars.each { |var| filter << "(#{var}=*#{search_str}*)" }
         filter << ")"
-        
-        bind_ldap do |ldap_conn|
-            Rails.logger.info filter
+
+        bind_ldap(true) do |ldap_conn|
             ldap_conn.search(@@user_treebase,  LDAP::LDAP_SCOPE_SUBTREE, filter, 
                              ["uid", "cn", "memberSince"]) do |entry|
                 @users << entry.to_hash   
             end
         end
-        
+
         # if only one result is returned, redirect to that user
         if @users.length == 1
             redirect_to "/user/#{@users[0]["uid"][0]}"
@@ -49,13 +56,13 @@ class UsersController < ApplicationController
             render 'list_users'
         end
     end
-    
+
     # List all the users by newest members first
     def list_users
         @users = []
         params[:page] = "a" if params[:page] == nil
         attrs = ["uid", "cn", "memberSince"]
-        bind_ldap do |ldap_conn|
+        bind_ldap(true) do |ldap_conn|
             ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
                           "(uid=#{params[:page]}*)", attrs = attrs) do |entry|
                 @users << entry.to_hash
@@ -66,11 +73,11 @@ class UsersController < ApplicationController
         @current = params[:page]
         @url = "users"
     end
-    
+
     # Lists all the groups sorted alphabetically
     def list_groups
         @groups = []
-        bind_ldap do |ldap_conn|
+        bind_ldap(true) do |ldap_conn|
             ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
                               "(cn=*)") do |entry|
                 @groups << entry.to_hash
@@ -92,32 +99,39 @@ class UsersController < ApplicationController
         response.headers["Expires"] = 10.minute.from_now.httpdate
         image = nil
         type = nil
-        bind_ldap do |ldap_conn|
+        bind_ldap(false) do |ldap_conn|
             type, image = get_image(ldap_conn, params[:uid])
         end
         if type == :gravatar
-            redirect_to "http://gravatar.com/avatar/#{Digest::MD5.hexdigest(image)}?size=200&d=mm"
+            redirect_to "https://gravatar.com/avatar/#{Digest::MD5.hexdigest(image)}?size=200&d=mm"
         else
             send_data(image, filename: "#{params[:uid]}.jpg", type: "image/jpeg")
         end
     end
-    
+
     def autocomplete
         @users = []
-        bind_ldap do |ldap_conn|
+        bind_ldap(true) do |ldap_conn|
             ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE,
                              "(|(uid=*#{params[:term]}*)(cn=*#{params[:term]}*)
                              (mail=*#{params[:term]}*)(nickName=*#{params[:term]}*))",
                              ["uid", "cn"]) do |entry|
-                @users << entry.to_hash["uid"][0]
+                hash = entry.to_hash
+                uid = entry.to_hash["uid"][0]
+                if hash["cn"].length > 0
+                    @users << {value: uid, label: hash["cn"][0]}
+                else
+                    @users << {label: uid, value: uid}
+                end
             end
         end
+        Rails.logger.info @users[0..10]
         render :json => @users[0..10]
     end
 
     def me
         @title = @uid
-        bind_ldap do |ldap_conn|
+        bind_ldap(true) do |ldap_conn|
             ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, "(uid=#{@uid})") do |entry|
                 @user = format_fields entry.to_hash
                 get_attrs(@user["objectClass"], ldap_conn).each do |attr|
@@ -129,10 +143,10 @@ class UsersController < ApplicationController
                                  "userPassword", "l", "o", 
                                  "conditional", "gecos")
             end
-            
+
             @groups = get_groups(ldap_conn, @user["dn"][0])           
             @positions = get_positions(ldap_conn, @user["dn"][0], @groups)
-                
+
             status = [
                 @user["active"] != nil && @user["active"][0] != nil && @user["active"][0][0] == "1" ? :active : :not_active,
                 @user["alumni"] != nil && @user["alumni"][0] != nil && @user["alumni"][0][0] == "1" ? :alumni : :not_alumni, 
@@ -145,7 +159,7 @@ class UsersController < ApplicationController
     def user 
         return redirect_to :me if @uid == params[:uid]
         @user = nil
-        bind_ldap do |ldap_conn|
+        bind_ldap(true) do |ldap_conn|
             ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, "(uid=#{params[:uid]})") do |entry|
                 @user = format_fields entry.to_hash.except(
                     "objectClass", "uidNumber", "homeDirectory",
@@ -155,28 +169,25 @@ class UsersController < ApplicationController
                 return redirect_to root_path
             else
                 @title = @user["uid"][0]
-                @groups = get_groups(ldap_conn, @user["dn"][0])           
+                @groups = get_groups(ldap_conn, @user["dn"][0])
                 @positions = get_positions(ldap_conn, @user["dn"][0], @groups)
-               
 
                 status = [
                     @user["active"] != nil && @user["active"][0] == "1" ? :active : :not_active,
                     @user["alumni"] != nil && @user["alumni"][0] == "1" ? :alumni : :not_alumni, 
                     @user["onfloor"] != nil && @user["onfloor"][0] == "1" ? :onfloor : :offfloor]
-                @status = get_status status    
-    
-               
+                @status = get_status status
             end
         end
     end
 
     # Updates the given user's attributes
-    def update 
+    def update
         @attr_key = nil
         image_upload = false
         attr_value = []
         real_input = []
-        
+
         if params['picture'] != nil
             @attr_key = 'jpegPhoto'
             image_upload = true
@@ -213,10 +224,10 @@ class UsersController < ApplicationController
             end
             update = LDAP.mod(LDAP::LDAP_MOD_REPLACE, @attr_key, attr_value)
         end
-        
+
         result = {"key" => @attr_key}
         dn = "uid=#{@uid},#{@@user_treebase}"
-        bind_ldap do |ldap_conn|
+        bind_ldap(true) do |ldap_conn|
             begin
                 result["single"] = is_single @attr_key, ldap_conn
                 ldap_conn.modify(dn, [update])
@@ -239,7 +250,7 @@ class UsersController < ApplicationController
                 end
             end
         end
-        
+
         # uploading images refreshes the screen while everything else is ajax / js 
         if image_upload
             redirect_to :me
@@ -253,13 +264,12 @@ class UsersController < ApplicationController
         params[:page] = "a" if params[:page] == nil
         @users = []
         filter = "(cn=#{params[:group]})"
-        bind_ldap do |ldap_conn|
+        bind_ldap(true) do |ldap_conn|
             ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE, filter) do |entry|
                 @users = entry.to_hash["member"].to_a
                 @title = entry.to_hash["cn"][0]
             end
             @users = [] if @users == [""]
-        
             filter = "(|"
             if @users.length > 100
                 @current = params[:page]
@@ -289,7 +299,7 @@ class UsersController < ApplicationController
         year = params[:year].to_i
         attrs = ["uid", "cn", "memberSince"]
         filter  = "(&(memberSince>=#{year}0801010101-0400)(memberSince<=#{year + 1}0801010101-0400))"
-        bind_ldap do |ldap_conn|
+        bind_ldap(true) do |ldap_conn|
             ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, filter, attrs) do |entry|
                 @users << entry.to_hash
             end
@@ -301,7 +311,7 @@ class UsersController < ApplicationController
 
     # Allows RTPs and JD to clear the page's cache
     def clear_cache
-        bind_ldap do |ldap_conn|
+        bind_ldap(true) do |ldap_conn|
             dn = "uid=#{@uid},#{@@user_treebase}"
             if @uid == "jd" || get_groups(ldap_conn, dn).include?("rtp")
                 Rails.cache.clear
@@ -336,7 +346,6 @@ class UsersController < ApplicationController
             end
         end
 
- 
         def sort_by_date(users)
             users.sort! do |x,y| 
                 if !x["memberSince"]
@@ -372,7 +381,7 @@ class UsersController < ApplicationController
                 Rails.logger.views.info "#{@uid} search:#{params[:search][:search]}"
             end
         end
-       
+
         def format_fields map
             new_map = Hash.new
             new_map["uid"] = map["uid"] if map.key? "uid"
@@ -391,21 +400,22 @@ class UsersController < ApplicationController
 
             return new_map
         end
-   
-        # Creates a LDAP connection and opens the connection
-        def create_connection
-            ENV['KRB5CCNAME'] = request.env['KRB5CCNAME']
-            ldap_conn = LDAP::SSLConn.new(host = Global.ldap.host, port = Global.ldap.port)
-            ldap_conn.set_option( LDAP::LDAP_OPT_PROTOCOL_VERSION, 3 ) 
-            ldap_conn.sasl_bind('', '')
-            return ldap_conn
-        end
 
         # Gets the ldap connection for the given user using the kerberos auth
         # provided by webauth
-        def bind_ldap
+        # krb: true if to use kerberos auth to LDAP, password otherwise
+        def bind_ldap(krb)
             start_time = Time.now.to_f * 1000
-            ldap_conn = create_connection
+            ldap_conn = LDAP::SSLConn.new(host = Global.ldap.host, port = Global.ldap.port)
+            ldap_conn.set_option( LDAP::LDAP_OPT_PROTOCOL_VERSION, 3 )
+
+            if krb
+                ENV['KRB5CCNAME'] = request.env['KRB5CCNAME']
+                ldap_conn.sasl_bind('', '')
+            else
+                ldap_conn.bind(Global.ldap.username, Global.ldap.password)
+            end
+
             yield ldap_conn
             ldap_conn.unbind()
             end_time = Time.now.to_f * 1000
@@ -463,7 +473,7 @@ class UsersController < ApplicationController
                 groups
             end
         end
-        
+
         # Gets the year that the person is from. This is used in clearing the 
         # cache for the given year
         def get_year(ldap_conn, uid)
@@ -477,7 +487,7 @@ class UsersController < ApplicationController
                 year 
             end
         end
-       
+
         # Gets the image profile picture for a given user. If the user does not
         # have a jpegPhoto attribute in LDAP, then gravatar is used with their
         # @csh.rit.edu email. This is not cached since the action is already
@@ -542,7 +552,7 @@ class UsersController < ApplicationController
                     # deals with when attributes have aliases
                     n = s.split("NAME")[1].split("DESC")[0].strip
                     name = n.split("'")[1] if n[0] == "("
-                    
+
                     if attr_set.include? name.strip
                         if s.split(" ")[-2] == "SINGLE-VALUE"
                             real_attrs << [name, :single]

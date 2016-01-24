@@ -16,11 +16,12 @@ gem 'coffee-rails', '~> 4.0.0'
 
 # javascript stuff
 gem 'jquery-rails'
-gem "jquery-ui-rails"
+gem 'jquery-ui-rails'
 gem 'turbolinks'
 
 # css stuff
-gem 'foundation-rails', '5.4.5'
+gem 'bootstrap-sass', '~> 3.3.5'
+gem 'autoprefixer-rails'
 
 gem 'actionpack-action_caching'
 gem 'will_paginate-foundation'

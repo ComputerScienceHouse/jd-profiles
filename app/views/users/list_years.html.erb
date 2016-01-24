@@ -1,18 +1,14 @@
-<div class="year-row">
-  <% @years.each do |year| %>
-    <div class="year-column">
-      <ul class="pricing-table" data-equalizer-watch>
-        <%= link_to "/year/#{year}" do %>
-          <li class="year-title">
-            <%= "#{year} - #{year + 1}" %>
-          </li>
-        <% end %>
-      </ul>
-      <br> 
-    </div>
-  <% end %>
-  <% for i in (@years.length % 6)..6 %>
-    <div class="year-column"></div>
-  <% end %>
-</div>
+<br />
+<div class="row year-row">
+    <% @years.each do |year| %>
+        <div class="col-lg-2 col-md-3 col-sm-4 col-xs-6">
+            <div class="panel panel-default">
+                <%= link_to "/year/#{year}" do %>
+                    <div class="year-title"><%= "#{year} - #{year + 1}" %></div>
+                <% end %>
+            </div><!-- /.panel panel-default -->
+            <br> 
+        </div><!-- /.col-lg-2 col-md-3 col-sm-4 -->
+    <% end %>
+</div><!-- /.row year-row -->
 

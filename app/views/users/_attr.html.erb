@@ -1,6 +1,6 @@
 <% if !value.nil? %>
     <% if value.size == 1 %>
-        <h5><%= format_attr key %>:</h5>
+        <strong><%= format_attr key %>:</strong>
         <% if attr == "birthday" || attr == "memberSince" %>
             <div class="attr"><%= format_date value[0] %></div>
         <% elsif attr == "mail" %>
@@ -11,7 +11,7 @@
             <div class="attr"><%= value[0] %></div>
         <% end %>
     <% else %>
-        <h5><%= format_attr key %>:</h5>
+        <strong><%= format_attr key %>:</strong>
         <ul>
             <% value.each do |elem| %>
             <% if attr == "mail" %>

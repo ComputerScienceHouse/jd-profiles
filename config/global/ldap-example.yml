@@ -1,0 +1,3 @@
+default:
+    host: ldap.csh.rit.edu
+    port: 636

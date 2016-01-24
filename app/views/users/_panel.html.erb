@@ -1,80 +1,108 @@
-<div class="panel-container">
+<div class="panel-container panel-padding">
     <% if !@user["cn"].nil? || !@user["birthday"].nil? %>
-        <div class="info-panel">
-            <h4>Personal Info:</h4>
-            <%= render partial: partial, locals: {attr: "cn", key: "common name", value: @user["cn"] } %>
-            <%= render partial: partial, locals: {attr: "birthday", key: "birthday", value: @user["birthday"] } %>
+        <div class="panel panel-default info-panel">
+            <div class="panel-heading info-heading">
+                <h4 class="panel-text">Personal Info:</h4>
+            </div>
+            <div class="panel-body">
+                <%= render partial: partial, locals: {attr: "cn", key: "common name", value: @user["cn"] } %>
+                <%= render partial: partial, locals: {attr: "birthday", key: "birthday", value: @user["birthday"] } %>
+            </div>
         </div>
     <% end %>
     <% if !@user["mobile"].nil? || !@user["mail"].nil? %>
-        <div class="info-panel">
-            <h4>Contact Info:</h4>
-            <%= render partial: partial, locals: {attr: "mobile", key: "phone number", value: @user["mobile"] } %>
-            <%= render partial: partial, locals: {attr: "mail", key: "email", value: @user["mail"] } %>
+        <div class="panel panel-default info-panel">
+            <div class="panel-heading info-heading">
+                <h4 class="panel-text">Contact Info:</h4>
+            </div>
+            <div class="panel-body">
+                <%= render partial: partial, locals: {attr: "mobile", key: "phone number", value: @user["mobile"] } %>
+                <%= render partial: partial, locals: {attr: "mail", key: "email", value: @user["mail"] } %>
+            </div>
         </div>
     <% end %>
     <% if !@user["roomNumber"].nil? || !@user["housingPoints"].nil? || !@user["drinkBalance"].nil? || 
         !@user["drinkAdmin"].nil? || !@user["ibutton"].nil? || !@user["memberSince"].nil? ||
         !@user["loginShell"].nil? %>
-        <div class="info-panel">
-            <h4>CSH Info:</h4>
-            <%= render partial: partial, locals: {attr: "roomNumber", key: "room number", value: @user["roomNumber"] } %>
-            <%= render partial: partial, locals: {attr: "housingPoints", key: "housing points", value: @user["housingPoints"] } %>
-            <%= render partial: partial, locals: {attr: "drinkBalance", key: "drink balance", value: @user["drinkBalance"] } %>
-            <%= render partial: partial, locals: {attr: "drinkAdmin", key: "drink admin", value: @user["drinkAdmin"] } %>
-            <%= render partial: partial, locals: {attr: "ibutton", key: "ibutton", value: @user["ibutton"] } %>
-            <%= render partial: partial, locals: {attr: "memberSince", key: "member since", value: @user["memberSince"] } %>
-            <%= render partial: partial, locals: {attr: "loginShell", key: "login shell", value: @user["loginShell"] } %>
+        <div class="panel panel-default info-panel">
+            <div class="panel-heading info-heading">
+                <h4 class="panel-text">CSH Info:</h4>
+            </div>
+            <div class="panel-body">
+                <%= render partial: partial, locals: {attr: "roomNumber", key: "room number", value: @user["roomNumber"] } %>
+                <%= render partial: partial, locals: {attr: "housingPoints", key: "housing points", value: @user["housingPoints"] } %>
+                <%= render partial: partial, locals: {attr: "drinkBalance", key: "drink balance", value: @user["drinkBalance"] } %>
+                <%= render partial: partial, locals: {attr: "drinkAdmin", key: "drink admin", value: @user["drinkAdmin"] } %>
+                <%= render partial: partial, locals: {attr: "memberSince", key: "member since", value: @user["memberSince"] } %>
+                <%= render partial: partial, locals: {attr: "loginShell", key: "login shell", value: @user["loginShell"] } %>
+                <%= render partial: partial, locals: {attr: "ibutton", key: "ibutton", value: @user["ibutton"] } %>
+            </div>
         </div>
     <% end %>
     <% if !@user["ritDn"].nil? || !@user["major"].nil? || !@user["ritYear"].nil? || !@user["ritAlumni"].nil? %>
-        <div class="info-panel">
-            <h4>RIT Info:</h4>
-            <%= render partial: partial, locals: {attr: "ritDn", key: "rit dn", value: @user["ritDn"] } %>
-            <%= render partial: partial, locals: {attr: "major", key: "major", value: @user["major"] } %>
-            <%= render partial: partial, locals: {attr: "ritYear", key: "rit year", value: @user["ritYear"] } %>
-            <%= render partial: partial, locals: {attr: "ritAlumni", key: "rit alumni", value: @user["ritAlumni"] } %>
+        <div class="panel panel-default info-panel">
+            <div class="panel-heading info-heading">
+                <h4 class="panel-text">RIT Info:</h4>
+            </div>
+            <div class="panel-body">
+                <%= render partial: partial, locals: {attr: "ritDn", key: "rit dn", value: @user["ritDn"] } %>
+                <%= render partial: partial, locals: {attr: "major", key: "major", value: @user["major"] } %>
+                <%= render partial: partial, locals: {attr: "ritYear", key: "rit year", value: @user["ritYear"] } %>
+                <%= render partial: partial, locals: {attr: "ritAlumni", key: "rit alumni", value: @user["ritAlumni"] } %>
+            </div>
         </div>
     <% end %>
-    <div class="info-panel">
-        <h4>Groups:</h4>
-        <% @groups.each do |group| %>
-            <%= link_to group, "/group/#{group}" %>&nbsp;
-        <% end %>
+    <div class="panel panel-default info-panel">
+        <div class="panel-heading info-heading">
+            <h4 class="panel-text">Groups:</h4>
+        </div>
+        <div class="panel-body">
+            <% @groups.each do |group| %>
+                <%= link_to group, "/group/#{group}" %>&nbsp;
+            <% end %>
+        </div>
     </div>
     <% if !@user["github"].nil? || !@user["plex"].nil? || !@user["googleScreenName"].nil? || 
         !@user["eulerCode"].nil? || !@user["aolScreenName"].nil? || !@user["msnScreenName"].nil? || 
         !@user["yahooScreenName"].nil? || !@user["twitterName"].nil? || !@user["homepageURL"].nil? || 
         !@user["blogURL"].nil? %>
-        <div class="info-panel">
-            <h4>Online Info:</h4>
-            <%= render partial: partial, locals: {attr: "homepageURL", key: "homepage url", value: @user["homepageURL"] } %>
-            <%= render partial: partial, locals: {attr: "blogURL", key: "blog url", value: @user["blogURL"] } %>
-            <%= render partial: partial, locals: {attr: "github", key: "github", value: @user["github"] } %>
-            <%= render partial: partial, locals: {attr: "googleScreenName", key: "google", value: @user["googleScreenName"] } %>
-            <%= render partial: partial, locals: {attr: "plex", key: "plex", value: @user["plex"] } %>
-            <%= render partial: partial, locals: {attr: "eulerCode", key: "euler", value: @user["eulerCode"] } %>
-            <%= render partial: partial, locals: {attr: "twitterName", key: "twitter", value: @user["twitterName"] } %>
-            <%= render partial: partial, locals: {attr: "yahooScreenName", key: "yahoo", value: @user["yahooScreenName"] } %>
-            <%= render partial: partial, locals: {attr: "msnScreenName", key: "msn", value: @user["msnScreenName"] } %>
-            <%= render partial: partial, locals: {attr: "aolScreenName", key: "aol", value: @user["aolScreenName"] } %>
+        <div class="panel panel-default info-panel">
+            <div class="panel-heading info-heading">
+                <h4 class="panel-text">Online Info:</h4>
+            </div>
+            <div class="panel-body">
+                <%= render partial: partial, locals: {attr: "homepageURL", key: "homepage url", value: @user["homepageURL"] } %>
+                <%= render partial: partial, locals: {attr: "blogURL", key: "blog url", value: @user["blogURL"] } %>
+                <%= render partial: partial, locals: {attr: "github", key: "github", value: @user["github"] } %>
+                <%= render partial: partial, locals: {attr: "googleScreenName", key: "google", value: @user["googleScreenName"] } %>
+                <%= render partial: partial, locals: {attr: "plex", key: "plex", value: @user["plex"] } %>
+                <%= render partial: partial, locals: {attr: "eulerCode", key: "euler", value: @user["eulerCode"] } %>
+                <%= render partial: partial, locals: {attr: "twitterName", key: "twitter", value: @user["twitterName"] } %>
+                <%= render partial: partial, locals: {attr: "yahooScreenName", key: "yahoo", value: @user["yahooScreenName"] } %>
+                <%= render partial: partial, locals: {attr: "msnScreenName", key: "msn", value: @user["msnScreenName"] } %>
+                <%= render partial: partial, locals: {attr: "aolScreenName", key: "aol", value: @user["aolScreenName"] } %>
+            </div>
         </div>
     <% end %>
 </div>
 <br>
-<div class="info-panel">
-    <h4>Other Attributes:</h4>
-    <div class="panel-container">
-    <% @user.except("cn", "birthday", "mobile", "mail", "homepageURL", 
-                    "housingPoints", "drinkBalance", "drinkAdmin", "ibutton", 
-                    "memberSince", "loginShell", "ritDn", "major", "ritYear", 
-                    "github", "plex", "eulerCode", "jpegPhoto", "roomNumber", 
-                    "googleScreenName", "twitterName", "yahooScreenName", "dn",
-                    "msnScreenName", "aolScreenName", "ritAlumni", "blogURL").each do |attr, values| %>
-        <div class="other-attr">                
-            <%= render partial: partial, locals: {attr: attr, key: attr, value: values } %>
+<div class="panel panel-default info-panel other-panel">
+    <div class="panel-heading info-heading">
+        <h4 class="panel-text">Other Attributes:</h4>
+    </div>
+    <div class="panel-body">
+        <div class="panel-container">
+            <% @user.except("cn", "birthday", "mobile", "mail", "homepageURL", 
+                            "housingPoints", "drinkBalance", "drinkAdmin", "ibutton", 
+                            "memberSince", "loginShell", "ritDn", "major", "ritYear", 
+                            "github", "plex", "eulerCode", "jpegPhoto", "roomNumber", 
+                            "googleScreenName", "twitterName", "yahooScreenName", "dn",
+                            "msnScreenName", "aolScreenName", "ritAlumni", "blogURL").each do |attr, values| %>
+                <div class="other-attr">                
+                    <%= render partial: partial, locals: {attr: attr, key: attr, value: values } %>
+                </div>
+            <% end %>
         </div>
-    <% end %>
     </div>
 </div>
 
