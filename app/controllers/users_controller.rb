@@ -31,9 +31,6 @@ class UsersController < ApplicationController
     # required variables
     def require_webauth
         @uid = request.env['WEBAUTH_USER']
-        if @uid == nil
-          redirect_to 'https://webauth.csh.rit.edu/'
-        end
     end
 
     # Searches LDAP for users
