@@ -15,6 +15,8 @@ class UsersController < ApplicationController
 
     before_action :require_webauth, :except => [:image]
 
+    before_action { |c| @uid = request.env['WEBAUTH_USER'] }
+
     # Yo Man I heard you wanted some caching
     caches_action :list_years, expires_in: @@cache_time
     caches_action :list_groups, expires_in: @@cache_time
