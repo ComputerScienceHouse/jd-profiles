@@ -24,6 +24,7 @@ gem 'bootstrap-sass', '~> 3.3.5'
 gem 'autoprefixer-rails'
 
 gem 'actionpack-action_caching'
+gem 'actionpack-page_caching'
 gem 'will_paginate-foundation'
 gem 'request-log-analyzer'
 

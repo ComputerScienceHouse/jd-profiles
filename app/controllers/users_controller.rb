@@ -23,8 +23,10 @@ class UsersController < ApplicationController
     caches_action :list_users, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params }
     caches_action :group, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params }
     caches_action :year, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params }
-    caches_action :image, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params }
+    #caches_action :image, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params }
     caches_action :search, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params['search'] }
+
+    caches_page :item
 
 
     # Checks to see if the user is behind WebAuth and sets
@@ -427,7 +429,9 @@ class UsersController < ApplicationController
         # affected cache is expired
         def expire_cache(ldap_conn, dn, image_upload, attr_key)
             if image_upload
+                Rails.logger.info "expiring page #{@uid}"
                 expire_action action: :image, uid: @uid
+                expire_page action: :image, uid: @uid
             elsif attr_key == 'cn'
                 expire_action action: :list_users, page: @uid[0]
                 get_groups(ldap_conn, dn).each do |cn|
