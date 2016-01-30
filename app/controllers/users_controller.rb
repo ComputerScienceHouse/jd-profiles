@@ -341,9 +341,9 @@ class UsersController < ApplicationController
             dn = "uid=#{@uid},#{@@user_treebase}"
             if @uid == "jd" || get_groups(ldap_conn, dn).include?("rtp")
                 Rails.cache.clear
-                flash[:success] = "Cache has been cleared"
+                flash[:info] = "Cache has been cleared"
             else
-                flash[:alert] = "You do not have permission to clear cache"
+                flash[:warning] = "You do not have permission to clear cache"
             end
         end
         redirect_to root_path

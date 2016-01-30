@@ -59,9 +59,8 @@
                     </div><!-- ./pannel-heading -->
 
                     <% flash.each do |key, value| %>
-                        <div data-alert class="alert-box <%= key %> radius">
-                            <h5 style="color: white;"><%= value %></h5>
-                            <a href="#" class="close">&times;</a>
+                        <div data-alert class="alert alert-<%= key %>">
+                            <%= value %>
                         </div>
                     <% end %>
 
