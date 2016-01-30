@@ -2,6 +2,7 @@ require 'ldap'
 require 'ldap/schema'
 require 'will_paginate/array'
 require 'digest'
+require "open-uri"
 
 class UsersController < ApplicationController
     include CacheableCSRFTokenRails
@@ -15,7 +16,7 @@ class UsersController < ApplicationController
 
     # require the user to be logged in, except when getting profile pics so that 
     # APIs can call this
-    before_action :require_webauth, :except => [:image]
+    before_action :require_webauth
 
     # Yo Man I heard you wanted some caching
     caches_action :list_years, expires_in: @@cache_time
@@ -23,11 +24,10 @@ class UsersController < ApplicationController
     caches_action :list_users, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params }
     caches_action :group, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params }
     caches_action :year, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params }
-    #caches_action :image, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params }
+    caches_action :image, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params }
     caches_action :search, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params['search'] }
 
-    caches_page :image
-
+    #caches_page :image
 
     # Checks to see if the user is behind WebAuth and sets
     # required variables
@@ -99,15 +99,31 @@ class UsersController < ApplicationController
     # Returns the jpegPhoto for the given uid. The user can specify the size of
     # the image to return as well
     def image
-        response.headers["Expires"] = 10.minute.from_now.httpdate
-        image = nil
-        type = nil
+        response.headers["Expires"] = 1.hour.from_now.httpdate
+        Rails.logger.info "cache miss for profile picture of #{params[:uid]}"  
+        result = nil
         bind_ldap(false) do |ldap_conn|
-            type, image = get_image(ldap_conn, params[:uid])
+            result = get_image(ldap_conn, params[:uid])
         end
-        if type == :gravatar
-            redirect_to "https://gravatar.com/avatar/#{Digest::MD5.hexdigest(image)}?size=200&d=mm"
-        else
+        type, image = result
+
+        if type == :gravatar # if no image is in LDAP
+            url = "https://gravatar.com/avatar/#{Digest::MD5.hexdigest(image)}?size=200&d=mm"
+            if @uid == params[:uid] # user is logged in through webauth and is viewing themself
+                # steals the image from gravatar and uploads it to LDAP so we can do caching
+                image = nil
+                open(url, 'rb') do |name|
+                    Rails.logger.info("uploading #{@uid}'s image to LDAP")
+                    update = generate_image_update(name)
+                    ldap_write(update, [], true)
+                end
+            end
+
+            # always write the image so that it gets cached
+            image = nil
+            open(url, 'rb') { |f| image = f.read }
+            send_data(image, filename: "#{params[:uid]}.jpg", type: "image/jpeg") 
+        else # image is in LDAP
             send_data(image, filename: "#{params[:uid]}.jpg", type: "image/jpeg")
         end
     end
@@ -184,30 +200,68 @@ class UsersController < ApplicationController
         end
     end
 
+    def generate_image_update(img_file)
+        @attr_key = 'jpegPhoto'
+        image = MiniMagick::Image.read(img_file)
+        max = [image[:width].to_f, image[:height].to_f].max
+        Rails.logger.info "image max size: #{max}"
+        max_size = 250
+        if max > max_size
+            height = (image[:height].to_f / (max / max_size)).to_i
+            width = (image[:width].to_f / (max / max_size)).to_i
+            Rails.logger.info "Resizing user to #{width}x#{height}"
+            image.resize("#{height}x#{width}")
+            update = LDAP.mod(LDAP::LDAP_MOD_REPLACE | LDAP::LDAP_MOD_BVALUES, 
+                          @attr_key, [image.to_blob])
+        else
+            update = LDAP.mod(LDAP::LDAP_MOD_REPLACE | LDAP::LDAP_MOD_BVALUES, 
+                          @attr_key, [img_file.read])
+        end
+        update
+    end
+
+
+    def ldap_write(update, real_input, image_upload)
+        result = {"key" => @attr_key}
+        dn = "uid=#{@uid},#{@@user_treebase}"
+        bind_ldap(true) do |ldap_conn|
+        begin
+            result["single"] = is_single @attr_key, ldap_conn
+            ldap_conn.modify(dn, [update])
+            result["success"] = true
+            result["value"] = real_input if real_input != nil
+            expire_cache(ldap_conn, dn, image_upload, @attr_key)
+        rescue LDAP::Error => e
+            Rails.logger.error "Error modifying ldap for #{@uid}, #{e}"
+            ldap_conn = create_connection
+            result["success"] = false
+            result["error"] = e.to_s
+            ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
+                              "(uid=#{@uid})", [@attr_key]) do |entry|
+                user = format_fields entry.to_hash
+                result["value"] = user[@attr_key] != nil ? user[@attr_key] : ""
+                if (@attr_key == "birthday" || @attr_key == "memberSince") && 
+                    result["value"][0] != nil
+                    result["value"] = real_input
+                end
+            end
+        end
+    end
+        result
+    end
+
+
     # Updates the given user's attributes
     def update
         @attr_key = nil
-        image_upload = false
         attr_value = []
         real_input = []
 
         if params['picture'] != nil
-            @attr_key = 'jpegPhoto'
-            image_upload = true
-            image = MiniMagick::Image.read(params[:picture])
-            max = [image[:width].to_f, image[:height].to_f].max
-            max_size = 250
-            if max > max_size
-                height = (image[:height].to_f / (max / max_size)).to_i
-                width = (image[:width].to_f / (max / max_size)).to_i
-                Rails.logger.info "Resizing user to #{width}x#{height}"
-                image.resize("#{height}x#{width}")
-                update = LDAP.mod(LDAP::LDAP_MOD_REPLACE | LDAP::LDAP_MOD_BVALUES, 
-                              @attr_key, [image.to_blob])
-            else
-                update = LDAP.mod(LDAP::LDAP_MOD_REPLACE | LDAP::LDAP_MOD_BVALUES, 
-                              @attr_key, [params[:picture].read])
-            end
+            update = generate_image_update(params[:picture])
+            ldap_write(update, real_input, true)
+            # uploading images refreshes the screen while everything else is ajax / js 
+            redirect_to :me
         else
             params.except("controller", "action", "utf8").each do |key, value|
                 @attr_key = key.split("-")[0]
@@ -226,38 +280,7 @@ class UsersController < ApplicationController
                 end
             end
             update = LDAP.mod(LDAP::LDAP_MOD_REPLACE, @attr_key, attr_value)
-        end
-
-        result = {"key" => @attr_key}
-        dn = "uid=#{@uid},#{@@user_treebase}"
-        bind_ldap(true) do |ldap_conn|
-            begin
-                result["single"] = is_single @attr_key, ldap_conn
-                ldap_conn.modify(dn, [update])
-                result["success"] = true
-                result["value"] = real_input if real_input != nil
-                expire_cache(ldap_conn, dn, image_upload, @attr_key)
-            rescue LDAP::Error => e
-                Rails.logger.error "Error modifying ldap for #{@uid}, #{e}"
-                ldap_conn = create_connection
-                result["success"] = false
-                result["error"] = e.to_s
-                ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
-                                  "(uid=#{@uid})", [@attr_key]) do |entry|
-                    user = format_fields entry.to_hash
-                    result["value"] = user[@attr_key] != nil ? user[@attr_key] : ""
-                    if (@attr_key == "birthday" || @attr_key == "memberSince") && 
-                        result["value"][0] != nil
-                        result["value"] = real_input
-                    end
-                end
-            end
-        end
-
-        # uploading images refreshes the screen while everything else is ajax / js 
-        if image_upload
-            redirect_to :me
-        else
+            result = ldap_write(update, real_input, false)
             render text: "var status = '#{result.to_s.gsub(/=>/, ":")}';"
         end
     end
@@ -414,8 +437,10 @@ class UsersController < ApplicationController
 
             if krb
                 ENV['KRB5CCNAME'] = request.env['KRB5CCNAME']
+                Rails.logger.info "binding with #{@uid}"
                 ldap_conn.sasl_bind('', '')
             else
+                Rails.logger.info "binding with #{Global.ldap.username}"
                 ldap_conn.bind(Global.ldap.username, Global.ldap.password)
             end
 

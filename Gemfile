@@ -27,4 +27,3 @@ gem 'actionpack-action_caching'
 gem 'actionpack-page_caching'
 gem 'will_paginate-foundation'
 gem 'request-log-analyzer'
-
