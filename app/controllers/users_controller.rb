@@ -7,7 +7,7 @@ require "open-uri"
 class UsersController < ApplicationController
     include CacheableCSRFTokenRails
 
-    @@cache_time = 24.hours
+    @@cache_time = 120.hours
     @@user_treebase = "ou=Users,dc=csh,dc=rit,dc=edu"
     @@group_treebase = "ou=Groups,dc=csh,dc=rit,dc=edu"
     @@committee_treebase = "ou=Committees,dc=csh,dc=rit,dc=edu"
