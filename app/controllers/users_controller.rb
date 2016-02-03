@@ -40,7 +40,7 @@ class UsersController < ApplicationController
         @users = []
         filter = "(|"
         search_str = params[:search][:search].split(" ").join("*")
-        Rails.logger.info search_str
+        Rails.logger.info {"search: '#{search_str}'" }
         @@search_vars.each { |var| filter << "(#{var}=*#{search_str}*)" }
         filter << ")"
 
@@ -100,7 +100,7 @@ class UsersController < ApplicationController
     # the image to return as well
     def image
         response.headers["Expires"] = 1.hour.from_now.httpdate
-        Rails.logger.info "cache miss for profile picture of #{params[:uid]}"  
+        Rails.logger.info { "cache miss for profile picture of #{params[:uid]}" }
         result = nil
         bind_ldap(false) do |ldap_conn|
             result = get_image(ldap_conn, params[:uid])
@@ -113,7 +113,7 @@ class UsersController < ApplicationController
                 # steals the image from gravatar and uploads it to LDAP so we can do caching
                 image = nil
                 open(url, 'rb') do |name|
-                    Rails.logger.info("uploading #{@uid}'s image to LDAP")
+                    Rails.logger.info { "uploading #{@uid}'s image to LDAP" }
                     update = generate_image_update(name)
                     ldap_write(update, [], true)
                 end
@@ -144,7 +144,7 @@ class UsersController < ApplicationController
                 end
             end
         end
-        Rails.logger.info @users[0..10]
+        Rails.logger.debug { @users[0..10] }
         render :json => @users[0..10]
     end
 
@@ -204,12 +204,12 @@ class UsersController < ApplicationController
         @attr_key = 'jpegPhoto'
         image = MiniMagick::Image.read(img_file)
         max = [image[:width].to_f, image[:height].to_f].max
-        Rails.logger.info "image max size: #{max}"
+        Rails.logger.debug { "image max size: #{max}" }
         max_size = 250
         if max > max_size
             height = (image[:height].to_f / (max / max_size)).to_i
             width = (image[:width].to_f / (max / max_size)).to_i
-            Rails.logger.info "Resizing user to #{width}x#{height}"
+            Rails.logger.debug { "Resizing user to #{width}x#{height}" }
             image.resize("#{height}x#{width}")
             update = LDAP.mod(LDAP::LDAP_MOD_REPLACE | LDAP::LDAP_MOD_BVALUES, 
                           @attr_key, [image.to_blob])
@@ -271,7 +271,7 @@ class UsersController < ApplicationController
                             strftime('%Y%m%d%H%M%S-0400') 
                         real_input << value if value != ""
                     rescue Exception => e
-                        Rails.logger.info "Error parsing birthday input #{value.to_s}, #{e}"
+                        Rails.logger.warn "Error parsing birthday input #{value.to_s}, #{e}"
                         attr_value << "BAD"
                     end
                 else
@@ -437,24 +437,24 @@ class UsersController < ApplicationController
 
             if krb
                 ENV['KRB5CCNAME'] = request.env['KRB5CCNAME']
-                Rails.logger.info "binding with #{@uid}"
+                Rails.logger.info { "binding with #{@uid}" }
                 ldap_conn.sasl_bind('', '')
             else
-                Rails.logger.info "binding with #{Global.ldap.username}"
+                Rails.logger.info { "binding with #{Global.ldap.username}" }
                 ldap_conn.bind(Global.ldap.username, Global.ldap.password)
             end
 
             yield ldap_conn
             ldap_conn.unbind()
             end_time = Time.now.to_f * 1000
-            Rails.logger.info "LDAP time: #{(end_time - start_time).round(2)}ms"
+            Rails.logger.info { "LDAP time: #{(end_time - start_time).round(2)}ms" }
         end
 
         # deals with expiring all the needed cache when an update happens. Only the
         # affected cache is expired
         def expire_cache(ldap_conn, dn, image_upload, attr_key)
             if image_upload
-                Rails.logger.info "expiring page #{@uid}"
+                Rails.logger.info { "expiring page #{@uid}" }
                 expire_action action: :image, uid: @uid
                 expire_page action: :image, uid: @uid
             elsif attr_key == 'cn'
@@ -476,7 +476,7 @@ class UsersController < ApplicationController
         #   drink admin positions
         def get_positions(ldap_conn, dn, groups)
             Rails.cache.fetch("positions-#{dn}", expires_in: @@cache_time) do
-                Rails.logger.info "Getting positions for #{dn}"
+                Rails.logger.debug { "Getting positions for #{dn}" }
                 positions = []
                 ldap_conn.search(@@committee_treebase, LDAP::LDAP_SCOPE_SUBTREE, "(head=#{dn})") do |entry|
                     cn = entry.to_hash['cn'][0]
@@ -495,7 +495,7 @@ class UsersController < ApplicationController
         # Gets the groups that the given user is a part of and caches them
         def get_groups(ldap_conn, dn)
             Rails.cache.fetch("groups-#{dn}", expires_in: @@cache_time) do
-                Rails.logger.info "Getting groups for #{dn}"
+                Rails.logger.debug { "Getting groups for #{dn}" }
                 groups = []
                 ldap_conn.search(@@group_treebase, LDAP::LDAP_SCOPE_SUBTREE, "(member=#{dn})") do |entry|
                     groups << entry.to_hash["cn"][0]
@@ -508,7 +508,7 @@ class UsersController < ApplicationController
         # cache for the given year
         def get_year(ldap_conn, uid)
             Rails.cache.fetch("member-since-#{uid}", expires_in: @@cache_time) do
-                Rails.logger.info "Getting year for #{uid}"
+                Rails.logger.debug { "Getting year for #{uid}" }
                 member_since = nil
                 ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, "(uid=#{uid})", ["memberSince"]) do |entry|
                     member_since = entry.to_hash['memberSince']
@@ -529,7 +529,7 @@ class UsersController < ApplicationController
         #       profile pic is
         #   result: the email to use or the actual image from LDAP
         def get_image(ldap_conn, uid)
-            Rails.logger.info "Getting image for #{uid}"
+            Rails.logger.debug { "Getting image for #{uid}" }
             image = nil
             ldap_conn.search(@@user_treebase, LDAP::LDAP_SCOPE_SUBTREE, 
                             "(uid=#{uid})", ["jpegPhoto"]) do |entry|
@@ -551,7 +551,7 @@ class UsersController < ApplicationController
         #   to get the values allowed
         def get_attrs(object_classes, ldap_conn)
             Rails.cache.fetch("object-classes-#{object_classes}", expires_in: @@cache_time) do
-                Rails.logger.info "Getting attributes for #{object_classes}"
+                Rails.logger.debug { "Getting attributes for #{object_classes}" }
                 schema = ldap_conn.schema()
                 attr_set = Set.new
                 real_attrs = []
@@ -602,7 +602,7 @@ class UsersController < ApplicationController
         # Returns: true of false if the variable is single
         def is_single (attr, ldap_conn)
             Rails.cache.fetch("is-single-#{attr}", expires_in: @@cache_time) do
-                Rails.logger.info "Getting single status for #{attr}"
+                Rails.logger.debug { "Getting single status for #{attr}" }
                 result = false
                 schema = ldap_conn.schema()
                 schema["attributeTypes"].each do |s|
