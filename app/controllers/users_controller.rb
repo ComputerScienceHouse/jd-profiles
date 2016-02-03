@@ -456,7 +456,7 @@ class UsersController < ApplicationController
             if image_upload
                 Rails.logger.info { "expiring page #{@uid}" }
                 expire_action action: :image, uid: @uid
-                expire_page action: :image, uid: @uid
+                expire_page action: :image, uid: @uid, format: "jpeg"
             elsif attr_key == 'cn'
                 expire_action action: :list_users, page: @uid[0]
                 get_groups(ldap_conn, dn).each do |cn|
