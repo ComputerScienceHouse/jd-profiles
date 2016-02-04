@@ -17,16 +17,6 @@ body {
   color: white;
 }
 
-.csh-button {
-    @extend .btn;
-    background-color: $purple;
-    color: white;
-}
-
-.nav-button {
-    @extend .csh-button;
-    margin-bottom: 2px;
-}
 
 .logo {
     width: 48px;
@@ -68,7 +58,7 @@ body {
 }
 
 #image-button {
-    @extend .csh-button;
+
     margin: 8px;
     font-size: 12px;
     margin-bottom: 1px;
@@ -154,6 +144,19 @@ body {
     }    
 }
 
+.label {
+    display: inline;
+    padding: .3em .6em .3em;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 1em;
+    float: right;
+
 .info-heading {
     padding: 0px;
 }
@@ -199,14 +202,8 @@ body {
     page-break-inside: avoid;
 }
 
-#ibutton-toggle {
-    @extend .csh-button;
-    font-size: 12px;
-    height: 30px;
-}
-
 #edit-button {
-    @extend .csh-button;
+ 
     margin: 10px;
 }
 
