@@ -17,6 +17,9 @@ body {
   color: white;
 }
 
+.btn {
+    margin-top: 5px;
+}
 
 .logo {
     width: 48px;
@@ -43,6 +46,10 @@ body {
     margin-left: 25px;
     margin-top: 20px;
     float: left;
+}
+
+#cn-title {
+    font-size: 32px;
 }
 
 #image-title {
@@ -89,19 +96,6 @@ body {
     height: 50px;
 }
 
-.position-badge {
-    @extend .badge;
-    float: right;
-    margin-left: 5px;
-    background-color: $purple;
-}
-
-.position-tooltip {
-    font-weight: normal;
-    cursor: default;
-    border: none;
-}
-
 #search-bar {
     margin-top: 5px;
 }
@@ -113,6 +107,30 @@ body {
 #ibutton-toggle {
     margin-top: 10px;
     margin-left: 5px;
+}
+
+
+.user-panel-default {
+    border: none;
+    border-radius:2px;
+    -moz-box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
+    -webkit-box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
+    box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
+}
+
+.user-panel.user-panel-default .user-panel-heading {
+    border-bottom:none;
+}
+
+.user-panel-default>.user-panel-heading {
+    padding-top: 1px;
+    padding-bottom: 1px;
+    background-color:#b0197e;
+    border-color:#b0197e;
+    color:#FFF;
+    border-bottom:none;
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
 }
 
 .panel-container {
@@ -196,7 +214,7 @@ body {
     column-break-inside: avoid;
     break-after: column;
     page-break-inside: avoid;
-    background-color: #f2f2f2;
+    //background-color: #f2f2f2;
 }
 
 .other-attr {

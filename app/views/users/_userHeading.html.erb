@@ -1,46 +1,52 @@
-<div id="name-title">
-    <h3 id="cn-title"><%= cn %></h3>
-</div> 
-<h3 id="image-title">
-    <img id="image-thumb" class="thumbnail" src="/image/<%= uid %>">
-    <div id="info-parent">
-        <div id="info-container">
-            <div id="status-container"><%= @status %></div>
-            <% @positions.each do |position| %>
-                <% if position == "Social Director" %>
-                    <span class="label label-pill label-primary" data-toggle="tooltip" data-placement="bottom" title="Social Good, Technical Bad!!">
-                            <%= position %>
-                    </span>
-                <% elsif position == "OpComm Director" %>
-                    <span class="label label-pill label-primary" data-toggle="tooltip" data-placement="bottom" title="#TeamUpTime">
-                        <%= position %>
-                    </span>
-                <% elsif position == "Financial Director" %>
-                    <span class="label label-pill label-primary" data-toggle="tooltip" data-placement="bottom" title="Dues, Swag, Receipts, Amen">
-                        <%= position %>
-                    </span>
-                <% elsif position == "RTP" %>
-                    <span class="label label-pill label-primary" data-toggle="tooltip" data-placement="bottom" title="Doing it live">
-                            <%= position %>
-                        </span>
-                    </span>
-                <% elsif position == "Drink Admin" %>
-                    <span class="label label-pill label-primary" data-toggle="tooltip" data-placement="bottom" title="Drink is down">
-                        <%= position %>
-                    </span>
-                <% else %>
-                    <span class="label label-pill label-primary">
-                        <%= position %>
-                    </span>
+<div class="panel user-panel panel-default user-panel-default" style="margin-top: 20px">
+    <div class="row">
+        <div class="col-md-12">
+            <div id="name-title">
+                <h3 id="cn-title"><%= cn %></h3>
+            </div> 
+            <h3 id="image-title">
+                <img id="image-thumb" class="thumbnail" src="/image/<%= uid %>">
+                <div id="info-parent">
+                    <div id="info-container">
+                        <div id="status-container"><%= @status %></div>
+                        <% @positions.each do |position| %>
+                            <% if position == "Social Director" %>
+                                <span class="label label-pill label-primary" data-toggle="tooltip" data-placement="bottom" title="Social Good, Technical Bad!!">
+                                        <%= position %>
+                                </span>
+                            <% elsif position == "OpComm Director" %>
+                                <span class="label label-pill label-primary" data-toggle="tooltip" data-placement="bottom" title="#TeamUpTime">
+                                    <%= position %>
+                                </span>
+                            <% elsif position == "Financial Director" %>
+                                <span class="label label-pill label-primary" data-toggle="tooltip" data-placement="bottom" title="Dues, Swag, Receipts, Amen">
+                                    <%= position %>
+                                </span>
+                            <% elsif position == "RTP" %>
+                                <span class="label label-pill label-primary" data-toggle="tooltip" data-placement="bottom" title="Doing it live">
+                                        <%= position %>
+                                    </span>
+                                </span>
+                            <% elsif position == "Drink Admin" %>
+                                <span class="label label-pill label-primary" data-toggle="tooltip" data-placement="bottom" title="Drink is down">
+                                    <%= position %>
+                                </span>
+                            <% else %>
+                                <span class="label label-pill label-primary">
+                                    <%= position %>
+                                </span>
+                            <% end %>
+                        <% end %>
+                    </div>
+                </div>
+                <% if edit %>
+                    <%= form_tag('/update', method: :post, multipart: true, id: 'image-form') do %>
+                        <div style="float: left"><%= file_field_tag 'picture' %></div>
+                        <div style="float: right"><%= submit_tag 'Submit', class: "btn btn-primary", id: 'image-button' %></div>
+                    <% end %>
                 <% end %>
-            <% end %>
+            </h3>
+            <br>
         </div>
     </div>
-    <% if edit %>
-        <%= form_tag('/update', method: :post, multipart: true, id: 'image-form') do %>
-            <div style="float: left"><%= file_field_tag 'picture' %></div>
-            <div style="float: right"><%= submit_tag 'Submit', id: 'image-button' %></div>
-        <% end %>
-    <% end %>
-</h3>
-<br>
+</div>
