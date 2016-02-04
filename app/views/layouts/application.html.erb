@@ -41,13 +41,13 @@
                         <div class="panel-title">
                                 <div class="row">
                                     <div class="col-md-9 col-sm-12">
-                                        <%= button_to "Users", {controller: :users, action: 'list_users'}, {class: "btn btn-primary" }, :method => "get" %>
-                                        <%= button_to "Groups", {controller: :users, action: 'list_groups'}, {class: "btn btn-primary" }, :method => "get" %>
-                                        <%= button_to "Years", {controller: :users, action: 'list_years'}, {class: "btn btn-primary" }, :method => "get" %>
-                                        <%= button_to "E-Board", {controller: :users, action: :group, group: 'eboard'}, {class: "btn btn-primary" }, :method => "get" %>
-                                        <%= button_to "RTPs", {controller: :users, action: :group, group: 'rtp'}, {class: "btn btn-primary" }, :method => "get" %>
-                                        <%= button_to "Drink Admins", {controller: :users, action: :group, group: 'drink'}, {class: "btn btn-primary"}, :method => "get" %> 
-                                        <%= button_to "Me", "/me", {class: "btn nav-button" }, :method => "get"  %>
+                                        <%= link_to "Users", {controller: :users, action: 'list_users'}, {class: "btn btn-primary", method: "get"} %>
+                                        <%= link_to "Groups", {controller: :users, action: 'list_groups'}, {class: "btn btn-primary", method: "get"} %>
+                                        <%= link_to "Years", {controller: :users, action: 'list_years'}, {class: "btn btn-primary", method: "get" } %>
+                                        <%= link_to "E-Board", {controller: :users, action: :group, group: 'eboard'}, {class: "btn btn-primary", method: "get" } %>
+                                        <%= link_to "RTPs", {controller: :users, action: :group, group: 'rtp'}, {class: "btn btn-primary", method: "get" } %>
+                                        <%= link_to "Drink Admins", {controller: :users, action: :group, group: 'drink'}, {class: "btn btn-primary", method: "get"} %> 
+                                        <%= link_to "Me", "/me", {class: "btn btn-primary", method: "get" } %>
                                     </div>
                                     <div id="search-bar" class="col-md-3 col-md-offset-0 col-sm-offset-6 col-sm-6 col-xs-offset-0 col-xs-12">
                                         <%= form_tag("/search", method: "post", id: 'search_form') do %>
