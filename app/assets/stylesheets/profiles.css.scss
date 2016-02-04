@@ -1,7 +1,7 @@
 @import 'bootstrap-sprockets';
 @import 'bootstrap';
 
-@import 'members';
+@import 'members-flat';
 
 $purple: #8b2c93;
 
@@ -9,7 +9,7 @@ body {
   padding-top: 76px;
   padding-bottom: 20px;
   background-color: #eee;
-  background-image: image-url("background.png");
+  //background-image: image-url("background.png");
   background-attachment: fixed;
 }
 
