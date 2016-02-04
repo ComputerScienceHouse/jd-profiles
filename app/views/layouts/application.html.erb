@@ -41,13 +41,13 @@
                         <div class="panel-title">
                                 <div class="row">
                                     <div class="col-md-9 col-sm-12">
-                                        <%= link_to "Users", {controller: :users, action: 'list_users'}, {class: "btn nav-button" } %>
-                                        <%= link_to "Groups", {controller: :users, action: 'list_groups'}, {class: "btn nav-button" } %>
-                                        <%= link_to "Years", {controller: :users, action: 'list_years'}, {class: "btn nav-button" } %>
-                                        <%= link_to "E-Board", {controller: :users, action: :group, group: 'eboard'}, {class: "btn nav-button" } %>
-                                        <%= link_to "RTPs", {controller: :users, action: :group, group: 'rtp'}, {class: "btn nav-button" } %>
-                                        <%= link_to "Drink Admins", {controller: :users, action: :group, group: 'drink'}, {class: "btn nav-button"} %> 
-                                        <%= link_to "Me", "/me", {class: "btn nav-button" } %>
+                                        <%= button_to "Users", {controller: :users, action: 'list_users'}, {class: "btn btn-primary" } %>
+                                        <%= button_to "Groups", {controller: :users, action: 'list_groups'}, {class: "btn btn-primary" } %>
+                                        <%= button_to "Years", {controller: :users, action: 'list_years'}, {class: "btn btn-primary" } %>
+                                        <%= button_to "E-Board", {controller: :users, action: :group, group: 'eboard'}, {class: "btn btn-primary" } %>
+                                        <%= button_to "RTPs", {controller: :users, action: :group, group: 'rtp'}, {class: "btn btn-primary" } %>
+                                        <%= button_to "Drink Admins", {controller: :users, action: :group, group: 'drink'}, {class: "btn btn-primary"} %> 
+                                        <%= button_to "Me", "/me", {class: "btn nav-button" } %>
                                     </div>
                                     <div id="search-bar" class="col-md-3 col-md-offset-0 col-sm-offset-6 col-sm-6 col-xs-offset-0 col-xs-12">
                                         <%= form_tag("/search", method: "post", id: 'search_form') do %>
