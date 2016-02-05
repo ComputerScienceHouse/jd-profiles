@@ -1,29 +1,29 @@
 <br />
-<div class="panel user-panel panel-default user-panel-default">
-<nav class="pagination-container">
-    <% if @current %>
-        <ul class="pagination">
-            <% ("a".ord.."z".ord).each do |char| %>
-                <% if char == @current.ord %>
-                    <li class="active">
-                <% else %>
-                    <li>
+<% if @current %>
+    <div class="panel profiles-panel panel-default profiles-panel-default">
+        <nav class="pagination-container"> 
+            <ul class="pagination">
+                <% ("a".ord.."z".ord).each do |char| %>
+                    <% if char == @current.ord %>
+                        <li class="active">
+                    <% else %>
+                        <li>
+                    <% end %>
+                    <a rel="start" href="/<%= @url %>?page=<%= char.chr %>" style="padding: 7px"><%= char.chr %></a></li>
                 <% end %>
-                <a rel="start" href="/<%= @url %>?page=<%= char.chr %>" style="padding: 7px"><%= char.chr %></a></li>
-            <% end %>
-        </ul>
-        <br />
-    <% end %>
-</nav>
-</div>
+            </ul>
+            <br />
+        </nav>
+    </div>
+<% end %>
 
 <% if @users.length == 0 %>
   <h3 style="text-align: center">No Users found</h3>
 <% else %>
-  <div class="row user-row">
+  <div class="row">
     <% @users.each do |user| %>
-        <div class="col-lg-3 col-md-6 col-sm-6">
-            <div class="panel user-panel panel-default user-panel-default">
+        <div class="col-lg-3 col-md-3 col-sm-6">
+            <div class="panel profiles-panel panel-default profiles-panel-default">
                 <div class="panel-heading">
                     <%= link_to "/user/#{user["uid"][0]}"  do %>
                         <div class="row">

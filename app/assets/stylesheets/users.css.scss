@@ -3,6 +3,10 @@
     text-align: center;
 }
 
+.pagination {
+    padding: 15px;
+}
+
 .pagination > .active > a, .pagination > .active > a:hover, .pagination > .active > a:focus,
 .pagination > .active > span,
 .pagination > .active > span:hover,
@@ -25,12 +29,6 @@
     background-color: #fff;
     border: 1px solid #ddd;
     margin-left: -1px;
-}
-
-
-.user-row {
-    padding-left: 15px;
-    padding-right: 15px;
 }
 
 .img-col {

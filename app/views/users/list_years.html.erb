@@ -2,7 +2,7 @@
 <div class="row year-row">
     <% @years.each do |year| %>
         <div class="col-lg-2 col-md-3 col-sm-4 col-xs-6">
-            <div class="panel user-panel panel-default user-panel-default">
+            <div class="panel profiles-panel panel-default profiles-panel-default">
                 <%= link_to "/year/#{year}" do %>
                     <div class="year-title"><%= "#{year} - #{year + 1}" %></div>
                 <% end %>
