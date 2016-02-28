@@ -3,7 +3,7 @@
         <% if !@user["cn"].nil? || !@user["birthday"].nil? %>
             <div class="panel profiles-panel panel-default profiles-panel-default info-panel">
                 <div class="panel-heading profiles-panel-heading info-heading">
-                    <h4 class="panel-text">Personal Info:</h4>
+                    <h4 class="panel-text">Personal Info</h4>
                 </div>
                 <div class="panel-body">
                     <%= render partial: partial, locals: {attr: "cn", key: "common name", value: @user["cn"] } %>
@@ -16,7 +16,7 @@
         <% if !@user["mobile"].nil? || !@user["mail"].nil? %>
             <div class="panel profiles-panel panel-default profiles-panel-default info-panel">
                 <div class="panel-heading profiles-panel-heading info-heading">
-                    <h4 class="panel-text">Contact Info:</h4>
+                    <h4 class="panel-text">Contact Info</h4>
                 </div>
                 <div class="panel-body">
                     <%= render partial: partial, locals: {attr: "mobile", key: "phone number", value: @user["mobile"] } %>
@@ -31,7 +31,7 @@
             !@user["loginShell"].nil? %>
             <div class="panel profiles-panel panel-default profiles-panel-default info-panel">
                 <div class="panel-heading profiles-panel-heading info-heading">
-                    <h4 class="panel-text">CSH Info:</h4>
+                    <h4 class="panel-text">CSH Info</h4>
                 </div>
                 <div class="panel-body">
                     <%= render partial: partial, locals: {attr: "roomNumber", key: "room number", value: @user["roomNumber"] } %>
@@ -49,7 +49,7 @@
         <% if !@user["ritDn"].nil? || !@user["major"].nil? || !@user["ritYear"].nil? || !@user["ritAlumni"].nil? %>
             <div class="panel profiles-panel panel-default profiles-panel-default info-panel">
                 <div class="panel-heading profiles-panel-heading info-heading">
-                    <h4 class="panel-text">RIT Info:</h4>
+                    <h4 class="panel-text">RIT Info</h4>
                 </div>
                 <div class="panel-body">
                     <%= render partial: partial, locals: {attr: "ritDn", key: "rit dn", value: @user["ritDn"] } %>
@@ -63,7 +63,7 @@
     <div class="item">
         <div class="panel profiles-panel panel-default profiles-panel-default info-panel">
             <div class="panel-heading profiles-panel-heading info-heading">
-                <h4 class="panel-text">Groups:</h4>
+                <h4 class="panel-text">Groups</h4>
             </div>
             <div class="panel-body">
                 <% @groups.each do |group| %>
@@ -79,7 +79,7 @@
             !@user["blogURL"].nil? %>
             <div class="panel profiles-panel panel-default profiles-panel-default info-panel">
                 <div class="panel-heading profiles-panel-heading info-heading">
-                    <h4 class="panel-text">Online Info:</h4>
+                    <h4 class="panel-text">Online Info</h4>
                 </div>
                 <div class="panel-body">
                     <%= render partial: partial, locals: {attr: "homepageURL", key: "homepage url", value: @user["homepageURL"] } %>
@@ -103,7 +103,7 @@
 <br>
 <div class="panel profiles-panel panel-default profiles-panel-default info-panel">
     <div class="panel-heading profiles-panel-heading info-heading">
-        <h4 class="panel-text">Other Attributes:</h4>
+        <h4 class="panel-text">Other Attributes</h4>
     </div>
     <div class="panel-body">
         <div class="other-container">
