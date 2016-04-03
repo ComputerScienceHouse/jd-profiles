@@ -1,0 +1,3 @@
+[submodule "app/assets/bootstrap-csh"]
+	path = app/assets/bootstrap-csh
+	url = git@github.com:ComputerScienceHouse/bootstrap-csh
