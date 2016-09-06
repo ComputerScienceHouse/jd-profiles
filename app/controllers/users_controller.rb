@@ -167,9 +167,9 @@ class UsersController < ApplicationController
             @positions = get_positions(ldap_conn, @user["dn"][0], @groups)
 
             status = [
-                @groups.include? "active" ? :active : :not_active,
-                @groups.include? "current_student" ? :current_student : :alumni,
-                @groups.include? "onfloor" ? :onfloor : :offfloor]
+                @groups.include?("active") ? :active : :not_active,
+                @groups.include?("current_student") ? :current_student : :alumni,
+                @groups.include?("onfloor") ? :onfloor : :offfloor]
             @status = get_status status    
         end
     end
@@ -192,9 +192,9 @@ class UsersController < ApplicationController
                 @positions = get_positions(ldap_conn, @user["dn"][0], @groups)
 
                 status = [
-                    @groups.include? "active" ? :active : :not_active,
-                    @groups.include? "current_student" ? :current_student : :alumni,
-                    @groups.include? "onfloor" ? :onfloor : :offfloor]
+                    @groups.include?("active") ? :active : :not_active,
+                    @groups.include?("current_student") ? :current_student : :alumni,
+                    @groups.include?("onfloor") ? :onfloor : :offfloor]
                 @status = get_status status
             end
         end
