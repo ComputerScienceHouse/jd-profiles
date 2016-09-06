@@ -167,9 +167,9 @@ class UsersController < ApplicationController
             @positions = get_positions(ldap_conn, @user["dn"][0], @groups)
 
             status = [
-                @user["active"] != nil && @user["active"][0] != nil && @user["active"][0][0] == "1" ? :active : :not_active,
-                @user["alumni"] != nil && @user["alumni"][0] != nil && @user["alumni"][0][0] == "1" ? :alumni : :not_alumni, 
-                @user["onfloor"] != nil && @user["onfloor"][0] != nil && @user["onfloor"][0][0] == "1" ? :onfloor : :offfloor]
+                @groups.include? "active" ? :active : :not_active,
+                @groups.include? "current_student" ? :current_student : :alumni,
+                @groups.include? "onfloor" ? :onfloor : :offfloor]
             @status = get_status status    
         end
     end
@@ -192,9 +192,9 @@ class UsersController < ApplicationController
                 @positions = get_positions(ldap_conn, @user["dn"][0], @groups)
 
                 status = [
-                    @user["active"] != nil && @user["active"][0] == "1" ? :active : :not_active,
-                    @user["alumni"] != nil && @user["alumni"][0] == "1" ? :alumni : :not_alumni, 
-                    @user["onfloor"] != nil && @user["onfloor"][0] == "1" ? :onfloor : :offfloor]
+                    @groups.include? "active" ? :active : :not_active,
+                    @groups.include? "current_student" ? :current_student : :alumni,
+                    @groups.include? "onfloor" ? :onfloor : :offfloor]
                 @status = get_status status
             end
         end
@@ -353,22 +353,20 @@ class UsersController < ApplicationController
 
         def get_status status
             case status
-            when [:not_active, :not_alumni, :offfloor]
-                return "Inactive off-floor"
-            when [:not_active, :not_alumni, :onfloor]
-                return "Inactive on-floor"
+            when [:active, :current_student, :offfloor]
+                return "Active off-floor status"
+            when [:active, :current_student, :onfloor]
+                return "Active on-floor status"
+            when [:not_active, :current_student, :offfloor]
+                return "Inactive off-floor status"
+            when [:not_active, :current_student, :onfloor]
+                return "Inactive on-floor status"
             when [:not_active, :alumni, :offfloor]
-                return "Inactive alumni"
+                return "Alumni"
             when [:not_active, :alumni, :onfloor]
-                return "Inactive alumni"
-            when [:active, :not_alumni, :offfloor]
-                return "Active off-floor"
-            when [:active, :not_alumni, :onfloor]
-                return "Active on-floor"
-            when [:active, :alumni, :offfloor]
-                return "Active alumni"
-            when [:active, :alumni, :onfloor]
-                return "Active alumni"
+                return "Alumni"
+	    else
+		return "Error in LDAP Group Configuration, Contact an RTP"
             end
         end
 
