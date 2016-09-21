@@ -169,7 +169,8 @@ class UsersController < ApplicationController
             status = [
                 @groups.include?("active") ? :active : :not_active,
                 @groups.include?("current_student") ? :current_student : :alumni,
-                @groups.include?("onfloor") ? :onfloor : :offfloor]
+                @groups.include?("onfloor") ? :onfloor : :offfloor,
+                @groups.include?("honorarymembers") ? :honorary : :nonhonorary]
             @status = get_status status    
         end
     end
@@ -194,7 +195,8 @@ class UsersController < ApplicationController
                 status = [
                     @groups.include?("active") ? :active : :not_active,
                     @groups.include?("current_student") ? :current_student : :alumni,
-                    @groups.include?("onfloor") ? :onfloor : :offfloor]
+                    @groups.include?("onfloor") ? :onfloor : :offfloor,
+                    @groups.include?("honorarymembers") ? :honorary : :nonhonorary]
                 @status = get_status status
             end
         end
@@ -353,18 +355,22 @@ class UsersController < ApplicationController
 
         def get_status status
             case status
-            when [:active, :current_student, :offfloor]
+            when [:active, :current_student, :offfloor, :nonhonorary]
                 return "Active off-floor status"
-            when [:active, :current_student, :onfloor]
+            when [:active, :current_student, :onfloor, :nonhonorary]
                 return "Active on-floor status"
-            when [:not_active, :current_student, :offfloor]
+            when [:not_active, :current_student, :offfloor, :nonhonorary]
                 return "Inactive off-floor status"
-            when [:not_active, :current_student, :onfloor]
+            when [:not_active, :current_student, :onfloor, :nonhonorary]
                 return "Inactive on-floor status"
-            when [:not_active, :alumni, :offfloor]
+            when [:not_active, :alumni, :offfloor, :nonhonorary]
                 return "Alumni"
-            when [:not_active, :alumni, :onfloor]
+            when [:not_active, :alumni, :onfloor, :nonhonorary]
                 return "Alumni"
+            when [:not_active, :current_student, :offfloor, :honorary]
+                return "Honorary"
+            when [:not_active, :alumni, :offfloor, :honorary]
+                return "Honorary"
 	    else
 		return "Error in LDAP Group Configuration, Contact an RTP"
             end
