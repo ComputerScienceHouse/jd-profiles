@@ -11,24 +11,24 @@
                         <div id="status-container"><%= @status %></div>
                         <% @positions.each do |position| %>
                             <% if position == "Social Director" %>
-                                <span class="label label-pill label-primary" data-toggle="tooltip" data-placement="bottom" title="Social Good, Technical Bad!!">
+                                <span class="label label-pill label-primary" data-toggle="tooltip" data-placement="bottom" title="Social Good, Technical Bad!">
                                         <%= position %>
                                 </span>
                             <% elsif position == "OpComm Director" %>
-                                <span class="label label-pill label-primary" data-toggle="tooltip" data-placement="bottom" title="#TeamUpTime">
+                                <span class="label label-pill label-primary" data-toggle="tooltip" data-placement="bottom" title="Screw it, do it live!">
                                     <%= position %>
                                 </span>
                             <% elsif position == "Financial Director" %>
-                                <span class="label label-pill label-primary" data-toggle="tooltip" data-placement="bottom" title="Dues, Swag, Receipts, Amen">
+                                <span class="label label-pill label-primary" data-toggle="tooltip" data-placement="bottom" title="Swag, Dues, Receipts, Amen">
                                     <%= position %>
                                 </span>
                             <% elsif position == "RTP" %>
-                                <span class="label label-pill label-primary" data-toggle="tooltip" data-placement="bottom" title="Doing it live">
+                                <span class="label label-pill label-primary" data-toggle="tooltip" data-placement="bottom" title="#TeamUpTime">
                                         <%= position %>
                                     </span>
                                 </span>
                             <% elsif position == "Drink Admin" %>
-                                <span class="label label-pill label-primary" data-toggle="tooltip" data-placement="bottom" title="Drink is down">
+                                <span class="label label-pill label-primary" data-toggle="tooltip" data-placement="bottom" title="No, I won't fix drink.">
                                     <%= position %>
                                 </span>
                             <% else %>
