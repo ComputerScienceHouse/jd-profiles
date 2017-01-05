@@ -170,7 +170,8 @@ class UsersController < ApplicationController
                 @groups.include?("active") ? :active : :not_active,
                 @groups.include?("current_student") ? :current_student : :alumni,
                 @groups.include?("onfloor") ? :onfloor : :offfloor,
-                @groups.include?("honorarymembers") ? :honorary : :nonhonorary]
+                @groups.include?("honorarymembers") ? :honorary : :nonhonorary,
+                @groups.include?("disabled") ? :disabled : :enabled]
             @status = get_status status    
         end
     end
@@ -196,7 +197,8 @@ class UsersController < ApplicationController
                     @groups.include?("active") ? :active : :not_active,
                     @groups.include?("current_student") ? :current_student : :alumni,
                     @groups.include?("onfloor") ? :onfloor : :offfloor,
-                    @groups.include?("honorarymembers") ? :honorary : :nonhonorary]
+                    @groups.include?("honorarymembers") ? :honorary : :nonhonorary,
+                    @groups.include?("disabled") ? :disabled : :enabled]
                 @status = get_status status
             end
         end
@@ -355,22 +357,38 @@ class UsersController < ApplicationController
 
         def get_status status
             case status
-            when [:active, :current_student, :offfloor, :nonhonorary]
+            when [:active, :current_student, :offfloor, :nonhonorary, :enabled]
                 return "Active off-floor status"
-            when [:active, :current_student, :onfloor, :nonhonorary]
+            when [:active, :current_student, :onfloor, :nonhonorary, :enabled]
                 return "Active on-floor status"
-            when [:not_active, :current_student, :offfloor, :nonhonorary]
+            when [:not_active, :current_student, :offfloor, :nonhonorary, :enabled]
                 return "Inactive off-floor status"
-            when [:not_active, :current_student, :onfloor, :nonhonorary]
+            when [:not_active, :current_student, :onfloor, :nonhonorary, :enabled]
                 return "Inactive on-floor status"
-            when [:not_active, :alumni, :offfloor, :nonhonorary]
+            when [:not_active, :alumni, :offfloor, :nonhonorary, :enabled]
                 return "Alumni"
-            when [:not_active, :alumni, :onfloor, :nonhonorary]
+            when [:not_active, :alumni, :onfloor, :nonhonorary, :enabled]
                 return "Alumni"
-            when [:not_active, :current_student, :offfloor, :honorary]
+            when [:not_active, :current_student, :offfloor, :honorary, :enabled]
                 return "Honorary"
-            when [:not_active, :alumni, :offfloor, :honorary]
+            when [:not_active, :alumni, :offfloor, :honorary, :enabled]
                 return "Honorary"
+            when [:active, :current_student, :offfloor, :nonhonorary, :disabled]
+                return "Active off-floor status - Account Disabled"
+            when [:active, :current_student, :onfloor, :nonhonorary, :disabled]
+                return "Active on-floor status - Account Disabled"
+            when [:not_active, :current_student, :offfloor, :nonhonorary, :disabled]
+                return "Inactive off-floor status - Account Disabled"
+            when [:not_active, :current_student, :onfloor, :nonhonorary, :disabled]
+                return "Inactive on-floor status - Account Disabled"
+            when [:not_active, :alumni, :offfloor, :nonhonorary, :disabled]
+                return "Alumni - Account Disabled"
+            when [:not_active, :alumni, :onfloor, :nonhonorary, :disabled]
+                return "Alumni - Account Disabled"
+            when [:not_active, :current_student, :offfloor, :honorary, :disabled]
+                return "Honorary - Account Disabled"
+            when [:not_active, :alumni, :offfloor, :honorary, :disabled]
+                return "Honorary - Account Disabled"
 	    else
 		return "Error in LDAP Group Configuration, Contact an RTP"
             end
