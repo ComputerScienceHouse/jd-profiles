@@ -24,10 +24,10 @@ class UsersController < ApplicationController
     caches_action :list_users, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params }
     caches_action :group, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params }
     caches_action :year, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params }
-    caches_action :image, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params }
+    #caches_action :image, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params }
     caches_action :search, expires_in: @@cache_time, cache_path: Proc.new { |c| c.params['search'] }
 
-    #caches_page :image
+    caches_page :image
 
     # Checks to see if the user is behind WebAuth and sets
     # required variables
