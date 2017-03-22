@@ -1,34 +1,33 @@
-<div class="panel profiles-panel panel-default profiles-panel-default" style="margin-top: 20px">
-    <div class="row">
-        <div class="col-md-12">
-            <div id="name-title">
-                <h3 id="cn-title"><%= cn %></h3>
-            </div> 
-            <h3 id="image-title">
-                <img id="image-thumb" class="thumbnail" src="/image/<%= uid %>">
-                <div id="info-parent">
-                    <div id="info-container">
-                        <div id="status-container"><%= @status %></div>
+<div class="panel panel-default profiles-panel-default" style="margin-top: 20px">
+    <div class="panel-body panel-user">
+	<div class="row">
+        <div class="col-md-2 col-sm-3 col-xs-12 profile-container">
+            <img class="profile-image" id="image-thumb" src="/image/<%= uid %>">
+	</div>
+	<div class="col-xs-12 col-sm-9 col-md-9 profile-container">
+	    <h3 class="profile-name"><%= cn %></h3>
+            <h5 class="profile-status"><%= @status %></h5>
+            <div class="profile-badges">
                         <% @positions.each do |position| %>
                             <% if position == "Social Director" %>
                                 <span class="label label-pill label-primary" data-toggle="tooltip" data-placement="bottom" title="Social Good, Technical Bad!!">
                                         <%= position %>
                                 </span>
                             <% elsif position == "OpComm Director" %>
-                                <span class="label label-pill label-primary" data-toggle="tooltip" data-placement="bottom" title="#TeamUpTime">
+                                <span class="label label-pill label-primary" data-toggle="tooltip" data-placement="bottom" title="Doing it live!">
                                     <%= position %>
                                 </span>
                             <% elsif position == "Financial Director" %>
-                                <span class="label label-pill label-primary" data-toggle="tooltip" data-placement="bottom" title="Dues, Swag, Receipts, Amen">
+                                <span class="label label-pill label-primary" data-toggle="tooltip" data-placement="bottom" title="Swag, Dues, Receipts, Amen">
                                     <%= position %>
                                 </span>
                             <% elsif position == "RTP" %>
-                                <span class="label label-pill label-primary" data-toggle="tooltip" data-placement="bottom" title="Doing it live">
+                                <span class="label label-pill label-success" data-toggle="tooltip" data-placement="bottom" title="#TeamUptime">
                                         <%= position %>
                                     </span>
                                 </span>
                             <% elsif position == "Drink Admin" %>
-                                <span class="label label-pill label-primary" data-toggle="tooltip" data-placement="bottom" title="Drink is down">
+                                <span class="label label-pill label-info" data-toggle="tooltip" data-placement="bottom" title="Drink is down.">
                                     <%= position %>
                                 </span>
                             <% else %>
@@ -39,6 +38,7 @@
                         <% end %>
                     </div>
                 </div>
+
                 <% if edit %>
                     <%= form_tag('/update', method: :post, multipart: true, id: 'image-form') do %>
                         <div style="float: left"><%= file_field_tag 'picture' %></div>
