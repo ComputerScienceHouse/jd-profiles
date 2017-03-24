@@ -1,7 +1,4 @@
-@import 'bootstrap-sprockets';
-@import 'bootstrap';
-
-@import 'members-flat';
+@import 'csh-material-bootstrap';
 
 body {
   padding-top: 76px;
@@ -18,35 +15,43 @@ body {
     margin-top: 5px;
 }
 
-.logo {
-    width: 48px;
-    height: 46px;
-}
-
-.navbar-brand .logo {
-    width: 24px;
-    height: 23px;
-    position: relative;
-    top: -2px;
-    display: inline;
-}
-
-.navbar-brand span {
-    padding-left: 10px;
-}
 
 /*
  * User page heading
  */
+.panel-user {
+  .profile-image {
+    border-radius: 200px;
+    padding: 10px;
+    width: 100%;
+    max-width: 150px;
+    max-height: 150px
+  }
+  .panel-inner-padding {
+    padding-right: 10px;
+    padding-bottom: 10px;
+    padding-left: 10px;
+  }
+  .profile-name {
+    margin-bottom: 5px;
+  }
+  .profile-status {
+    margin-top: 5px;
+  }
+}
+@media(max-width: 767px) {
+  .panel-user {
+    text-align: center;
+    padding-left: 0;
 
-#name-title {
-    margin-left: 25px;
-    margin-top: 20px;
-    float: left;
+    .profile-image {
+      margin: default;
+    }
+  }
 }
 
-#cn-title {
-    font-size: 32px;
+.profile-container {
+  padding: 0 0 0 15px;
 }
 
 #image-title {
@@ -54,12 +59,6 @@ body {
     white-space: nowrap;
 }
 
-#image-thumb {
-    margin-right: 25px;
-    float: right;
-    height: 75px;
-    width: 75px;
-}
 
 #image-button {
 
@@ -88,23 +87,17 @@ body {
     margin-right: 10px;
 }
 
-#status-container {
-    text-align: right;
-    height: 50px;
-    margin-top: 11px;
-}
-
-#search-bar {
-    margin-top: 5px;
-}
-
 /*
  * User Page
  */
 
 #ibutton-toggle {
-    margin-top: 10px;
-    margin-left: 5px;
+    width: 100%;
+    border: none;
+    background-color: #FFF;
+    text-align: left;
+    padding-left: 0;
+    color: #B0197E;
 }
 
 
@@ -158,8 +151,8 @@ body {
 }
 
 .user-row {
-    -moz-column-width: 20em;
-    -webkit-column-width: 20em;
+    -moz-column-width: 25em;
+    -webkit-column-width: 25em;
     -moz-column-gap: 1em;
     -webkit-column-gap:1em;
 }
@@ -170,27 +163,16 @@ body {
     width:  100%;
 }
 
-.label {
-    display: inline;
-    padding: .3em .6em .3em;
-    font-size: 12px;
-    font-weight: bold;
-    line-height: 1;
-    color: #fff;
-    text-align: center;
-    white-space: nowrap;
-    vertical-align: baseline;
-    border-radius: 1em;
-    float: right;
-    margin-right: 5px;
-}
-
 .info-heading {
     padding: 0px;
     h4 {
         margin-top: 5px;
         margin-bottom: 5px;
     }
+}
+
+.label {
+    margin-right: 3px;
 }
 
 .panel-text {
@@ -237,12 +219,12 @@ body {
 }
 
 #edit-button {
-     margin: 10px;
+     width: 100%;
 }
 
 .ui-autocomplete {
     position: absolute;
-    z-index: 1000;
+    z-index: 1000000;
     cursor: default;
     padding: 0;
     margin-top: 2px;

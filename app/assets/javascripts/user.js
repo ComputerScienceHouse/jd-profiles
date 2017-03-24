@@ -67,9 +67,9 @@ $(document).on('page:change', function () {
 
     $("#ibutton-toggle").click(function() {
         if ($("#attr-form-ibutton").is(":visible")) {
-            $("#ibutton-toggle").text("show iButtons")    
+            $("#ibutton-toggle").text("View iButtons")    
         } else {
-            $("#ibutton-toggle").text("hide iButtons")    
+            $("#ibutton-toggle").text("Hide iButtons")    
         }
         $("#attr-form-ibutton").toggle();
     });
