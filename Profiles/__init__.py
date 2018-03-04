@@ -48,3 +48,8 @@ def home(info=None):
 @auth.oidc_logout
 def logout():
     return redirect("/", 302)
+
+
+@app.route("/image/<uid>", methods=["GET"])
+def image(uid):
+    return redirect("https://profiles.csh.rit.edu/image/" + uid, code=302)
