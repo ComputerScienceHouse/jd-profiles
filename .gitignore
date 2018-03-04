@@ -19,3 +19,5 @@ pickle-email-*.html
 .project
 config/initializers/secret_token.rb
 config/global/ldap.yml
+node_modules
+config.py

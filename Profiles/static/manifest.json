@@ -1,0 +1,12 @@
+{
+    "background_color": "#FFF",
+    "description": "CSH Profiles",
+    "dir": "auto",
+    "display": "minimal-ui",
+    "lang": "en",
+    "name": "CSH-Profiles",
+    "orientation": "any",
+    "short_name": "Profiles",
+    "start_url": "/",
+    "theme_color": "#222"
+}

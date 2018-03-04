@@ -1,0 +1,9 @@
+sqlalchemy
+requests
+csh_ldap
+flask
+flask_sqlalchemy
+flask_migrate
+flask-pyoidc
+flask-optimize
+PyMySQL

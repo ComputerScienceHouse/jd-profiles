@@ -1,6 +1,0 @@
-[submodule "app/assets/bootstrap-csh"]
-	path = app/assets/bootstrap-csh
-	url = git@github.com:ComputerScienceHouse/bootstrap-csh
-[submodule "bootstrap-sass"]
-	path = bootstrap-sass
-	url = https://github.com/twbs/bootstrap-sass.git
