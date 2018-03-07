@@ -1,9 +1,33 @@
-.panel {
+.card {
 	margin-top: 15px;
-	margin-bottom:  15px;
+	margin-bottom: 15px;
+	margin-left: 15%;
+	margin-right: 15%;
 	background-color: #FFF
 }
 
-#member-list {
-	background-color: #DDD;
+.img-circle {
+	border-radius: 50%;
+}
+
+.card-img-top-crop {
+  	width: 20rem;
+  	height: 150px;
+  	background-position: center center;
+  	background-repeat: no-repeat;
+  	overflow: hidden;
+}
+
+.user-card {
+	width: 20rem;
+}
+
+.card-text {
+	margin-left: 30px;
+	margin-bottom: 10px;
+	margin-top: 10px;
+}
+
+body {
+	background-color: #eee;
 }
