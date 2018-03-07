@@ -1,6 +1,7 @@
 import os
 import requests
 import subprocess
+import csh_ldap 
 
 import flask_migrate
 from flask import Flask, render_template, jsonify, request, redirect, send_from_directory
@@ -9,7 +10,6 @@ from flask_pyoidc.flask_pyoidc import OIDCAuthentication
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
 
-from Profiles.utils import before_request
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -35,6 +35,11 @@ migrate = flask_migrate.Migrate(app, db)
 # Disable SSL certificate verification warning
 requests.packages.urllib3.disable_warnings()
 
+# LDAP
+ldap = csh_ldap.CSHLDAP(app.config['LDAP_BIND_DN'], app.config['LDAP_BIND_PASS'])
+
+from Profiles.utils import before_request
+from Profiles.utils import ldap_get_active_members
 
 @app.route("/", methods=["GET"])
 @auth.oidc_auth
@@ -43,6 +48,12 @@ requests.packages.urllib3.disable_warnings()
 def home(info=None):
     return render_template("index.html", info=info)
 
+@app.route("/members", methods=["GET"])
+@auth.oidc_auth
+@flask_optimize.optimize()
+@before_request
+def members(info=None):
+    return render_template("members.html", info=info, members=ldap_get_active_members())
 
 @app.route("/logout")
 @auth.oidc_logout
