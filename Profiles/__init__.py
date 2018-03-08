@@ -40,6 +40,11 @@ ldap = csh_ldap.CSHLDAP(app.config['LDAP_BIND_DN'], app.config['LDAP_BIND_PASS']
 
 from Profiles.utils import before_request
 from Profiles.utils import ldap_get_active_members
+from Profiles.utils import ldap_get_all_members
+from Profiles.utils import ldap_get_member
+from Profiles.utils import ldap_search_members
+from Profiles.utils import ldap_is_active
+from Profiles.utils import get_member_info
 
 @app.route("/", methods=["GET"])
 @auth.oidc_auth
@@ -54,6 +59,22 @@ def home(info=None):
 @before_request
 def members(info=None):
     return render_template("members.html", info=info, members=ldap_get_active_members())
+
+@app.route("/profile/<uid>", methods=["GET"])
+@auth.oidc_auth
+@flask_optimize.optimize()
+@before_request
+def profile(uid=None, info=None):
+    return render_template("profile.html", info=info, profile=ldap_get_member(uid), member_info = get_member_info(uid))
+
+@app.route("/results", methods=["POST", "GET"])
+@auth.oidc_auth
+@flask_optimize.optimize()
+@before_request
+def results(uid=None, info=None):
+    if request.method == "POST":
+    	searched = request.form['query']
+    	return render_template("results.html", info=info, searched=searched)
 
 @app.route("/logout")
 @auth.oidc_logout

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+{% include "include/head.html" %}
+
+<body>
+
+{% include "include/nav.html" %}
+
+
+{#Body#}
+
+<div id="profile-container" class="container">
+	<div class="card">
+		<div class="card-block card-text">
+			<div class="row">
+				<img src="https://profiles.csh.rit.edu/image/{{ profile.uid }}">
+				<div class="card-block card-text">
+					<h1 class="name">{{profile.gecos}}</h1>
+					<h3 class="uid">{{profile.uid}}</h3>
+
+					<h6 class="member-info">{{member_info}}</h6>
+					
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-sm-3 col-md-6">
+				Plex: {{ profile.plex }}
+				Plex2: {{ profile.plex }}
+				Plex3: {{ profile.plex }}
+				Plex4: {{ profile.plex }}
+				</div>
+				<div class="col-sm-3 col-md-6">
+				Plex: {{ profile.plex }}
+				Plex2: {{ profile.plex }}
+				Plex334: {{ profile.plex }}
+				Plex4: {{ profile.plex }}
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+{% include "include/footer.html" %}
+
+{% include "include/scripts.html" %}
+
+</body>
+
+</html>
