@@ -1,6 +1,7 @@
 # Credit to Liam Middlebrook and Ram Zallan
 # https://github.com/liam-middlebrook/gallery
 import subprocess
+import datetime
 
 from flask import session
 from functools import wraps
@@ -18,12 +19,34 @@ def before_request(func):
             "git_revision": git_revision,
             "uuid": uuid,
             "uid": uid,
-            "user_obj": user_obj
+            "user_obj": user_obj,
+            "member_info": get_member_info(uid)
         }
         kwargs["info"] = info
         return func(*args, **kwargs)
 
     return wrapped_function
+
+def get_member_info(uid):
+    account = ldap_get_member(uid)
+    member_info = {
+        "user_obj": account,
+        "group_list": ldap_get_groups(account),
+        "info_string": get_member_info_string(uid),
+        "uid": account.uid,
+        "ritUid": parse_rit_uid(account.ritDn),
+        "name": account.gecos,
+        "active": ldap_is_active(account),
+        "onfloor": ldap_is_onfloor(account),
+        "room": ldap_get_roomnumber(account),
+        "hp": account.housingPoints,
+        "plex": account.plex,
+        "rn": ldap_get_roomnumber(account),
+        "birthday": parse_date(account.birthday),
+        "memberSince": parse_date(account.memberSince)
+    }
+    return member_info
+
 
 def _ldap_get_group_members(group):
     return ldap.get_group(group).get_members()
@@ -80,6 +103,12 @@ def ldap_get_current_students():
 def ldap_get_all_members():
     return _ldap_get_group_members("member")
 
+def ldap_get_groups(account):
+    group_list = account.get("memberOf")
+    groups = []
+    for group_dn in group_list:
+        groups.append(group_dn.split(",")[0][3:])
+    return groups
 
 
 # Status checkers
@@ -116,39 +145,31 @@ def ldap_is_current_student(account):
 # Directorships
 
 def ldap_is_financial_director(account):
-    return _ldap_is_member_of_directorship(account, 'Financial')
+    return _ldap_is_member_of_directorship(account, 'financial')
 
 
 def ldap_is_eval_director(account):
-    return _ldap_is_member_of_directorship(account, 'Evaluations')
+    return _ldap_is_member_of_directorship(account, 'evaluations')
 
 
 def ldap_is_chairman(account):
-    return _ldap_is_member_of_directorship(account, 'Chairman')
+    return _ldap_is_member_of_directorship(account, 'chairman')
 
 
 def ldap_is_history(account):
-    return _ldap_is_member_of_directorship(account, 'History')
+    return _ldap_is_member_of_directorship(account, 'history')
 
 
 def ldap_is_imps(account):
-    return _ldap_is_member_of_directorship(account, 'Imps')
+    return _ldap_is_member_of_directorship(account, 'imps')
 
 
 def ldap_is_social(account):
-    return _ldap_is_member_of_directorship(account, 'Social')
+    return _ldap_is_member_of_directorship(account, 'social')
 
 
 def ldap_is_rd(account):
-    return _ldap_is_member_of_directorship(account, 'R&D')
-
-
-def ldap_is_pr(account):
-    return _ldap_is_member_of_directorship(account, 'PR')
-
-
-def ldap_is_secretary(account):
-    return _ldap_is_member_of_directorship(account, 'Secretary')
+    return _ldap_is_member_of_directorship(account, 'research')
 
 
 # Setters
@@ -197,68 +218,37 @@ def ldap_get_roomnumber(account):
     except AttributeError:
         return ""
 
-def get_members_info():
-    members = [account for account in ldap_get_all_members()]
-    member_list = []
-
-    for account in members:
-        uid = account.uid
-        name = account.cn
-        active = ldap_is_active(account)
-        onfloor = ldap_is_onfloor(account)
-        room = ldap_get_roomnumber(account)
-        hp = account.housingPoints
-        member_list.append({
-            "uid": uid,
-            "name": name,
-            "active": active,
-            "onfloor": onfloor,
-            "room": room,
-            "hp": hp
-        })
-
-    return member_list
-
-def get_member_info(uid):
+def get_member_info_string(uid):
     account = ldap_get_member(uid)
     member_info = ""
-    if ldap_is_active(account): 
-        member_info+=("Active ")
-    else:
-        member_info+=("Alumni ")
     if ldap_is_onfloor(account) and ldap_is_active(account):
-        member_info+=("On Floor ")
+        member_info+=("On Floor")
     if not ldap_is_onfloor(account) and ldap_is_active(account):
-        member_info+=("Off Floor ")
+        member_info+=("Off Floor")
     if ldap_is_intromember(account):
-        member_info+=("Intro Member ")
+        member_info+=(", Freshman")
     if ldap_is_eboard(account):
-        member_info+=("Eboard ")
+        member_info+=(", Eboard")
     if ldap_is_financial_director(account):
-        member_info+=("Financial ")
+        member_info+=(", Financial")
     if ldap_is_eval_director(account):
-        member_info+=("Evals ")
+        member_info+=(", Evals")
     if ldap_is_rtp(account):
-        member_info+=("RTP ")
-    # if ldap_is_chairman(account):
-    #     member_info+=("Chairman ")
+        member_info+=(", RTP")
+    if ldap_is_chairman(account):
+        member_info+=(", Chairman")
     if ldap_is_history(account):
-        member_info+=("History ")
-    # if ldap_is_imps(account):
-    #     member_info+=("House Improvements ")
-    if ldap_is_social(account):
-        member_info+=("Social ")
+        member_info+=(", History")
+    if ldap_is_imps(account):
+        member_info+=(", House Improvements")
+    # if ldap_is_social(account):
+    #     member_info+=(", Social")
     if ldap_is_rd(account):
-        member_info+=("R&D ")
-    # if ldap_is_pr(account):
-    #     member_info+=("PR ")
-    # if ldap_is_secretary(account):
-    #     member_info+=("Secretary ")
-
+        member_info+=(", R&D")
     return member_info
 
 def ldap_search_members(query):
-    active = [account for account in ldap_get_active_members()]
+    active = [account for account in ldap_get_all_members()]
     results = []
 
     for account in active:
@@ -268,12 +258,16 @@ def ldap_search_members(query):
         if query in uid or query in name:
             results.append(account)
 
-    if results.length == 0:
-        alumni = [account for account in ldap_get_all_members]
-
-        for account in alumni:
-            if not ldap_is_active(account.uid):
-                if query in uid or query in name:
-                    results.append(account)
-
     return results
+
+def parse_date(date):
+    if(date):
+        year = date[0:4]
+        month = date[4:6]
+        day = date[6:8]
+        return month + "-" + day + "-" + year
+    else:
+        return False
+   
+def parse_rit_uid(dn):
+    return dn.split(",")[0][4:]

@@ -51,21 +51,30 @@ from Profiles.utils import get_member_info
 @flask_optimize.optimize()
 @before_request
 def home(info=None):
-    return render_template("index.html", info=info)
+    return render_template("profile.html", 
+    						  info=info, 
+    						  profile=ldap_get_member(info["uid"]), 
+    						  member_info=info["member_info"], 
+    						  editable=True)
 
 @app.route("/members", methods=["GET"])
 @auth.oidc_auth
 @flask_optimize.optimize()
 @before_request
 def members(info=None):
-    return render_template("members.html", info=info, members=ldap_get_active_members())
+    return render_template("members.html", 
+    						  info=info, 
+    						  members=ldap_get_active_members())
 
 @app.route("/profile/<uid>", methods=["GET"])
 @auth.oidc_auth
 @flask_optimize.optimize()
 @before_request
 def profile(uid=None, info=None):
-    return render_template("profile.html", info=info, profile=ldap_get_member(uid), member_info = get_member_info(uid))
+    return render_template("profile.html", 
+    						  info=info, 
+    						  member_info=get_member_info(uid),
+    						  editable = False)
 
 @app.route("/results", methods=["POST", "GET"])
 @auth.oidc_auth
@@ -74,7 +83,9 @@ def profile(uid=None, info=None):
 def results(uid=None, info=None):
     if request.method == "POST":
     	searched = request.form['query']
-    	return render_template("results.html", info=info, searched=searched)
+    	return render_template("members.html", 
+    						    info=info, 
+    						    members=ldap_search_members(searched))
 
 @app.route("/logout")
 @auth.oidc_logout

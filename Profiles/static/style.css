@@ -28,6 +28,10 @@
 	margin-top: 10px;
 }
 
+.active {
+	color: #ccc;
+}
+
 body {
 	background-color: #eee;
 }
