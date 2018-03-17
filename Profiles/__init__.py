@@ -83,7 +83,7 @@ def profile(uid=None, info=None):
 def results(uid=None, info=None):
     if request.method == "POST":
     	searched = request.form['query']
-    	return render_template("members.html", 
+    	return render_template("results.html", 
     						    info=info, 
     						    members=ldap_search_members(searched))
 

@@ -1,22 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-
-{% include "include/head.html" %}
-
-<body>
-
 {% include "include/nav.html" %}
 
 
 {#Body#}
 
-{{ searched }}
-
+<div id="member-list" class="container">
+	<div class="row">
+		{% for m in members %}
+			<div class="col-md-3 col-sm-4 col-xs-8">
+				<a href="/profile/{{ m['uid'] }}" class="card-block clearfix">
+					<div class="card user-card">
+						<div class="card-img-top card-img-top-crop" style="margin:auto; background-image: url('https://profiles.csh.rit.edu/image/{{m['uid']}}')">
+						</div>
+						<div class="card-block card-text">
+							<h4 class="name">{{m['gecos']}}</h4>
+							<h6 class="uid">{{m['uid']}}</h6>
+						</div>
+					</div>
+				</a>
+			</div>
+		{% endfor %}
+	</div>
+</div>
 
 {% include "include/footer.html" %}
 
 {% include "include/scripts.html" %}
-
-</body>
-
-</html>

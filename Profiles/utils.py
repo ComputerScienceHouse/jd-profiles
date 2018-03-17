@@ -165,7 +165,7 @@ def ldap_is_imps(account):
 
 
 def ldap_is_social(account):
-    return _ldap_is_member_of_directorship(account, 'social')
+    return _ldap_is_member_of_directorship(account, 'Social')
 
 
 def ldap_is_rd(account):
@@ -250,13 +250,17 @@ def get_member_info_string(uid):
 def ldap_search_members(query):
     active = [account for account in ldap_get_all_members()]
     results = []
+    query = query.lower()
 
     for account in active:
-        uid = account.uid
-        name = account.cn
+        uid = account.uid.lower()
+        name = account.gecos
 
-        if query in uid or query in name:
-            results.append(account)
+        if name:
+            name = name.lower()
+            if query in uid or query in name:
+                results.append(account)
+
 
     return results
 
