@@ -43,7 +43,8 @@ def get_member_info(uid):
         "plex": account.plex,
         "rn": ldap_get_roomnumber(account),
         "birthday": parse_date(account.birthday),
-        "memberSince": parse_date(account.memberSince)
+        "memberSince": parse_date(account.memberSince),
+        "year": parse_account_year(account.memberSince)
     }
     return member_info
 
@@ -109,6 +110,22 @@ def ldap_get_groups(account):
     for group_dn in group_list:
         groups.append(group_dn.split(",")[0][3:])
     return groups
+
+def ldap_get_eboard():
+    members = []
+
+    members.append(_ldap_get_group_members("eboard-chairman"))
+    members.append(_ldap_get_group_members("eboard-evaluations"))
+    members.append(_ldap_get_group_members("eboard-financial"))
+    members.append(_ldap_get_group_members("eboard-history"))
+    members.append(_ldap_get_group_members("eboard-imps"))
+    members.append(_ldap_get_group_members("eboard-opcomm"))
+    members.append(_ldap_get_group_members("eboard-research"))
+    members.append(_ldap_get_group_members("eboard-secretary"))
+    members.append(_ldap_get_group_members("eboard-social"))
+
+    return members
+
 
 
 # Status checkers
@@ -261,7 +278,6 @@ def ldap_search_members(query):
             if query in uid or query in name:
                 results.append(account)
 
-
     return results
 
 def parse_date(date):
@@ -275,3 +291,10 @@ def parse_date(date):
    
 def parse_rit_uid(dn):
     return dn.split(",")[0][4:]
+
+def parse_account_year(date):
+    year = int(date[0:4])
+    month = int(date[4:6])
+    if month <= 8:
+        year = year - 1
+    return year

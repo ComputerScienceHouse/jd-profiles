@@ -18,16 +18,32 @@
                 <a class="nav-link" href="/members">Active Members</a>
             </li>
 
-            <li class="nav-item">
-                <a class="nav-link" href="#">Groups</a>
+           <!--  <li class="nav-item">
+                <a class="nav-link" href="#">Years</a>
+            </li> -->
+
+            <li class="nav-item dropdown">
+
+                <a class="nav-link" data-toggle="dropdown" href="#" id="groups">
+                    Groups
+                    <span class="caret"></span>
+                </a>
+
+                <div class="dropdown-menu" aria-labelledby="user01">
+                    <a class="dropdown-item" href="/group/active_rtp">Active RTP</a>
+                    <a class="dropdown-item" href="/group/rtp">RTP</a>
+                    <a class="dropdown-item" href="/group/eboard">Eboard</a>
+                    <a class="dropdown-item" href="/group/3da">3da</a>
+                    <a class="dropdown-item" href="/group/constitutional_maintainers">Constitutional Maintainers</a>
+                    <a class="dropdown-item" href="/group/drink">Drink Admins</a>
+                </div>
+
             </li>
 
         </ul>
         <ul class="nav navbar-nav ml-auto">
 
-            
-                <input class="form-control mr-sm-2" id="search-field" type="text" placeholder="Search">
-            
+            <span><input class="form-control mr-sm-2" id="search-field" type="text" placeholder="Search"></span>
 
             <li class="nav-item navbar-user dropdown">
 

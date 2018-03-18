@@ -3,6 +3,10 @@
 
 {#Body#}
 
+{% if title %}
+<h1 class="title card-text">{{ title }}</h1>
+{% endif %}
+
 <div id="member-list" class="container">
 	<div class="row">
 		{% for m in members %}

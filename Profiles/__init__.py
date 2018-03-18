@@ -44,7 +44,9 @@ from Profiles.utils import ldap_get_all_members
 from Profiles.utils import ldap_get_member
 from Profiles.utils import ldap_search_members
 from Profiles.utils import ldap_is_active
+from Profiles.utils import ldap_get_eboard
 from Profiles.utils import get_member_info
+from Profiles.utils import _ldap_get_group_members
 
 @app.route("/", methods=["GET"])
 @auth.oidc_auth
@@ -64,6 +66,7 @@ def home(info=None):
 def members(info=None):
     return render_template("members.html", 
     						  info=info, 
+    						  title = "Active Members",
     						  members=ldap_get_active_members())
 
 @app.route("/profile/<uid>", methods=["GET"])
@@ -76,7 +79,7 @@ def profile(uid=None, info=None):
     						  member_info=get_member_info(uid),
     						  editable = False)
 
-@app.route("/results", methods=["POST", "GET"])
+@app.route("/results", methods=["POST"])
 @auth.oidc_auth
 @flask_optimize.optimize()
 @before_request
@@ -85,7 +88,34 @@ def results(uid=None, info=None):
     	searched = request.form['query']
     	return render_template("results.html", 
     						    info=info, 
+    						    title = "Search Results: "+searched,
     						    members=ldap_search_members(searched))
+
+@app.route("/search/<searched>", methods=["GET"])
+@auth.oidc_auth
+@flask_optimize.optimize()
+@before_request
+def search(searched=None, info=None):
+    return render_template("members.html", 
+    						  info=info, 
+    						  title = "Search Results: "+searched,
+    						  members=ldap_search_members(searched))
+
+@app.route("/group/<group>", methods=["GET"])
+@auth.oidc_auth
+@flask_optimize.optimize()
+@before_request
+def group(group=None, info=None):
+    if "eboard" in group:
+    	return render_template("members.html", 
+    						    info=info, 
+    						    title = "Group: " + group,
+    						    members=ldap_get_eboard())
+    else:
+    	return render_template("members.html", 
+    						    info=info, 
+    						    title = "Group: " + group,
+    						    members=_ldap_get_group_members(group))
 
 @app.route("/logout")
 @auth.oidc_logout
