@@ -55,7 +55,6 @@ from Profiles.utils import _ldap_get_group_members
 def home(info=None):
     return render_template("profile.html", 
     						  info=info, 
-    						  profile=ldap_get_member(info["uid"]), 
     						  member_info=info["member_info"], 
     						  editable=True)
 

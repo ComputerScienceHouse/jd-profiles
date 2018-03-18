@@ -97,7 +97,7 @@
 						<h5 class="info">Member Since: {{ member_info.memberSince }}</h5>
 						<br>
 
-						{% if member_info.user_obj.ibutton %} 
+						{% if member_info.user_obj.ibutton and editable %} 
 						<h5 class="info">iButton: {{ member_info.user_obj.ibutton }}</h5>
 						{% endif %}
 					</div>
