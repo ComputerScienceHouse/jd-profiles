@@ -112,17 +112,7 @@ def ldap_get_groups(account):
     return groups
 
 def ldap_get_eboard():
-    members = []
-
-    members.append(_ldap_get_group_members("eboard-chairman"))
-    members.append(_ldap_get_group_members("eboard-evaluations"))
-    members.append(_ldap_get_group_members("eboard-financial"))
-    members.append(_ldap_get_group_members("eboard-history"))
-    members.append(_ldap_get_group_members("eboard-imps"))
-    members.append(_ldap_get_group_members("eboard-opcomm"))
-    members.append(_ldap_get_group_members("eboard-research"))
-    members.append(_ldap_get_group_members("eboard-secretary"))
-    members.append(_ldap_get_group_members("eboard-social"))
+    members = _ldap_get_group_members("eboard-chairman") + _ldap_get_group_members("eboard-evaluations") + _ldap_get_group_members("eboard-financial") + _ldap_get_group_members("eboard-history") + _ldap_get_group_members("eboard-imps") + _ldap_get_group_members("eboard-opcomm") + _ldap_get_group_members("eboard-research") + _ldap_get_group_members("eboard-secretary") + _ldap_get_group_members("eboard-social")
 
     return members
 
