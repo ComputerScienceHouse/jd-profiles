@@ -5,7 +5,7 @@ from os import environ as env
 
 # Flask config
 DEBUG = True
-IP = os.environ.get('PROFILES_IP', '127.0.0.1')
+IP = os.environ.get('PROFILES_IP', 'localhost')
 PORT = os.environ.get('PROFILES_PORT', 8080)
 SERVER_NAME = os.environ.get('PROFILES_SERVER_NAME', 'profiles-nate.csh.rit.edu')
 
