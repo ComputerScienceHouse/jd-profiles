@@ -5,6 +5,7 @@ import datetime
 
 from flask import session
 from functools import wraps
+from functools import lru_cache
 from Profiles import ldap
 
 
@@ -70,7 +71,7 @@ def _ldap_remove_member_from_group(account, group):
     if _ldap_is_member_of_group(account, group):
         ldap.get_group(group).del_member(account, dn=False)
 
-
+@lru_cache(maxsize=1024)
 def _ldap_is_member_of_directorship(account, directorship):
     directors = ldap.get_directorship_heads(directorship)
     for director in directors:
@@ -81,29 +82,31 @@ def _ldap_is_member_of_directorship(account, directorship):
 
 #Getters 
 
+@lru_cache(maxsize=1024)
 def ldap_get_member(username):
     return ldap.get_member(username, uid=True)
 
-
+@lru_cache(maxsize=1024)
 def ldap_get_active_members():
     return _ldap_get_group_members("active")
 
-
+@lru_cache(maxsize=1024)
 def ldap_get_intro_members():
     return _ldap_get_group_members("intromembers")
 
-
+@lru_cache(maxsize=1024)
 def ldap_get_onfloor_members():
     return _ldap_get_group_members("onfloor")
 
-
+@lru_cache(maxsize=1024)
 def ldap_get_current_students():
     return _ldap_get_group_members("current_student")
 
-
+@lru_cache(maxsize=1024)
 def ldap_get_all_members():
     return _ldap_get_group_members("member")
 
+@lru_cache(maxsize=1024)
 def ldap_get_groups(account):
     group_list = account.get("memberOf")
     groups = []
@@ -111,6 +114,7 @@ def ldap_get_groups(account):
         groups.append(group_dn.split(",")[0][3:])
     return groups
 
+@lru_cache(maxsize=1024)
 def ldap_get_eboard():
     members = _ldap_get_group_members("eboard-chairman") + _ldap_get_group_members("eboard-evaluations") + _ldap_get_group_members("eboard-financial") + _ldap_get_group_members("eboard-history") + _ldap_get_group_members("eboard-imps") + _ldap_get_group_members("eboard-opcomm") + _ldap_get_group_members("eboard-research") + _ldap_get_group_members("eboard-secretary") + _ldap_get_group_members("eboard-social")
 
@@ -254,8 +258,9 @@ def get_member_info_string(uid):
         member_info+=(", R&D")
     return member_info
 
+@lru_cache(maxsize=1024)
 def ldap_search_members(query):
-    active = [account for account in ldap_get_all_members()]
+    active = ldap_get_all_members();
     results = []
     query = query.lower()
 
