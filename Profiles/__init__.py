@@ -55,8 +55,7 @@ from Profiles.utils import _ldap_get_group_members
 def home(info=None):
     return render_template("profile.html", 
     						  info=info, 
-    						  member_info=info["member_info"], 
-    						  editable=True)
+    						  member_info=info["member_info"])
 
 @app.route("/members", methods=["GET"])
 @auth.oidc_auth
@@ -75,8 +74,7 @@ def members(info=None):
 def profile(uid=None, info=None):
     return render_template("profile.html", 
     						  info=info, 
-    						  member_info=get_member_info(uid),
-    						  editable = False)
+    						  member_info=get_member_info(uid))
 
 @app.route("/results", methods=["POST"])
 @auth.oidc_auth

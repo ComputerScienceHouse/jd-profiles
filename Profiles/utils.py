@@ -28,6 +28,7 @@ def before_request(func):
 
     return wrapped_function
 
+@lru_cache(maxsize=1024)
 def get_member_info(uid):
     account = ldap_get_member(uid)
     member_info = {
@@ -82,7 +83,7 @@ def _ldap_is_member_of_directorship(account, directorship):
 
 #Getters 
 
-@lru_cache(maxsize=1024)
+
 def ldap_get_member(username):
     return ldap.get_member(username, uid=True)
 
