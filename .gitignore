@@ -22,3 +22,4 @@ config/global/ldap.yml
 node_modules
 config.py
 Profiles/__pycache__
+__pycache__
