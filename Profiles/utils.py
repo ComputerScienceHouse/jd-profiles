@@ -31,7 +31,6 @@ def before_request(func):
 
     return wrapped_function
 
-@lru_cache(maxsize=1024)
 def get_member_info(uid):
     account = ldap_get_member(uid)
     member_info = {
