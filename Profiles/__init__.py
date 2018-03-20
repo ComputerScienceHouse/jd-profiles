@@ -1,20 +1,17 @@
 import os
 import requests
 import subprocess
+import csh_ldap 
 
 import flask_migrate
 from flask import Flask, render_template, jsonify, request, redirect, send_from_directory
-from flask_optimize import FlaskOptimize
 from flask_pyoidc.flask_pyoidc import OIDCAuthentication
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
 
-from Profiles.utils import before_request
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
-flask_optimize = FlaskOptimize()
 
 # Get app config from absolute file path
 if os.path.exists(os.path.join(os.getcwd(), "config.py")):
@@ -35,14 +32,70 @@ migrate = flask_migrate.Migrate(app, db)
 # Disable SSL certificate verification warning
 requests.packages.urllib3.disable_warnings()
 
+# LDAP
+ldap = csh_ldap.CSHLDAP(app.config['LDAP_BIND_DN'], app.config['LDAP_BIND_PASS'])
+
+from Profiles.utils import before_request, get_member_info
+from Profiles.ldap import ldap_get_active_members, ldap_get_all_members, ldap_get_member, ldap_search_members, ldap_is_active, ldap_get_eboard, _ldap_get_group_members
 
 @app.route("/", methods=["GET"])
 @auth.oidc_auth
-@flask_optimize.optimize()
 @before_request
 def home(info=None):
-    return render_template("index.html", info=info)
+    return redirect("/profile/" + info["uid"],
+                              code = 302)
 
+@app.route("/members", methods=["GET"])
+@auth.oidc_auth
+@before_request
+def members(info=None):
+    return render_template("members.html", 
+    						  info=info, 
+    						  title = "Active Members",
+    						  members=ldap_get_active_members())
+
+@app.route("/profile/<uid>", methods=["GET"])
+@auth.oidc_auth
+@before_request
+def profile(uid=None, info=None):
+    return render_template("profile.html", 
+    						  info=info, 
+    						  member_info=get_member_info(uid))
+
+@app.route("/results", methods=["POST"])
+@auth.oidc_auth
+@before_request
+def results(uid=None, info=None):
+    if request.method == "POST":
+    	searched = request.form['query']
+    	return render_template("results.html", 
+    						    info=info, 
+    						    title = "Search Results: "+searched,
+    						    members=ldap_search_members(searched))
+
+@app.route("/search/<searched>", methods=["GET"])
+@auth.oidc_auth
+@before_request
+def search(searched=None, info=None):
+    return render_template("members.html", 
+    						  info=info, 
+    						  title = "Search Results: "+searched,
+    						  members=ldap_search_members(searched))
+
+@app.route("/group/<group>", methods=["GET"])
+@auth.oidc_auth
+@before_request
+def group(group=None, info=None):
+    if "eboard" in group:
+    	return render_template("members.html", 
+    						    info=info,
+    						    title = "Group: " + group,
+    						    members=ldap_get_eboard())
+    else:
+    	return render_template("members.html", 
+    						    info=info, 
+    						    title = "Group: " + group,
+    						    members=_ldap_get_group_members(group))
 
 @app.route("/logout")
 @auth.oidc_logout
