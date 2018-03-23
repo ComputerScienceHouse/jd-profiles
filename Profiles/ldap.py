@@ -1,5 +1,10 @@
+import hashlib, requests
+
+
 from functools import lru_cache
 from Profiles import ldap
+
+
 
 def _ldap_get_group_members(group):
     return ldap.get_group(group).get_members()
@@ -22,6 +27,7 @@ def _ldap_remove_member_from_group(account, group):
     if _ldap_is_member_of_group(account, group):
         ldap.get_group(group).del_member(account, dn=False)
 
+
 @lru_cache(maxsize=1024)
 def _ldap_is_member_of_directorship(account, directorship):
     directors = ldap.get_directorship_heads(directorship)
@@ -37,25 +43,31 @@ def _ldap_is_member_of_directorship(account, directorship):
 def ldap_get_member(username):
     return ldap.get_member(username, uid=True)
 
+
 @lru_cache(maxsize=1024)
 def ldap_get_active_members():
     return _ldap_get_group_members("active")
+
 
 @lru_cache(maxsize=1024)
 def ldap_get_intro_members():
     return _ldap_get_group_members("intromembers")
 
+
 @lru_cache(maxsize=1024)
 def ldap_get_onfloor_members():
     return _ldap_get_group_members("onfloor")
+
 
 @lru_cache(maxsize=1024)
 def ldap_get_current_students():
     return _ldap_get_group_members("current_student")
 
+
 @lru_cache(maxsize=1024)
 def ldap_get_all_members():
     return _ldap_get_group_members("member")
+
 
 @lru_cache(maxsize=1024)
 def ldap_get_groups(account):
@@ -64,6 +76,7 @@ def ldap_get_groups(account):
     for group_dn in group_list:
         groups.append(group_dn.split(",")[0][3:])
     return groups
+
 
 @lru_cache(maxsize=1024)
 def ldap_get_eboard():
@@ -199,5 +212,15 @@ def ldap_search_members(query):
     return results
 
 
+@lru_cache(maxsize=1024)
 def get_image(uid):
 	return ldap_get_member(uid).jpegPhoto
+
+
+@lru_cache(maxsize=1024)
+def get_gravatar(uid):
+	addr = uid + "@csh.rit.edu"
+	url = "https://gravatar.com/avatar/" + hashlib.md5(addr.encode('utf8')).hexdigest() +".jpg?d=mm&s=250"
+
+	return url
+

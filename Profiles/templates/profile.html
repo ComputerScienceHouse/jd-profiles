@@ -14,7 +14,8 @@
 	<div class="card">
 		<div class="card-block card-text">
 			<div class="row">
-				<img src="/image/{{ member_info.uid }}">
+				<div class="card-img-top card-img-top-crop" style="width:250px;height:250px;background-image: url('/image/{{ member_info.uid }}')">
+				</div>
 				<div class="card-block card-text">
 					{% if member_info.active %}
 

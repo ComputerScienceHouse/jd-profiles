@@ -36,7 +36,7 @@ requests.packages.urllib3.disable_warnings()
 ldap = csh_ldap.CSHLDAP(app.config['LDAP_BIND_DN'], app.config['LDAP_BIND_PASS'])
 
 from Profiles.utils import before_request, get_member_info
-from Profiles.ldap import get_image, ldap_get_active_members, ldap_get_all_members, ldap_get_member, ldap_search_members, ldap_is_active, ldap_get_eboard, _ldap_get_group_members
+from Profiles.ldap import get_image, get_gravatar, ldap_get_active_members, ldap_get_all_members, ldap_get_member, ldap_search_members, ldap_is_active, ldap_get_eboard, _ldap_get_group_members
 
 
 @app.route("/", methods=["GET"])
@@ -112,4 +112,8 @@ def logout():
 
 @app.route("/image/<uid>", methods=["GET"])
 def image(uid):
-    return get_image(uid)
+    image = get_image(uid)
+    if image: 
+        return image
+    else:
+        return redirect(get_gravatar(uid), code=302)
