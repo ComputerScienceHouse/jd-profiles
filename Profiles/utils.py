@@ -11,7 +11,6 @@ from Profiles import ldap
 from Profiles.ldap import *
 
 
-
 def before_request(func):
     @wraps(func)
     def wrapped_function(*args, **kwargs):
@@ -33,13 +32,20 @@ def before_request(func):
 
 def get_member_info(uid):
     account = ldap_get_member(uid)
+
+    if ldap_is_active(account):
+        alumInfo = None
+    else:
+        alumInfo = parse_alum_name(account.gecos)
+
     member_info = {
         "user_obj": account,
         "group_list": ldap_get_groups(account),
         "info_string": get_member_info_string(uid),
         "uid": account.uid,
         "ritUid": parse_rit_uid(account.ritDn),
-        "name": account.gecos,
+        "name": account.cn,
+        "alumInfo": alumInfo,
         "active": ldap_is_active(account),
         "onfloor": ldap_is_onfloor(account),
         "room": ldap_get_roomnumber(account),
@@ -92,12 +98,24 @@ def parse_date(date):
     else:
         return False
    
+
 def parse_rit_uid(dn):
-    return dn.split(",")[0][4:]
+    if dn:
+        return dn.split(",")[0][4:]
+    else:
+        return None
+
 
 def parse_account_year(date):
-    year = int(date[0:4])
-    month = int(date[4:6])
-    if month <= 8:
-        year = year - 1
-    return year
+    if date:
+        year = int(date[0:4])
+        month = int(date[4:6])
+        if month <= 8:
+            year = year - 1
+        return year
+    else:
+        return None
+
+
+def parse_alum_name(gecos):
+    return gecos.split(",")

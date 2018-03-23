@@ -14,7 +14,8 @@
 	<div class="card">
 		<div class="card-block card-text">
 			<div class="row">
-				<img src="https://profiles.csh.rit.edu/image/{{ member_info.uid }}">
+				<div class="card-img-top card-img-top-crop" style="width:250px;height:250px;background-image: url('/image/{{ member_info.uid }}')">
+				</div>
 				<div class="card-block card-text">
 					{% if member_info.active %}
 
@@ -29,6 +30,14 @@
 					<h3 class="uid">{{member_info.uid}}</h3>
 
 					<h6 class="info">{{ member_info.info_string  }}</h6>
+
+					<br>
+
+					{% if member_info.alumInfo %}
+
+					<h6 class="birthday">{{member_info.alumInfo}}</h6>
+
+					{% endif %}
 
 					<br>
 

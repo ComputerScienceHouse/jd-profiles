@@ -10,6 +10,11 @@
 	border-radius: 50%;
 }
 
+.profile-img {
+	height: 250px;
+	width: 250px;
+}
+
 .card-img-top-crop {
   	width: 15rem;
   	height: 200px;
