@@ -37,6 +37,14 @@
 	color: #ccc;
 }
 
+.card-profile-pic {
+	margin:auto; 
+	-webkit-background-size: cover;
+	-moz-background-size: cover;
+	-o-background-size: cover;
+	background-size: cover;
+}
+
 #groups {
 	padding-top: .9rem;
 	padding-bottom: 0;
