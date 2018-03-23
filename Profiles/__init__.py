@@ -36,7 +36,8 @@ requests.packages.urllib3.disable_warnings()
 ldap = csh_ldap.CSHLDAP(app.config['LDAP_BIND_DN'], app.config['LDAP_BIND_PASS'])
 
 from Profiles.utils import before_request, get_member_info
-from Profiles.ldap import ldap_get_active_members, ldap_get_all_members, ldap_get_member, ldap_search_members, ldap_is_active, ldap_get_eboard, _ldap_get_group_members
+from Profiles.ldap import get_image, ldap_get_active_members, ldap_get_all_members, ldap_get_member, ldap_search_members, ldap_is_active, ldap_get_eboard, _ldap_get_group_members
+
 
 @app.route("/", methods=["GET"])
 @auth.oidc_auth
@@ -44,6 +45,7 @@ from Profiles.ldap import ldap_get_active_members, ldap_get_all_members, ldap_ge
 def home(info=None):
     return redirect("/profile/" + info["uid"],
                               code = 302)
+
 
 @app.route("/members", methods=["GET"])
 @auth.oidc_auth
@@ -54,6 +56,7 @@ def members(info=None):
     						  title = "Active Members",
     						  members=ldap_get_active_members())
 
+
 @app.route("/profile/<uid>", methods=["GET"])
 @auth.oidc_auth
 @before_request
@@ -61,6 +64,7 @@ def profile(uid=None, info=None):
     return render_template("profile.html", 
     						  info=info, 
     						  member_info=get_member_info(uid))
+
 
 @app.route("/results", methods=["POST"])
 @auth.oidc_auth
@@ -73,6 +77,7 @@ def results(uid=None, info=None):
     						    title = "Search Results: "+searched,
     						    members=ldap_search_members(searched))
 
+
 @app.route("/search/<searched>", methods=["GET"])
 @auth.oidc_auth
 @before_request
@@ -81,6 +86,7 @@ def search(searched=None, info=None):
     						  info=info, 
     						  title = "Search Results: "+searched,
     						  members=ldap_search_members(searched))
+
 
 @app.route("/group/<group>", methods=["GET"])
 @auth.oidc_auth
@@ -97,6 +103,7 @@ def group(group=None, info=None):
     						    title = "Group: " + group,
     						    members=_ldap_get_group_members(group))
 
+
 @app.route("/logout")
 @auth.oidc_logout
 def logout():
@@ -105,4 +112,4 @@ def logout():
 
 @app.route("/image/<uid>", methods=["GET"])
 def image(uid):
-    return redirect("https://profiles.csh.rit.edu/image/" + uid, code=302)
+    return get_image(uid)

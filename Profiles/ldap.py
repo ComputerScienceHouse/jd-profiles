@@ -180,6 +180,7 @@ def ldap_get_roomnumber(account):
     except AttributeError:
         return ""
 
+
 @lru_cache(maxsize=1024)
 def ldap_search_members(query):
     active = ldap_get_all_members();
@@ -196,3 +197,7 @@ def ldap_search_members(query):
                 results.append(account)
 
     return results
+
+
+def get_image(uid):
+	return ldap_get_member(uid).jpegPhoto
