@@ -1,15 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-
-{% include "include/head.html" %}
-
-<body>
-
 {% include "include/nav.html" %}
 
 
 {#Body#}
-
 <div id="profile-container" class="container">
 	<div class="card">
 		<div class="card-block card-text">
@@ -19,7 +11,7 @@
 				<div class="card-block card-text">
 					{% if member_info.active %}
 
-					<h1 class="name">{{member_info.name}} <span class="active">   Active Member</span> </h1>
+					<h1 class="name"><span><input class="" id="name-field" type="text" value="{{member_info.name}}"></span> <span class="active">   Active Member</span> </h1>
 
 					{% else %}
 
@@ -41,27 +33,25 @@
 
 					<br>
 
-					{% if member_info.birthday %}
-
-					<h6 class="birthday">{{member_info.birthday}}</h6>
-
-					{% endif %}
-
-					{% if member_info.user_obj.mobile %}
+					<h6 class="birthday">Birthday: (yyyymmdd...) <span><input class="" id="birthday-field" type="text" value="{{member_info.user_obj.birthday}}"></span></h6>
 
 					<h6 class="email">E-Mail: {{member_info.user_obj.mail}}</h6>
 
-					{% endif %}
+					<h6 class="phone">Phone: <span><input class="" id="phone-field" type="text" value="{{member_info.user_obj.mobile}}"></span></h6>
 
-					{% if member_info.user_obj.mobile %}
-
-					<h6 class="phone">Phone: {{member_info.user_obj.mobile}}</h6>
-
-					{% endif %}
 
 					{% if member_info.uid == info.uid %}
 
-					<button class="btn btn-success proxstar-actionbtn" id="edit">EDIT</button>
+					<button class="btn btn-success proxstar-actionbtn" id="save">SAVE</button>
+
+					<!-- <button class="btn btn-success proxstar-actionbtn" id="photo">UPLOAD PHOTO</button> -->
+
+					<br>
+
+					<!-- <form enctype=multipart/form-data ">
+					    <input type=file accept="image/*" name=photo id="photo">
+					    <input type="submit" id="photo-button">
+					</form> -->
 
 					{% endif %}
 
@@ -81,20 +71,15 @@
 						<h5 class="info">Room Number: {{ member_info.rn }}</h5>
 						<br>
 
-						{% if member_info.user_obj.drinkBalance %} 
 						<h5 class="info">Drink Balance: {{ member_info.user_obj.drinkBalance }}</h5>
 						<br>
-						{% endif %}
 
-						{% if member_info.user_obj.loginShell %} 
 						<h5 class="info">Login Shell: {{ member_info.user_obj.loginShell }}</h5>
 						<br>
-						{% endif %}
 
-						{% if member_info.plex %}
-						<h5 class="info">Plex: {{ member_info.plex }}</h5>
+						<h5 class="info">Plex: <span><input class="" id="plex-field" type="text" value="{{member_info.plex}}"></span></h5>
 						<br>
-						{% endif %}
+
 					</div>
 				</div>
 				<div class="col-sm-3 col-md-6">
@@ -106,14 +91,12 @@
 						<h5 class="info">Member Since: {{ member_info.memberSince }}</h5>
 						<br>
 
-						{% if member_info.user_obj.ibutton and editable %} 
 						<h5 class="info">iButton: {{ member_info.user_obj.ibutton }}</h5>
-						{% endif %}
+
 					</div>
 				</div>
 			</div>
 
-			{% if member_info.user_obj.ritAlumni or member_info.user_obj.ritDn or member_info.user_obj.major or member_info.user_obj.ritYear %}
 			<hr class="divider"></hr>
 
 			<div class="panel-heading">
@@ -122,34 +105,24 @@
 			<div class="row">
 				<div class="col-sm-3 col-md-6">
 					<div class="card-block card-text">
-						{% if member_info.user_obj.ritDn %} 
 						<h5 class="info">RIT Username: {{ member_info.ritUid }}</h5>
 						<br>
-						{% endif %}
-						
-						{% if member_info.user_obj.major %} 
-						<h5 class="info">Major: {{ member_info.user_obj.major }}</h5>
+
+						<h5 class="info">Major: <span><input class="" id="major-field" type="text" value="{{member_info.user_obj.major}}"></span></h5>
 						<br>
-						{% endif %}
 					</div>
 				</div>
 				<div class="col-sm-3 col-md-6">
 					<div class="card-block card-text">
-						{% if member_info.user_obj.ritYear %} 
-						<h5 class="info">RIT Year: {{ member_info.user_obj.ritYear }}</h5>
+						<h5 class="info">RIT Year: <span><input class="" id="ritYear-field" type="text" value="{{member_info.user_obj.ritYear}}"></span></h5>
 						<br>
-						{% endif %}
 
-						{% if member_info.user_obj.ritAlumni %} 
-						<h5 class="info">RIT Alumni: {{ member_info.user_obj.ritAlumni }}</h5>
+						<h5 class="info">RIT Alumni: {{member_info.user_obj.ritAlumni}}</h5>
 						<br>
-						{% endif %}
 					</div>
 				</div>
 			</div>
-			{%endif%}
 
-			{% if member_info.user_obj.homepageURL or member_info.user_obj.blogURL or member_info.user_obj.github or member_info.user_obj.googleScreenName or member_info.user_obj.twitterName  %}
 			<hr class="divider"></hr>
 			<div class="panel-heading">
                     	<h3 class="panel-heading">Social Media</h3>
@@ -157,37 +130,31 @@
 			<div class="row">
 				<div class="col-sm-3 col-md-6">
 					<div class="card-block card-text">
-						{% if member_info.user_obj.homepageURL %} 
-						<h5 class="info">Homepage: {{ member_info.user_obj.homepageURL }}</h5>
-						<br>
-						{% endif %}
-						
-						{% if member_info.user_obj.github %} 
-						<h5 class="info">Github: {{ member_info.user_obj.github }}</h5>
-						<br>
-						{% endif %}
 
-						{% if member_info.user_obj.twitterName %} 
-						<h5 class="info">Twitter: {{ member_info.user_obj.twitterName }}</h5>
+						<h5 class="info">Homepage: <span><input class="" id="website-field" type="text" value="{{member_info.user_obj.homepageURL}}"></span></h5>
 						<br>
-						{% endif %}
+
+						<h5 class="info">Github: <span><input class="" id="github-field" type="text" value="{{member_info.user_obj.github}}"></span></h5>
+						<br>
+
+						<h5 class="info">Twitter: <span><input class="" id="twitter-field" type="text" value="{{member_info.user_obj.twitterName}}"></span></h5>
+						<br>
+
 					</div>
 				</div>
 				<div class="col-sm-3 col-md-6">
 					<div class="card-block card-text">
-						{% if member_info.user_obj.blogURL %} 
-						<h5 class="info">Blog: {{ member_info.user_obj.blogURL }}</h5>
-						<br>
-						{% endif %}
 
-						{% if member_info.user_obj.googleScreenName %} 
-						<h5 class="info">Google: {{ member_info.user_obj.googleScreenName }}</h5>
+						<h5 class="info">Blog: <span><input class="" id="blog-field" type="text" value="{{member_info.user_obj.blogURL}}"></span></h5>
 						<br>
-						{% endif %}
+
+						<h5 class="info">Google: <span><input class="" id="google-field" type="text" value="{{member_info.user_obj.googleScreenName}}"></span></h5>
+						<br>
+
 					</div>
 				</div>
 			</div>
-			{%endif%}			
+			
 			<br>
 
 
@@ -198,7 +165,3 @@
 {% include "include/footer.html" %}
 
 {% include "include/scripts.html" %}
-
-</body>
-
-</html>

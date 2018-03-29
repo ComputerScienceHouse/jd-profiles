@@ -187,6 +187,43 @@ def ldap_set_non_current_student(account):
     ldap_get_member.cache_clear()
 
 
+def ldap_update_profile(dict, uid):
+	account = ldap.get_member(uid, uid=True)
+
+	if not dict["name"] == account.cn:
+		account.cn = dict["name"]
+
+	if not dict["birthday"] == account.birthday:
+		account.birthday = dict["birthday"]
+
+	if not dict["phone"] == account.mobile:
+		account.mobile = dict["phone"]
+
+	if not dict["plex"] == account.plex:
+		account.plex = dict["plex"]
+
+	if not dict["major"] == account.major:
+		account.major = dict["major"]
+
+	if not dict["ritYear"] == account.ritYear:
+		account.ritYear = dict["ritYear"]
+
+	if not dict["website"] == account.homepageURL:
+		account.homepageURL = dict["website"]
+
+	if not dict["github"] == account.github:
+		account.github = dict["github"]
+
+	if not dict["twitter"] == account.twitterName:
+		account.twitterName = dict["twitter"]
+
+	if not dict["blog"] == account.blogURL:
+		account.blogURL = dict["blog"]
+
+	if not dict["google"] == account.googleScreenName:
+		account.googleScreenName = dict["google"]
+
+
 def ldap_get_roomnumber(account):
     try:
         return account.roomNumber
