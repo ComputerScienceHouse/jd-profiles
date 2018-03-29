@@ -1,13 +1,13 @@
-import hashlib, requests
+import hashlib, requests, ldap
 
 
 from functools import lru_cache
-from Profiles import ldap
+from Profiles import _ldap
 
 
 
 def _ldap_get_group_members(group):
-    return ldap.get_group(group).get_members()
+    return _ldap.get_group(group).get_members()
 
 
 def _ldap_is_member_of_group(member, group):
@@ -20,17 +20,17 @@ def _ldap_is_member_of_group(member, group):
 
 def _ldap_add_member_to_group(account, group):
     if not _ldap_is_member_of_group(account, group):
-        ldap.get_group(group).add_member(account, dn=False)
+        _ldap.get_group(group).add_member(account, dn=False)
 
 
 def _ldap_remove_member_from_group(account, group):
     if _ldap_is_member_of_group(account, group):
-        ldap.get_group(group).del_member(account, dn=False)
+        _ldap.get_group(group).del_member(account, dn=False)
 
 
 @lru_cache(maxsize=1024)
 def _ldap_is_member_of_directorship(account, directorship):
-    directors = ldap.get_directorship_heads(directorship)
+    directors = _ldap.get_directorship_heads(directorship)
     for director in directors:
         if director.uid == account.uid:
             return True
@@ -41,7 +41,7 @@ def _ldap_is_member_of_directorship(account, directorship):
 
 
 def ldap_get_member(username):
-    return ldap.get_member(username, uid=True)
+    return _ldap.get_member(username, uid=True)
 
 
 @lru_cache(maxsize=1024)
@@ -188,7 +188,7 @@ def ldap_set_non_current_student(account):
 
 
 def ldap_update_profile(dict, uid):
-	account = ldap.get_member(uid, uid=True)
+	account = _ldap.get_member(uid, uid=True)
 
 	if not dict["name"] == account.cn:
 		account.cn = dict["name"]
@@ -233,6 +233,13 @@ def ldap_get_roomnumber(account):
 
 @lru_cache(maxsize=1024)
 def ldap_search_members(query):
+  #   con = _ldap.get_con()
+  #   results= con.search_s(
+		# "dc=csh,dc=rit,dc=edu",
+		# ldap.SCOPE_SUBTREE,
+		# "(uid=%s)" % query,
+		# ['uid'])
+
     active = ldap_get_all_members();
     results = []
     query = query.lower()
@@ -249,7 +256,7 @@ def ldap_search_members(query):
     return results
 
 
-@lru_cache(maxsize=1024)
+# @lru_cache(maxsize=1024)
 def get_image(uid):
 	return ldap_get_member(uid).jpegPhoto
 

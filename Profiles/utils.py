@@ -3,13 +3,17 @@
 import subprocess
 import datetime
 import imghdr
+import ldap
+import io
 
 
 from flask import session
 from functools import wraps
 from functools import lru_cache
-from Profiles import ldap
+from Profiles import _ldap
 from Profiles.ldap import *
+from PIL import Image
+from resizeimage import resizeimage
 
 
 def before_request(func):
@@ -18,7 +22,7 @@ def before_request(func):
         git_revision = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('utf-8').rstrip()
         uuid = str(session["userinfo"].get("sub", ""))
         uid = str(session["userinfo"].get("preferred_username", ""))
-        user_obj = ldap.get_member(uid, uid=True)
+        user_obj = _ldap.get_member(uid, uid=True)
         info = {
             "git_revision": git_revision,
             "uuid": uuid,
@@ -122,8 +126,31 @@ def parse_alum_name(gecos):
     return gecos.split(",")
 
 
-def process_image(photo):
-    if imghdr.what(photo) == 'jpeg':
+def process_image(photo, uid):
+    if imghdr.what(photo):
+        key = 'jpegPhoto'
+        account = ldap_get_member(uid)
+        image = Image.open(photo)
+        icon = resizeimage.resize_contain(image, [300, 300])
+        icon = icon.convert("RGB")
+        bin_icon = io.BytesIO()
+        icon.save(bin_icon, format='JPEG') 
+
+        con = _ldap.get_con()
+
+        exists = account.jpegPhoto
+
+        if not exists:
+            ldap_mod = ldap.MOD_ADD
+        else:
+            ldap_mod = ldap.MOD_REPLACE
+
+        mod = (ldap_mod, key, bin_icon.getvalue())
+
+        mod_attrs = [mod]
+
+        con.modify_s(account.get_dn(), mod_attrs)
+
         return True
     else:
         return False

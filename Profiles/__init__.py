@@ -5,6 +5,7 @@ import csh_ldap
 
 import flask_migrate
 from flask import Flask, render_template, jsonify, request, redirect, send_from_directory
+from flask_uploads import UploadSet, configure_uploads, IMAGES
 from flask_pyoidc.flask_pyoidc import OIDCAuthentication
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
@@ -33,7 +34,12 @@ migrate = flask_migrate.Migrate(app, db)
 requests.packages.urllib3.disable_warnings()
 
 # LDAP
-ldap = csh_ldap.CSHLDAP(app.config['LDAP_BIND_DN'], app.config['LDAP_BIND_PASS'])
+_ldap = csh_ldap.CSHLDAP(app.config['LDAP_BIND_DN'], app.config['LDAP_BIND_PASS'])
+
+photos = UploadSet('photos', IMAGES)
+
+app.config['UPLOADED_PHOTOS_DEST'] = 'static/img'
+configure_uploads(app, photos)
 
 from Profiles.utils import before_request, get_member_info, process_image
 from Profiles.ldap import ldap_update_profile, get_image, get_gravatar, ldap_get_active_members, ldap_get_all_members, ldap_get_member, ldap_search_members, ldap_is_active, ldap_get_eboard, _ldap_get_group_members
@@ -82,6 +88,7 @@ def results(uid=None, info=None):
 @auth.oidc_auth
 @before_request
 def search(searched=None, info=None):
+    # return jsonify(ldap_search_members(searched))
     return render_template("members.html", 
     						  info=info, 
     						  title = "Search Results: "+searched,
@@ -122,6 +129,15 @@ def update(uid=None, info=None):
     else:
         ldap_update_profile(request.form, info['uid'])
         return ""
+
+
+@app.route('/upload', methods=['GET', 'POST'])
+@auth.oidc_auth
+@before_request
+def upload(uid=None, info=None):
+    if request.method == 'POST' and 'photo' in request.files and process_image(request.files['photo'], info['uid']):
+        return redirect('/', 302)
+    return redirect('/', 302)
 
 
 @app.route("/logout")

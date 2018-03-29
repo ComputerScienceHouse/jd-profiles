@@ -53,6 +53,11 @@
 					    <input type="submit" id="photo-button">
 					</form> -->
 
+					<form method=POST accept="image/*" enctype=multipart/form-data action="{{ url_for('upload') }}">
+					    <input type=file name=photo>
+					    <input type="submit">
+					</form>
+
 					{% endif %}
 
 				</div>
