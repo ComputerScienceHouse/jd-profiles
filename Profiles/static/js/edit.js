@@ -31,7 +31,6 @@ $(function() {
 				"plex": plex,
 				"major": major,
 				"ritYear": ritYear,
-				"ritAlumni": ritAlumni,
 				"website": website,
 				"github": github,
 				"twitter": twitter,
@@ -46,5 +45,27 @@ $(function() {
 				console.log(error);
 			}
 		});
+	});
+});
+
+$(function() {
+	$("#photo-button").on('click', function (e) {
+
+
+			var photo = $("#photo").val();
+			$.ajax({
+				url: '/update',
+				data: {
+					"photo": photo
+				},
+				method: 'POST',
+				success: function (data, textStatus, jqXHR) {
+				      
+				},
+				error: function(error) {
+					console.log(error);
+				}
+			});
+		
 	});
 });

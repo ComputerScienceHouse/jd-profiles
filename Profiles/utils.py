@@ -2,6 +2,7 @@
 # https://github.com/liam-middlebrook/gallery
 import subprocess
 import datetime
+import imghdr
 
 
 from flask import session
@@ -119,3 +120,10 @@ def parse_account_year(date):
 
 def parse_alum_name(gecos):
     return gecos.split(",")
+
+
+def process_image(photo):
+    if imghdr.what(photo) == 'jpeg':
+        return True
+    else:
+        return False

@@ -44,6 +44,15 @@
 
 					<button class="btn btn-success proxstar-actionbtn" id="save">SAVE</button>
 
+					<!-- <button class="btn btn-success proxstar-actionbtn" id="photo">UPLOAD PHOTO</button> -->
+
+					<br>
+
+					<!-- <form enctype=multipart/form-data ">
+					    <input type=file accept="image/*" name=photo id="photo">
+					    <input type="submit" id="photo-button">
+					</form> -->
+
 					{% endif %}
 
 				</div>
@@ -108,7 +117,7 @@
 						<h5 class="info">RIT Year: <span><input class="" id="ritYear-field" type="text" value="{{member_info.user_obj.ritYear}}"></span></h5>
 						<br>
 
-						<h5 class="info">RIT Alumni: <span><input class="" id="alumni-field" type="text" value="{{member_info.user_obj.ritAlumni}}"></span></h5>
+						<h5 class="info">RIT Alumni: {{member_info.user_obj.ritAlumni}}</h5>
 						<br>
 					</div>
 				</div>
