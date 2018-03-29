@@ -8,4 +8,5 @@ flask-optimize
 PyMySQL
 pyGravatar
 pillow
-
+Flask_Uploads
+python-resize-image

@@ -54,7 +54,7 @@ $(function() {
 
 			var photo = $("#photo").val();
 			$.ajax({
-				url: '/update',
+				url: '/upload',
 				data: {
 					"photo": photo
 				},
