@@ -104,6 +104,23 @@ def group(group=None, info=None):
     						    members=_ldap_get_group_members(group))
 
 
+@app.route("/edit", methods=["GET"])
+@auth.oidc_auth
+@before_request
+def edit(uid=None, info=None):
+    return render_template("edit.html", 
+                                        info=info, 
+                                        member_info=get_member_info(info['uid']))
+
+
+@app.route("/update", methods=["POST"])
+@auth.oidc_auth
+@before_request
+def update(uid=None, info=None):
+    if request.method == "POST":
+        return request.form
+
+
 @app.route("/logout")
 @auth.oidc_logout
 def logout():
