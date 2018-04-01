@@ -10,3 +10,4 @@ pyGravatar
 pillow
 Flask_Uploads
 python-resize-image
+pylint

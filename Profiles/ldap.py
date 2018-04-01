@@ -1,9 +1,7 @@
-import hashlib, requests, ldap
-
-
+import hashlib
 from functools import lru_cache
-from Profiles import _ldap
 
+from Profiles import _ldap
 
 
 def _ldap_get_group_members(group):
@@ -37,7 +35,7 @@ def _ldap_is_member_of_directorship(account, directorship):
     return False
 
 
-#Getters 
+# Getters
 
 
 def ldap_get_member(username):
@@ -80,10 +78,12 @@ def ldap_get_groups(account):
 
 @lru_cache(maxsize=1024)
 def ldap_get_eboard():
-    members = _ldap_get_group_members("eboard-chairman") + _ldap_get_group_members("eboard-evaluations") + _ldap_get_group_members("eboard-financial") + _ldap_get_group_members("eboard-history") + _ldap_get_group_members("eboard-imps") + _ldap_get_group_members("eboard-opcomm") + _ldap_get_group_members("eboard-research") + _ldap_get_group_members("eboard-social")
+    members = _ldap_get_group_members("eboard-chairman") + _ldap_get_group_members(
+        "eboard-evaluations") + _ldap_get_group_members("eboard-financial") + _ldap_get_group_members(
+        "eboard-history") + _ldap_get_group_members("eboard-imps") + _ldap_get_group_members(
+        "eboard-opcomm") + _ldap_get_group_members("eboard-research") + _ldap_get_group_members("eboard-social")
 
     return members
-
 
 
 # Status checkers
@@ -187,41 +187,41 @@ def ldap_set_non_current_student(account):
     ldap_get_member.cache_clear()
 
 
-def ldap_update_profile(dict, uid):
-	account = _ldap.get_member(uid, uid=True)
+def ldap_update_profile(form_data, uid):
+    account = _ldap.get_member(uid, uid=True)
 
-	if not dict["name"] == account.cn:
-		account.cn = dict["name"]
+    if not form_data["name"] == account.cn:
+        account.cn = form_data["name"]
 
-	if not dict["birthday"] == account.birthday:
-		account.birthday = dict["birthday"]
+    if not form_data["birthday"] == account.birthday:
+        account.birthday = form_data["birthday"]
 
-	if not dict["phone"] == account.mobile:
-		account.mobile = dict["phone"]
+    if not form_data["phone"] == account.mobile:
+        account.mobile = form_data["phone"]
 
-	if not dict["plex"] == account.plex:
-		account.plex = dict["plex"]
+    if not form_data["plex"] == account.plex:
+        account.plex = form_data["plex"]
 
-	if not dict["major"] == account.major:
-		account.major = dict["major"]
+    if not form_data["major"] == account.major:
+        account.major = form_data["major"]
 
-	if not dict["ritYear"] == account.ritYear:
-		account.ritYear = dict["ritYear"]
+    if not form_data["ritYear"] == account.ritYear:
+        account.ritYear = form_data["ritYear"]
 
-	if not dict["website"] == account.homepageURL:
-		account.homepageURL = dict["website"]
+    if not form_data["website"] == account.homepageURL:
+        account.homepageURL = form_data["website"]
 
-	if not dict["github"] == account.github:
-		account.github = dict["github"]
+    if not form_data["github"] == account.github:
+        account.github = form_data["github"]
 
-	if not dict["twitter"] == account.twitterName:
-		account.twitterName = dict["twitter"]
+    if not form_data["twitter"] == account.twitterName:
+        account.twitterName = form_data["twitter"]
 
-	if not dict["blog"] == account.blogURL:
-		account.blogURL = dict["blog"]
+    if not form_data["blog"] == account.blogURL:
+        account.blogURL = form_data["blog"]
 
-	if not dict["google"] == account.googleScreenName:
-		account.googleScreenName = dict["google"]
+    if not form_data["google"] == account.googleScreenName:
+        account.googleScreenName = form_data["google"]
 
 
 def ldap_get_roomnumber(account):
@@ -233,14 +233,14 @@ def ldap_get_roomnumber(account):
 
 @lru_cache(maxsize=1024)
 def ldap_search_members(query):
-  #   con = _ldap.get_con()
-  #   results= con.search_s(
-		# "dc=csh,dc=rit,dc=edu",
-		# ldap.SCOPE_SUBTREE,
-		# "(uid=%s)" % query,
-		# ['uid'])
+    #   con = _ldap.get_con()
+    #   results= con.search_s(
+    # "dc=csh,dc=rit,dc=edu",
+    # ldap.SCOPE_SUBTREE,
+    # "(uid=%s)" % query,
+    # ['uid'])
 
-    active = ldap_get_all_members();
+    active = ldap_get_all_members()
     results = []
     query = query.lower()
 
@@ -258,13 +258,12 @@ def ldap_search_members(query):
 
 # @lru_cache(maxsize=1024)
 def get_image(uid):
-	return ldap_get_member(uid).jpegPhoto
+    return ldap_get_member(uid).jpegPhoto
 
 
 @lru_cache(maxsize=1024)
 def get_gravatar(uid):
-	addr = uid + "@csh.rit.edu"
-	url = "https://gravatar.com/avatar/" + hashlib.md5(addr.encode('utf8')).hexdigest() +".jpg?d=mm&s=250"
+    addr = uid + "@csh.rit.edu"
+    url = "https://gravatar.com/avatar/" + hashlib.md5(addr.encode('utf8')).hexdigest() + ".jpg?d=mm&s=250"
 
-	return url
-
+    return url

@@ -1,0 +1,27 @@
+{
+  "title": "CSH Profiles",
+  "name": "csh-profiles",
+  "version": "2.0.0",
+  "description": "CSH LDAP Profiles",
+  "bugs": {
+    "url": "https://github.com/ComputerScienceHouse/profiles/issues",
+    "email": "matted@csh.rit.edu"
+  },
+  "license": "Apache",
+  "author": "Devin Matte",
+  "contributors": [
+    "Devin Matte",
+    "Nate Dooley"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ComputerScienceHouse/profiles.git"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-clean-css": "^3.9.2",
+    "gulp-rename": "^1.2.2",
+    "gulp-sass": "^3.1.0",
+    "require-dir": "^1.0.0"
+  }
+}

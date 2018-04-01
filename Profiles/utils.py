@@ -1,19 +1,19 @@
 # Credit to Liam Middlebrook and Ram Zallan
 # https://github.com/liam-middlebrook/gallery
-import subprocess
-import datetime
 import imghdr
-import ldap
 import io
-
-
-from flask import session
+import subprocess
 from functools import wraps
-from functools import lru_cache
-from Profiles import _ldap
-from Profiles.ldap import *
+
+import ldap
 from PIL import Image
+from flask import session
 from resizeimage import resizeimage
+
+from Profiles import _ldap
+from Profiles.ldap import ldap_get_member, ldap_is_active, ldap_get_groups, ldap_is_onfloor, ldap_get_roomnumber, \
+    ldap_is_intromember, ldap_is_eboard, ldap_is_financial_director, ldap_is_eval_director, ldap_is_rtp, \
+    ldap_is_chairman, ldap_is_history, ldap_is_imps, ldap_is_social, ldap_is_rd
 
 
 def before_request(func):
@@ -35,13 +35,14 @@ def before_request(func):
 
     return wrapped_function
 
+
 def get_member_info(uid):
     account = ldap_get_member(uid)
 
     if ldap_is_active(account):
-        alumInfo = None
+        alum_info = None
     else:
-        alumInfo = parse_alum_name(account.gecos)
+        alum_info = parse_alum_name(account.gecos)
 
     member_info = {
         "user_obj": account,
@@ -50,7 +51,7 @@ def get_member_info(uid):
         "uid": account.uid,
         "ritUid": parse_rit_uid(account.ritDn),
         "name": account.cn,
-        "alumInfo": alumInfo,
+        "alumInfo": alum_info,
         "active": ldap_is_active(account),
         "onfloor": ldap_is_onfloor(account),
         "room": ldap_get_roomnumber(account),
@@ -68,47 +69,45 @@ def get_member_info_string(uid):
     account = ldap_get_member(uid)
     member_info = ""
     if ldap_is_onfloor(account) and ldap_is_active(account):
-        member_info+=("On Floor")
+        member_info += ("On Floor")
     if not ldap_is_onfloor(account) and ldap_is_active(account):
-        member_info+=("Off Floor")
+        member_info += ("Off Floor")
     if ldap_is_intromember(account):
-        member_info+=(", Freshman")
+        member_info += (", Freshman")
     if ldap_is_eboard(account):
-        member_info+=(", Eboard")
+        member_info += (", Eboard")
     if ldap_is_financial_director(account):
-        member_info+=(", Financial")
+        member_info += (", Financial")
     if ldap_is_eval_director(account):
-        member_info+=(", Evals")
+        member_info += (", Evals")
     if ldap_is_rtp(account):
-        member_info+=(", RTP")
+        member_info += (", RTP")
     if ldap_is_chairman(account):
-        member_info+=(", Chairman")
+        member_info += (", Chairman")
     if ldap_is_history(account):
-        member_info+=(", History")
+        member_info += (", History")
     if ldap_is_imps(account):
-        member_info+=(", House Improvements")
-    # if ldap_is_social(account):
-    #     member_info+=(", Social")
+        member_info += (", House Improvements")
+    if ldap_is_social(account):
+        member_info += (", Social")
     if ldap_is_rd(account):
-        member_info+=(", R&D")
+        member_info += (", R&D")
     return member_info
 
 
 def parse_date(date):
-    if(date):
+    if date:
         year = date[0:4]
         month = date[4:6]
         day = date[6:8]
         return month + "-" + day + "-" + year
-    else:
-        return False
-   
+    return False
+
 
 def parse_rit_uid(dn):
     if dn:
         return dn.split(",")[0][4:]
-    else:
-        return None
+    return None
 
 
 def parse_account_year(date):
@@ -118,8 +117,7 @@ def parse_account_year(date):
         if month <= 8:
             year = year - 1
         return year
-    else:
-        return None
+    return None
 
 
 def parse_alum_name(gecos):
@@ -134,7 +132,7 @@ def process_image(photo, uid):
         icon = resizeimage.resize_contain(image, [300, 300])
         icon = icon.convert("RGB")
         bin_icon = io.BytesIO()
-        icon.save(bin_icon, format='JPEG') 
+        icon.save(bin_icon, format='JPEG')
 
         con = _ldap.get_con()
 
