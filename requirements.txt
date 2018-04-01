@@ -1,0 +1,12 @@
+requests
+csh_ldap
+flask
+flask_sqlalchemy
+flask_migrate
+flask-pyoidc
+flask-optimize
+PyMySQL
+pyGravatar
+pillow
+Flask_Uploads
+python-resize-image

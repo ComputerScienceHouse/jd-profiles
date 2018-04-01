@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+
+{% include "include/head.html" %}
+
+<body>
+
+{% include "include/nav.html" %}
+
+
+{#Body#}
+
+<img src="https://profiles.csh.rit.edu/image/{{ info.uid }}">
+
+User Name: {{ info.user_obj.uid }}
+Full Name: {{ info.user_obj.gecos }}
+Plex: {{ info.user_obj.plex }}
+
+{% include "include/footer.html" %}
+
+{% include "include/scripts.html" %}
+
+</body>
+
+</html>
